@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Zeppelin — ADMIN DASHBOARD</title>
-<link rel="icon" type="image/png" href="D:/Bima Adhitya/Ico/icov2.png" />
+<link rel="icon" type="image/png" href="icov2.png" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -33,7 +33,7 @@
   .app{max-width:1400px;margin:0 auto}
   header.app-header{
     display:flex; align-items:center; gap:16px; margin-bottom:24px; padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color); flex-wrap: wrap; /* (RESPONSIVE) */
   }
   .logo{
     width:48px; height:48px; border-radius:var(--radius);
@@ -43,7 +43,7 @@
   }
   .title .name{font-size:22px;font-weight:800}
   .title .tag{font-size:13px;color:var(--muted);font-weight:500;}
-  .controls{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .controls{margin-left:auto;display:flex;gap:10px;align-items:center; flex-wrap: wrap;} /* (RESPONSIVE) */
   .btn{
     background:var(--primary); color:#fff; border:none; padding:9px 14px; border-radius:8px;
     cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;
@@ -73,14 +73,14 @@
     color: var(--primary); margin-top: 8px;
   }
   .small{font-size:13px;color:var(--muted);font-weight:500;}
-  .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+  .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px; flex-wrap: wrap;} /* (RESPONSIVE) */
   .filter-bar input, .filter-bar select{
     padding:9px 12px; border-radius:8px; border:1px solid var(--border-color);
     background:var(--card); color: var(--text); font-size:14px; font-family: 'Inter', sans-serif;
   }
   .filter-bar input::placeholder { color: var(--muted); }
   .filter-bar #exportCsv { background: transparent; color: var(--text); font-weight: 500; }
-  .table-wrap{overflow:auto}
+  .table-wrap{overflow:auto} /* Ini adalah cara terbaik untuk tabel admin yang lebar */
   table{width:100%;border-collapse:collapse;min-width:900px}
   th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border-color);vertical-align: middle;}
   th{
@@ -101,7 +101,7 @@
   .cat-low{background:#e0f2fe;color:#0284c7}
   .cat-normal{background:#fffbeb;color:#d97706}
   .cat-critical{background:#fee2e2;color:#dc2626}
-  .pagination{display:flex;gap:6px;justify-content:flex-end;margin-top:16px}
+  .pagination{display:flex;gap:6px;justify-content:flex-end;margin-top:16px; flex-wrap: wrap;} /* (RESPONSIVE) */
   .pagination button{
     padding:6px 12px; border-radius:6px; border:1px solid var(--border-color);
     background:var(--card); color: var(--text); font-weight: 500; cursor:pointer;
@@ -112,9 +112,13 @@
   }
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none;
-    align-items:center; justify-content:center; z-index:9999;
+    align-items:center; justify-content:center; z-index:9999; padding: 16px; /* (RESPONSIVE) */
   }
-  .modal{ width:720px; background:var(--card); padding: 24px; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.35); }
+  .modal{ 
+    width:720px; max-width: 100%; /* (RESPONSIVE) */
+    background:var(--card); padding: 24px; border-radius:12px; 
+    box-shadow:0 12px 40px rgba(0,0,0,0.35); 
+  }
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   input,select,textarea{
     width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color);
@@ -128,11 +132,12 @@
   footer.small{ margin-top:32px; text-align:center; color:var(--muted); font-size:13px; }
   #logPopup, #globalLogPopup, #summaryPopup {
     display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
-    z-index: 6000; align-items: center; justify-content: center;
+    z-index: 6000; align-items: center; justify-content: center; padding: 16px; /* (RESPONSIVE) */
   }
   #logPopup > div, #globalLogPopup > div, #summaryPopup > div {
     background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
-    width: 800px; max-width: 95%; max-height: 85%; overflow: auto;
+    width: 800px; max-width: 100%; /* (RESPONSIVE) */
+    max-height: 85%; overflow: auto;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
   }
   #globalLogContent, #logContent, #summaryContent {
@@ -143,14 +148,16 @@
   #logControlPanel {
     display: flex; gap: 10px; align-items: center; margin-bottom: 16px;
     padding-bottom: 16px; border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap; /* (RESPONSIVE) */
   }
   /* (ADMIN) STYLE LOGIN */
   #loginScreen {
     position: fixed; inset: 0; background: var(--bg); z-index: 10000;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; padding: 16px; /* (RESPONSIVE) */
   }
   #loginBox {
-    width: 400px; max-width: 90%; background: var(--card); padding: 28px;
+    width: 400px; max-width: 100%; /* (RESPONSIVE) */
+    background: var(--card); padding: 28px;
     border-radius: var(--radius); border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
   }
@@ -161,11 +168,58 @@
   #authError { color: var(--danger); font-size: 13px; text-align: center; margin-top: 10px; display: none; }
   .app-content { display: none; }
   
-  @media (max-width:900px){
-    .modal{width:95%}
-    table{min-width:800px}
-    .controls { flex-wrap: wrap; justify-content: flex-end; }
-    .filter-bar { flex-direction: column; align-items: stretch; }
+  /* (DIUBAH) Media Query yang ada disempurnakan */
+  @media (max-width: 900px) {
+    body { padding: 16px; }
+    .app { padding: 0; }
+    .modal { width: 95%; }
+    .form-row { grid-template-columns: 1fr; } /* Modal form tumpuk */
+    
+    .controls { 
+        justify-content: flex-start; /* (DIUBAH) */
+        gap: 8px;
+    }
+    .filter-bar { 
+        flex-direction: column; 
+        align-items: stretch; /* (DIUBAH) */
+        width: 100%; /* (BARU) */
+    }
+    .filter-bar input, .filter-bar select {
+        width: 100%; /* (BARU) */
+    }
+    /* (BARU) Ringkasan jadi 2 kolom */
+    .row {
+        grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    /* (BARU) Ringkasan jadi 1 kolom */
+    .row {
+        grid-template-columns: 1fr;
+    }
+    .controls {
+        /* Kosongkan agar bisa ditimpa */
+    }
+    /* (BARU) Tata ulang header admin di mobile */
+    .app-header { position: relative; }
+    .controls {
+        margin-left: 0;
+        width: 100%;
+        gap: 6px;
+        justify-content: flex-start;
+    }
+    .controls #userInfo { display: none; } /* Sembunyikan info user */
+    .controls #logoutBtn {
+        position: absolute;
+        top: 20px;
+        right: 0;
+    }
+    .controls #newReportBtn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
   }
 </style>
 </head>
@@ -342,17 +396,8 @@
 // ===================================================================
 // === (ADMIN) KONFIGURASI ===
 // ===================================================================
-// 1. (WAJIB) Daftarkan akun 'root@zeppelin.center' (password: adm123)
-//    lewat file user.html (Lakukan 1x saja)
-// 2. (WAJIB) Dapatkan UID-nya, dan tempel di bawah ini.
-//    (Lihat console F12 di user.html: firebase.auth().currentUser.uid)
-//
-// === PERUBAHAN: UID ADMIN TELAH DIMASUKKAN ===
-const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2"; 
-//
-// 3. (WAJIB) Email ini HARUS SAMA dengan yang Anda daftarkan.
+const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
 const ADMIN_EMAIL = "root@zeppelin.center";
-//
 // ===================================================================
 
 // === KONFIGURASI FIREBASE ===
@@ -364,6 +409,7 @@ const firebaseConfig = {
   storageBucket: "it-support-53eeb.firebasestorage.app",
   messagingSenderId: "573924501146",
   appId: "1:573924501146:web:12f34306ed675472322123",
+  /* (FIX 2) Error 'Unexpected token -' diperbaiki. 'measurementId:' ditambahkan kembali */
   measurementId: "G-33K6DDE1VR"
 };
 
@@ -373,7 +419,7 @@ const db = firebase.database();
 const auth = firebase.auth();
 const reportsRef = db.ref('reports'); 
 const counterRef = db.ref('counter'); 
-const usersRef = db.ref('users'); // Untuk mengambil nama user
+const usersRef = db.ref('users'); 
 
 /* Cache & State */
 let allReportsCache = []; 
@@ -395,7 +441,6 @@ function renderDashboard(){
   const byCat = {Low:0,Normal:0,Critical:0};
   all.forEach(r=>{ 
     byStatus[r.status] = (byStatus[r.status]||0)+1; 
-    // Kategori bisa null, beri default
     byCat[r.kategori || 'Normal'] = (byCat[r.kategori || 'Normal']||0)+1; 
   });
   document.getElementById('openCount').textContent = byStatus.Open || 0;
@@ -474,7 +519,6 @@ function renderTable(page = 1){
     const catClass = (r.kategori || 'normal').toLowerCase(); // default 'normal' jika kosong
     const cat = r.kategori ? `<span class="cat-badge cat-${catClass}">${r.kategori}</span>` : '...';
 
-    // Admin selalu punya akses penuh
     const action_buttons = `
         <button class="btn ghost" onclick="openModal('${r.id}')" style="padding: 4px 8px; font-size:12px;">Edit</button>
         <button class="btn ghost" onclick="deleteReport('${r.id}')" style="padding: 4px 8px; font-size:12px;">Hapus</button>
@@ -540,7 +584,7 @@ async function deleteReport(id){
   }
 }
 
-function showToast(txt, t=2500){ const el = document.createElement('div'); el.className='card'; el.style.position='fixed'; el.style.right='18px'; el.style.bottom='18px'; el.style.padding='10px 12px'; el.style.zIndex=9999; el.style.background = 'var(--primary)'; el.style.color = '#fff'; el.textContent = txt; document.body.appendChild(el); setTimeout(()=>el.remove(),t); }
+function showToast(txt, t=2500){ const el = document.createElement('div'); el.className='card'; el.style.position='fixed'; el.style.right='18px'; el.style.bottom='18px'; el.style.padding='10px 12px'; el.style.zIndex=99999; el.style.background = 'var(--primary)'; el.style.color = '#fff'; el.textContent = txt; document.body.appendChild(el); setTimeout(()=>el.remove(),t); }
 
 /* Generate ID */
 async function generateId() {
@@ -658,16 +702,13 @@ function exportToExcel(){
     const username = document.getElementById('loginUser').value;
     const pass = document.getElementById('loginPass').value;
     
-    // Validasi username 'root' dan password 'adm123'
     if (username.toLowerCase() !== 'root' || pass !== 'adm123') {
       showAuthError("Username atau Password salah.");
       return;
     }
 
-    // Jika lolos, login pakai email admin yang di-hardcode
     try {
       await auth.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
-      // auth.onAuthStateChanged akan menangani sisanya
     } catch (err) {
       showAuthError("Login Gagal. Pastikan akun 'root@zeppelin.center' (pass: adm123) sudah didaftarkan via user.html.");
     }
@@ -681,10 +722,9 @@ function exportToExcel(){
   /* (ADMIN) LISTENER OTENTIKASI */
   auth.onAuthStateChanged((user) => {
     if (user) {
-      // (ADMIN) Verifikasi bahwa ini ADALAH admin
       if (user.uid !== ADMIN_UID) {
         showAuthError("AKUN INI BUKAN ADMIN.");
-        auth.signOut(); // Langsung tendang jika bukan admin
+        auth.signOut(); 
         return;
       }
       
@@ -693,7 +733,6 @@ function exportToExcel(){
       appContent.style.display = 'block'; 
       userEmailDisplay.textContent = `ADMIN (root)`;
       
-      // Admin mendengarkan SEMUA reports
       if (!dbListenerActive) {
         reportsRef.on('value', (snapshot) => {
           const dataObj = snapshot.val();
@@ -710,7 +749,6 @@ function exportToExcel(){
       }
       
     } else {
-      // User Telah Logout
       currentUser = null;
       loginScreen.style.display = 'flex'; 
       appContent.style.display = 'none'; 
@@ -745,19 +783,17 @@ async function openModal(editId){
         return;
     }
     document.getElementById('m_pic').value = item.pic || '';
-    document.getElementById('m_nama').value = item.nama || ''; // Admin bisa lihat nama
-    document.getElementById('m_nama').readOnly = true; // Nama tidak bisa diubah
+    document.getElementById('m_nama').value = item.nama || ''; 
+    document.getElementById('m_nama').readOnly = true; 
     document.getElementById('m_jenis').value = item.jenis || 'Jaringan';
     document.getElementById('m_kategori').value = item.kategori || 'Normal';
     document.getElementById('m_catatan').value = item.catatan || '';
     document.getElementById('m_status').value = item.status || 'Open';
     
   } else {
-    // Admin membuat laporan baru (mungkin atas nama user)
     modalTitle.textContent = 'Tambah Laporan (Admin)';
     document.getElementById('m_status').value = 'Open';
     document.getElementById('m_kategori').value = 'Normal';
-    // Admin harus mengisi nama user secara manual
     document.getElementById('m_nama').readOnly = false;
   }
 }
@@ -776,23 +812,20 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
   const catatan = document.getElementById('m_catatan').value;
   const statusVal = document.getElementById('m_status').value;
   
-  // Admin harus mengisi PIC dan Kategori
   if(!pic || !nama || !jenis || !kategori){ alert('PIC, Nama, Jenis, dan Kategori wajib diisi.'); return; }
 
   let id;
   const isNew = !modalEditingId;
   let oldEntry = {};
-  let userUid; // UID pemilik laporan
+  let userUid; 
 
   if (isNew) {
     id = await generateId(); 
     if (!id) return; 
-    // Laporan yang dibuat Admin, 'uid' nya milik admin
     userUid = currentUser.uid;
   } else {
     id = modalEditingId;
     oldEntry = getReports().find(r => r.id === id) || {};
-    // Pertahankan UID pemilik asli
     userUid = oldEntry.uid || currentUser.uid; 
   }
   
@@ -813,7 +846,7 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
     created: createdExisting, created_iso: createdIsoExisting,
     updated: updatedVal, updated_iso: updatedIsoVal,
     logs: oldEntry.logs || [],
-    uid: userUid // UID pemilik laporan
+    uid: userUid 
   };
 
   if(entry.updated_iso && entry.created_iso && entry.status === 'Closed'){
