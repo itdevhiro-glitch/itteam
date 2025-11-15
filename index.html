@@ -130,22 +130,34 @@
   textarea{min-height:120px;resize: vertical;}
   .flex{display:flex;gap:8px;align-items:center}
   footer.small{ margin-top:32px; text-align:center; color:var(--muted); font-size:13px; }
-  #logPopup, #globalLogPopup, #summaryPopup {
+  
+  /* (MODIFIKASI) Popup
+     Sekarang menargetkan semua popup, termasuk popup user management
+  */
+  #logPopup, #globalLogPopup, #summaryPopup, #userManagementPopup {
     display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
     z-index: 6000; align-items: center; justify-content: center; padding: 16px; /* (RESPONSIVE) */
   }
-  #logPopup > div, #globalLogPopup > div, #summaryPopup > div {
+  #logPopup > div, #globalLogPopup > div, #summaryPopup > div, #userManagementPopup > div {
     background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
-    width: 800px; max-width: 100%; /* (RESPONSIVE) */
+    width: 900px; /* (DIUBAH) Sedikit lebih lebar */
+    max-width: 100%; /* (RESPONSIVE) */
     max-height: 85%; overflow: auto;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
   }
-  #globalLogContent, #logContent, #summaryContent {
-    font-size: 14px; margin-top: 10px; white-space: pre-wrap; line-height: 1.7;
+  #globalLogContent, #logContent, #summaryContent, #userManagementContent {
+    font-size: 14px; margin-top: 10px; line-height: 1.7;
     flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
   }
+  /* (BARU) Pastikan tabel di dalam popup responsif */
+  #userManagementContent table {
+      min-width: 600px;
+  }
+  #userManagementContent .actions {
+      display: flex; gap: 4px; flex-wrap: wrap;
+  }
   #summaryContent table { font-size: 13px; }
-  #logControlPanel {
+  #logControlPanel, #userManagementControlPanel {
     display: flex; gap: 10px; align-items: center; margin-bottom: 16px;
     padding-bottom: 16px; border-bottom: 1px solid var(--border-color);
     flex-wrap: wrap; /* (RESPONSIVE) */
@@ -191,6 +203,10 @@
     .row {
         grid-template-columns: 1fr 1fr;
     }
+    /* (BARU) Popup jadi lebih sempit */
+    #logPopup > div, #globalLogPopup > div, #summaryPopup > div, #userManagementPopup > div {
+        width: 95%;
+    }
   }
   
   @media (max-width: 600px) {
@@ -208,12 +224,18 @@
         width: 100%;
         gap: 6px;
         justify-content: flex-start;
+        flex-wrap: wrap; /* (BARU) Izinkan wrap */
     }
     .controls #userInfo { display: none; } /* Sembunyikan info user */
     .controls #logoutBtn {
         position: absolute;
         top: 20px;
         right: 0;
+    }
+    /* (BARU) Tombol header jadi lebih rapi di mobile */
+    .controls #backupBtn, .controls #restoreBtn, .controls #showGlobalLog, .controls #showUserManagement {
+        padding: 8px 10px;
+        flex-grow: 1; /* (BARU) Tombol jadi rata */
     }
     .controls #newReportBtn {
         width: 100%;
@@ -231,6 +253,7 @@
     <svg id="icon-upload" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
     <svg id="icon-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     <svg id="icon-log" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+    <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
   </defs>
 </svg>
 
@@ -266,6 +289,9 @@
       </button>
       <button id="showGlobalLog" class="btn ghost" title="Lihat Log Aktivitas">
          <svg><use href="#icon-log" /></svg>
+      </button>
+      <button id="showUserManagement" class="btn ghost" title="Manajemen User">
+         <svg><use href="#icon-users" /></svg>
       </button>
       <button id="newReportBtn" class="btn">
         <svg><use href="#icon-plus" /></svg>
@@ -390,6 +416,27 @@
   </div>
 </div>
 
+<div id="userManagementPopup">
+  <div>
+    <h3>👥 Manajemen User</h3>
+    <div id="userManagementControlPanel">
+      <label class="small" for="userFilterStatus">Filter Status:</label>
+      <select id="userFilterStatus" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border-color); background: var(--bg); color: var(--text);">
+        <option value="">Semua</option>
+        <option value="pending" selected>Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <span id="userCountInfo" style="margin-left:auto;font-size:13px;color:var(--muted);"></span>
+    </div>
+    <div id="userManagementContent">
+      </div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button id="closeUserManagement" class="btn">Tutup</button>
+    </div>
+  </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -409,8 +456,8 @@ const firebaseConfig = {
   storageBucket: "it-support-53eeb.firebasestorage.app",
   messagingSenderId: "573924501146",
   appId: "1:573924501146:web:12f34306ed675472322123",
-  /* (FIX 2) Error 'Unexpected token -' diperbaiki. 'measurementId:' ditambahkan kembali */
-  measurementId: "G-33K6DDE1VR"
+// (FIX 2) Error 'Unexpected token -' diperbaiki. 'measurementId:' ditambahkan kembali
+"measurementId": "G-33K6DDE1VR"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -419,10 +466,11 @@ const db = firebase.database();
 const auth = firebase.auth();
 const reportsRef = db.ref('reports'); 
 const counterRef = db.ref('counter'); 
-const usersRef = db.ref('users'); 
+const usersRef = db.ref('users'); /* (PENTING) Referensi ke data user */
 
 /* Cache & State */
 let allReportsCache = []; 
+let allUsersCache = []; /* (BARU) Cache untuk data user */
 let currentUser = null; 
 let dbListenerActive = false; 
 
@@ -500,7 +548,7 @@ function getFilteredSortedData(){
   return filtered;
 }
 
-/* (ADMIN) Render Table (Full Access) */
+/* (DIUBAH) Render Table (Menambahkan ikon Urgent) */
 let currentPage = 1;
 function renderTable(page = 1){
   currentPage = page;
@@ -519,6 +567,9 @@ function renderTable(page = 1){
     const catClass = (r.kategori || 'normal').toLowerCase(); // default 'normal' jika kosong
     const cat = r.kategori ? `<span class="cat-badge cat-${catClass}">${r.kategori}</span>` : '...';
 
+    // (BARU) Tambahkan ikon urgent jika r.urgent == true
+    const idText = r.urgent ? `🔥 ${r.id}` : r.id;
+
     const action_buttons = `
         <button class="btn ghost" onclick="openModal('${r.id}')" style="padding: 4px 8px; font-size:12px;">Edit</button>
         <button class="btn ghost" onclick="deleteReport('${r.id}')" style="padding: 4px 8px; font-size:12px;">Hapus</button>
@@ -526,8 +577,7 @@ function renderTable(page = 1){
       `;
 
     return `<tr>
-      <td>${r.id}</td>
-      <td>${r.pic || '...'}</td>
+      <td>${idText}</td> <td>${r.pic || '...'}</td>
       <td>${r.nama}</td>
       <td>${r.jenis}</td>
       <td>${cat}</td>
@@ -584,7 +634,31 @@ async function deleteReport(id){
   }
 }
 
-function showToast(txt, t=2500){ const el = document.createElement('div'); el.className='card'; el.style.position='fixed'; el.style.right='18px'; el.style.bottom='18px'; el.style.padding='10px 12px'; el.style.zIndex=99999; el.style.background = 'var(--primary)'; el.style.color = '#fff'; el.textContent = txt; document.body.appendChild(el); setTimeout(()=>el.remove(),t); }
+// (DIUBAH) showToast sekarang bisa menerima tipe (success, danger, warning)
+function showToast(txt, t = 3000, type = 'success') {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.style.position = 'fixed';
+    el.style.right = '18px';
+    el.style.bottom = '18px';
+    el.style.padding = '12px 16px';
+    el.style.zIndex = 99999;
+    
+    if (type === 'danger') {
+        el.style.background = 'var(--danger)';
+    } else if (type === 'warning') {
+        el.style.background = 'var(--warning)';
+    } else {
+        el.style.background = 'var(--primary)'; // Default
+    }
+    
+    el.style.color = '#fff';
+    el.textContent = txt;
+    el.style.fontWeight = '600';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), t);
+}
+
 
 /* Generate ID */
 async function generateId() {
@@ -608,7 +682,7 @@ function exportToExcel(){
   const rows = data.map(r=>({
     ID:r.id, PIC:r.pic, Nama:r.nama, JenisMasalah:r.jenis, Kategori:r.kategori||'-',
     Catatan:r.catatan||'-', Status:r.status, Dibuat:r.created||'-', Diperbarui:r.updated||'-',
-    Durasi:r.durationText||'-'
+    Durasi:r.durationText||'-', Urgent: r.urgent ? 'YA' : 'TIDAK' // (BARU) Tambah kolom urgent
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Laporan');
@@ -719,7 +793,7 @@ function exportToExcel(){
     await auth.signOut();
   });
 
-  /* (ADMIN) LISTENER OTENTIKASI */
+  /* (DIUBAH) LISTENER OTENTIKASI (Menambahkan listener child_changed untuk NOTIFIKASI URGENT) */
   auth.onAuthStateChanged((user) => {
     if (user) {
       if (user.uid !== ADMIN_UID) {
@@ -734,17 +808,52 @@ function exportToExcel(){
       userEmailDisplay.textContent = `ADMIN (root)`;
       
       if (!dbListenerActive) {
+        // Listener Laporan (Utama, untuk render tabel)
         reportsRef.on('value', (snapshot) => {
           const dataObj = snapshot.val();
           allReportsCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], id: key })) : [];
           renderTable(currentPage);
           renderDashboard(); 
           renderCharts(); 
-          console.log('Data admin dimuat dari Firebase.');
+          console.log('Data admin (reports) dimuat dari Firebase.');
         }, (error) => {
-          console.error("Firebase read failed:", error);
-          alert("Gagal terhubung ke database. Periksa koneksi atau rules.");
+          console.error("Firebase read (reports) failed:", error);
+          alert("Gagal terhubung ke database laporan. Periksa koneksi atau rules.");
         });
+
+        // (BARU) Listener untuk Notifikasi Urgent (child_changed)
+        reportsRef.on('child_changed', (snapshot) => {
+            const changedReport = snapshot.val();
+            if (!changedReport) return;
+            
+            // Cek data lama di cache
+            const oldReport = allReportsCache.find(r => r.id === changedReport.id);
+            
+            // Jika status 'urgent' baru saja di-set ke 'true'
+            if (changedReport.urgent && (!oldReport || !oldReport.urgent)) {
+                console.log(`Notifikasi Urgent: Tiket ${changedReport.id}`);
+                showToast(`🔥 URGENT: Tiket ${changedReport.id} (${changedReport.nama}) ditandai user!`, 5000, 'danger');
+                
+                // (PENTING) Update cache agar notif tidak muncul 2x
+                if(oldReport) {
+                    oldReport.urgent = true;
+                }
+            }
+        });
+
+        // Listener untuk data user
+        usersRef.on('value', (snapshot) => {
+            const dataObj = snapshot.val();
+            allUsersCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], uid: key })) : [];
+            // Auto-refresh tabel user jika sedang terbuka
+            if (document.getElementById('userManagementPopup').style.display === 'flex') {
+                renderUserManagementTable();
+            }
+            console.log('Data admin (users) dimuat dari Firebase.');
+        }, (error) => {
+            console.error("Firebase read (users) failed:", error);
+        });
+
         dbListenerActive = true;
       }
       
@@ -754,16 +863,18 @@ function exportToExcel(){
       appContent.style.display = 'none'; 
 
       if (dbListenerActive) {
-        reportsRef.off(); 
+        reportsRef.off(); // Ini akan mematikan SEMUA listener di reportsRef (value dan child_changed)
+        usersRef.off(); 
         dbListenerActive = false;
         allReportsCache = []; 
+        allUsersCache = []; 
       }
     }
   });
   enableTableSorting();
 })();
 
-/* (ADMIN) MODAL ADD/EDIT (FULL) */
+/* (DIUBAH) MODAL ADD/EDIT (Menambahkan auto-clear status Urgent) */
 const modalBackdrop = document.getElementById('modalBackdrop');
 const modalForm = document.getElementById('modalForm');
 const modalTitle = document.getElementById('modalTitle');
@@ -789,6 +900,16 @@ async function openModal(editId){
     document.getElementById('m_kategori').value = item.kategori || 'Normal';
     document.getElementById('m_catatan').value = item.catatan || '';
     document.getElementById('m_status').value = item.status || 'Open';
+    
+    // (BARU) Otomatis clear status urgent jika admin membukanya
+    if (item.urgent) {
+        try {
+            await reportsRef.child(editId).update({ urgent: false });
+            console.log(`Status urgent untuk ${editId} telah di-clear.`);
+        } catch (err) {
+            console.warn("Gagal clear status urgent:", err);
+        }
+    }
     
   } else {
     modalTitle.textContent = 'Tambah Laporan (Admin)';
@@ -822,11 +943,11 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
   if (isNew) {
     id = await generateId(); 
     if (!id) return; 
-    userUid = currentUser.uid;
+    userUid = currentUser.uid; // Dibuat oleh Admin (root)
   } else {
     id = modalEditingId;
     oldEntry = getReports().find(r => r.id === id) || {};
-    userUid = oldEntry.uid || currentUser.uid; 
+    userUid = oldEntry.uid || currentUser.uid; // Pertahankan UID asli
   }
   
   const createdExisting = oldEntry.created || nowString();
@@ -846,7 +967,8 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
     created: createdExisting, created_iso: createdIsoExisting,
     updated: updatedVal, updated_iso: updatedIsoVal,
     logs: oldEntry.logs || [],
-    uid: userUid 
+    uid: userUid,
+    urgent: oldEntry.urgent || false // (BARU) Pertahankan status urgent (meskipun harusnya sudah di-clear)
   };
 
   if(entry.updated_iso && entry.created_iso && entry.status === 'Closed'){
@@ -1064,10 +1186,138 @@ function enableSummaryClicksNow(){
 }
 try{ enableSummaryClicksNow(); }catch(e){}
 
+/* (BARU) === FUNGSI MANAJEMEN USER === */
+        
+// Render tabel user
+function renderUserManagementTable() {
+    const content = document.getElementById('userManagementContent');
+    const filter = document.getElementById('userFilterStatus').value;
+    const info = document.getElementById('userCountInfo');
+    
+    if (!allUsersCache.length) {
+        content.innerHTML = '<p class="small" style="text-align:center; padding: 20px;">Tidak ada user terdaftar.</p>';
+        if (info) info.textContent = `Menampilkan 0 user`;
+        return;
+    }
+
+    const filteredUsers = allUsersCache.filter(user => {
+        // (BARU) Jangan tampilkan admin (root) di daftar user management
+        if (user.uid === ADMIN_UID) return false; 
+            
+        if (filter === "") return true; 
+        const userStatus = user.status || 'pending'; 
+        return userStatus === filter; 
+    });
+    
+    if (info) info.textContent = `Menampilkan ${filteredUsers.length} user`;
+    
+    if (!filteredUsers.length) {
+        content.innerHTML = `<p class="small" style="text-align:center; padding: 20px;">Tidak ada user dengan status '${filter}'.</p>`;
+        return;
+    }
+    
+    // Buat tabel
+    content.innerHTML = `
+        <div class="table-wrap" style="margin-top:0;">
+        <table style="width:100%; min-width: 600px;">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredUsers
+                    .sort((a,b) => (a.nama || '').localeCompare(b.nama || '')) // Urutkan A-Z
+                    .map(user => {
+                    const status = user.status || 'pending'; // default ke pending
+                    let statusClass = 'cat-normal'; // Kuning (Pending)
+                    if (status === 'approved') statusClass = 's-closed'; // Hijau (Approved)
+                    if (status === 'rejected') statusClass = 'cat-critical'; // Merah (Rejected)
+
+                    // Tentukan tombol aksi
+                    let actions = '';
+                    if (status !== 'approved') {
+                        actions += `<button class="btn" onclick="approveUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--success); color: #fff;">Approve</button> `;
+                    }
+                    if (status !== 'rejected') {
+                        actions += `<button class="btn" onclick="rejectUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--danger); color: #fff;">Reject</button> `;
+                    }
+                    if (status === 'approved' || status === 'rejected') {
+                        actions += `<button class="btn ghost" onclick="makePending('${user.uid}')" style="padding: 4px 8px; font-size:12px;">Set Pending</button>`;
+                    }
+
+                    return `
+                        <tr>
+                            <td>${user.nama || 'N/A'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td><span class="status ${statusClass}">${status}</span></td>
+                            <td class="actions">${actions}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        </div>
+    `;
+}
+
+// Aksi admin
+async function approveUser(uid) {
+    if (!uid) return;
+    try {
+        await usersRef.child(uid).update({ status: 'approved' });
+        showToast('User disetujui ✅');
+    } catch (e) {
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+async function rejectUser(uid) {
+    if (!uid) return;
+    try {
+        await usersRef.child(uid).update({ status: 'rejected' });
+        showToast('User ditolak ❌');
+    } catch (e) {
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+async function makePending(uid) {
+    if (!uid) return;
+    try {
+        await usersRef.child(uid).update({ status: 'pending' });
+        showToast('User di-set ke Pending ⏳');
+    } catch (e) {
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+// Event listener untuk popup
+(function initUserManagement() {
+    document.getElementById('showUserManagement')?.addEventListener('click', () => {
+        renderUserManagementTable();
+        document.getElementById('userManagementPopup').style.display = 'flex';
+    });
+    document.getElementById('closeUserManagement')?.addEventListener('click', () => {
+        document.getElementById('userManagementPopup').style.display = 'none';
+    });
+    document.getElementById('userFilterStatus')?.addEventListener('change', renderUserManagementTable);
+})();
+
+/* === AKHIR FUNGSI MANAJEMEN USER === */
+
+
 // Expose functions to global
 window.openModal = openModal;
 window.deleteReport = deleteReport;
 window.showLog = showLog;
+// (BARU) Expose fungsi user
+window.approveUser = approveUser;
+window.rejectUser = rejectUser;
+window.makePending = makePending;
 
 </script>
 
