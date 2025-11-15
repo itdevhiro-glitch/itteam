@@ -159,10 +159,19 @@
   }
 
   /* (KEMBALI) Konten manajemen user adalah tabel */
-  #userManagementContent, #userDetailContent {
+  #userManagementContent, #userDetailContent,
+  /* (FIX) TAMBAHKAN KEMBALI CSS UNTUK LOG */
+  #globalLogContent, #logContent {
+    font-size: 14px; margin-top: 10px; line-height: 1.7;
+    flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
+    white-space: pre-wrap; /* <-- INI DIA FIX-NYA */
+  }
+  /* (FIX) Summary content tidak butuh pre-wrap */
+  #summaryContent {
     font-size: 14px; margin-top: 10px; line-height: 1.7;
     flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
   }
+
   #userManagementContent table, #userDetailContent table {
       min-width: 600px; /* Pastikan tabel punya lebar minimum */
   }
@@ -1057,6 +1066,7 @@ async function openModal(editId){
 
 document.getElementById('modalCancel').addEventListener('click', ()=>{ modalBackdrop.style.display='none'; });
 
+/* (DIUBAH) modalSave SEKARANG MENGGUNAKAN .UPDATE() DAN .PUSH() UNTUK LOG */
 document.getElementById('modalSave').addEventListener('click', async (e)=>{
   e && e.preventDefault();
   
@@ -1097,17 +1107,17 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
     updatedVal = nowString(); updatedIsoVal = isoNow();
   }
 
+  // (DIUBAH) Objek data utama (TANPA logs)
   const entry = {
     id, pic, nama, jenis, kategori, catatan,
     status: statusVal,
     created: createdExisting, created_iso: createdIsoExisting,
     updated: updatedVal, updated_iso: updatedIsoVal,
-    // === FIX LOGS (BARIS INI YANG DIPERBAIKI) ===
-    logs: oldEntry.logs ? (Array.isArray(oldEntry.logs) ? oldEntry.logs : Object.values(oldEntry.logs)) : [],
     uid: userUid,
-    urgent: oldEntry.urgent || false // (BARU) Pertahankan status urgent (meskipun harusnya sudah di-clear)
+    urgent: oldEntry.urgent || false 
   };
-
+  
+  // (DIUBAH) Hitung durasi dan tambahkan ke entry JIKA ditutup
   if(entry.updated_iso && entry.created_iso && entry.status === 'Closed'){
     const ms = new Date(entry.updated_iso).getTime() - new Date(entry.created_iso).getTime();
     entry.durationMs = ms >= 0 ? ms : 0; 
@@ -1116,6 +1126,8 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
     entry.durationMs = oldEntry.durationMs || null;
     entry.durationText = oldEntry.durationText || '-';
   }
+  
+  // Siapkan log
   let logText = '';
   if (isNew) { logText = `Laporan dibuat (oleh Admin) dengan status ${entry.status}`; } 
   else {
@@ -1126,12 +1138,23 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
     if(oldEntry.status !== entry.status) logText += `Status: ${oldEntry.status} → ${entry.status}. `;
     if(oldEntry.catatan !== entry.catatan) logText += `Catatan diubah. `;
   }
-  
-  // 'entry.logs' sekarang sudah dijamin Array berkat 'Object.values' di atas
-  if(logText){ entry.logs.push({time: nowString(), iso: isoNow(), detail: `Admin: ${logText.trim()}`}); }
 
   try {
-    await reportsRef.child(id).set(entry);
+    if (isNew) {
+        // (DIUBAH) .set() untuk entri baru
+        await reportsRef.child(id).set(entry);
+    } else {
+        // (DIUBAH) .update() untuk entri yang ada (tidak menimpa logs)
+        await reportsRef.child(id).update(entry);
+    }
+    
+    // (DIUBAH) Selalu .push() log secara terpisah
+    if(logText){ 
+        await reportsRef.child(id).child('logs').push({
+            time: nowString(), iso: isoNow(), detail: `Admin: ${logText.trim()}`
+        });
+    }
+
     if (isNew) { showToast('Laporan baru dibuat ✅'); } 
     else { showToast('Update berhasil ✅'); }
     modalBackdrop.style.display='none';
@@ -1141,15 +1164,16 @@ document.getElementById('modalSave').addEventListener('click', async (e)=>{
   }
 });
 
-/* (ADMIN) Log Functions (Full) */
+
+/* (DIUBAH) Log Functions (Selalu konversi ke Array) */
 function showLog(id){
   const item = getReports().find(r=>r.id===id); 
   const popup = document.getElementById('logPopup');
   const content = document.getElementById('logContent');
   if(!item){ return; }
   
-  // (BARU) Konversi logs ke array jika itu object
-  const logs = item.logs ? (Array.isArray(item.logs) ? item.logs : Object.values(item.logs)) : [];
+  // (DIUBAH) Konversi logs (yang sekarang object) ke array
+  const logs = item.logs ? Object.values(item.logs) : [];
 
   if(!logs.length) content.textContent = 'Belum ada perubahan tercatat.';
   else content.innerHTML = logs
@@ -1161,7 +1185,7 @@ function showLog(id){
 document.getElementById('closeLogPopup').addEventListener('click', ()=>document.getElementById('logPopup').style.display='none');
 document.getElementById('logPopup').addEventListener('click', e=>{ if(e.target.id==='logPopup') e.currentTarget.style.display='none'; });
 
-/* Global log */
+/* (DIUBAH) Global log (Selalu konversi ke Array) */
 (function(){
   function parseLogDate(l) {
     if (l && l.iso) { return new Date(l.iso); }
@@ -1172,8 +1196,8 @@ document.getElementById('logPopup').addEventListener('click', e=>{ if(e.target.i
     const data = getReports(); 
     let allLogs = [];
     data.forEach(r=>{ 
-        // (BARU) Konversi logs ke array jika itu object
-        const logs = r.logs ? (Array.isArray(r.logs) ? r.logs : Object.values(r.logs)) : [];
+        // (DIUBAH) Konversi logs (yang sekarang object) ke array
+        const logs = r.logs ? Object.values(r.logs) : [];
         logs.forEach(l=> allLogs.push({id:r.id,pic:r.pic,detail:l.detail,time:l.time,iso:l.iso})); 
     });
     return allLogs;
