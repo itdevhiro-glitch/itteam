@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen Permintaan — ADMIN DASHBOARD</title>
+<link rel="icon" type="image/png" href="icov2.png" />
+<!-- Menggunakan SDK v8.x.x agar konsisten dengan usermanagement.html -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<style>
+  /* [SAMA SEPERTI USERMANAGEMENT.HTML] */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg: #f4f7fa; --card: #ffffff; --muted:#6c757d; --text:#212529; --primary:#007bff;
+    --primary-hover:#0069d9; --accent:#58a6ff; --success:#16a34a; --warning: #f59e0b;
+    --danger:#dc3545; --radius: 10px; --border-color: #e9ecef; --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+  }
+  [data-theme="dark"]{
+    --bg:#0f172a; --card:#1e293b; --muted:#94a3b8; --text:#f1f5f9; --primary:#3b82f6;
+    --primary-hover:#2563eb; --border-color: #334155; --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:'Inter', system-ui, Roboto, Arial, sans-serif; background:var(--bg);
+    color:var(--text); padding:24px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  .app{max-width:1400px;margin:0 auto}
+  header.app-header{
+    display:flex; align-items:center; gap:16px; margin-bottom:24px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color); flex-wrap: wrap;
+  }
+  .logo{
+    width:48px; height:48px; border-radius:var(--radius);
+    background:linear-gradient(135deg, var(--primary), var(--accent));
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-weight:800; font-size:18px;
+  }
+  .title .name{font-size:22px;font-weight:800}
+  .title .tag{font-size:13px;color:var(--muted);font-weight:500;}
+  .controls{margin-left:auto;display:flex;gap:10px;align-items:center; flex-wrap: wrap;}
+  .btn{
+    background:var(--primary); color:#fff; border:none; padding:9px 14px; border-radius:8px;
+    cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;
+    font-size:14px; transition: background-color 0.2s ease; text-decoration: none; line-height: 1;
+  }
+  .btn:hover{ background: var(--primary-hover); }
+  .btn.ghost{ background:transparent; border:1px solid var(--border-color); color:var(--text); font-weight: 500; }
+  .btn.ghost:hover{ background: var(--border-color); }
+  .btn:not(.ghost){ box-shadow: var(--shadow-sm); }
+  .btn svg{width:16px;height:16px;stroke-width:2.5}
+  
+  .card{
+    background:var(--card); padding: 20px 24px; border-radius:var(--radius);
+    box-shadow:var(--shadow-sm); border:1px solid var(--border-color); margin-bottom: 20px;
+  }
+  h2 { font-size: 24px; font-weight: 800; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
+  h2 svg { width: 28px; height: 28px; }
+  h3 { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 16px; }
+  h4 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }
+  .small{font-size:13px;color:var(--muted);font-weight:500;}
+  
+  .table-wrap{overflow:auto}
+  table{width:100%;border-collapse:collapse;min-width:1100px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border-color);vertical-align: middle;}
+  th{
+    background:var(--bg); color:var(--muted); font-size:12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  
+  .status {
+    display:inline-block; padding: 4px 12px; border-radius:999px;
+    font-weight:600; font-size:12px; line-height: 1.5;
+  }
+  .status-Pending{background:#fffbeb;color:#b45309}
+  .status-Approved{background:#dcfce7;color:#16a34a}
+  .status-Rejected{background:#fee2e2;color:#dc2626}
+  
+  .prio-Low { color: var(--muted); }
+  .prio-Medium { color: var(--warning); font-weight: 600; }
+  .prio-High { color: var(--danger); font-weight: 800; display: flex; align-items: center; gap: 4px; }
+  
+  .filter-bar-complex {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+  }
+  .filter-bar-complex input,
+  .filter-bar-complex select,
+  .filter-bar-complex .btn {
+      width: 100%;
+      font-size: 14px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg);
+      color: var(--text);
+  }
+  .filter-bar-complex .btn {
+      background: var(--card);
+      font-weight: 500;
+      justify-content: center;
+  }
+  .filter-bar-complex .btn:hover { background: var(--border-color); }
+  .filter-bar-complex input::placeholder { color: var(--muted); }
+
+  .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+  }
+  .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+  }
+  .detail-card .count {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 8px;
+  }
+  .detail-card .small { font-weight: 600; }
+  footer.small{ margin-top:32px; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* Loading Screen */
+  #loadingScreen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .loading-box {
+    width: 400px; max-width: 100%;
+    background: var(--card); padding: 28px;
+    border-radius: var(--radius); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md); text-align: center;
+  }
+  .loading-box h3 { margin-bottom: 8px; }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px auto;
+  }
+  #authError { display: none; }
+  #authError p { color: var(--danger); font-weight: 600; margin: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .app-content { display: none; }
+  
+  /* Popup Modal */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+    z-index: 6000; align-items: center; justify-content: center; padding: 16px;
+  }
+  .popup-overlay > div {
+    background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
+    width: 700px;
+    max-width: 100%;
+    max-height: 85%; overflow: auto;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
+  }
+  .popup-content {
+    font-size: 14px; margin-top: 10px; line-height: 1.7;
+    flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 16px; border-radius: 8px;
+  }
+  .popup-content strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+  }
+  .popup-content p {
+      margin-bottom: 12px;
+      font-size: 15px;
+  }
+  .popup-content .alasan {
+      background: var(--card);
+      padding: 10px;
+      border-radius: 8px;
+      font-style: italic;
+      line-height: 1.5;
+  }
+  
+  /* Form group styling */
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+      display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;
+  }
+  .form-group textarea {
+      width: 100%;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card);
+      color: var(--text);
+      min-height: 80px;
+  }
+  
+  @media (max-width: 900px) {
+    body { padding: 16px; }
+    .app { padding: 0; }
+    .filter-bar-complex { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .controls { margin-left: 0; width: 100%; }
+    .app-header { position: relative; }
+    .controls #userInfo { display: none; } 
+    .controls #logoutBtn { position: absolute; top: 20px; right: 0; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+  
+  /* Responsive Table */
+  @media (max-width: 768px) {
+    .table-wrap { overflow: hidden; }
+    table { min-width: 0; }
+    table thead {
+        border: none; clip: rect(0 0 0 0);
+        height: 1px; margin: -1px; overflow: hidden;
+        padding: 0; position: absolute; width: 1px;
+    }
+    table tr {
+        display: block;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        margin-bottom: 16px;
+        padding: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+    table td {
+        display: block;
+        padding: 8px 0; 
+        border-bottom: none;
+        font-size: 14px;
+        text-align: left !important; 
+    }
+    table td:not(:first-child) {
+        border-top: 1px dashed var(--border-color);
+        padding-top: 10px;
+        margin-top: 6px;
+    }
+    table td:before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 2px;
+    }
+    .actions {
+        display: grid; 
+        grid-template-columns: 1fr; 
+        gap: 6px;
+    }
+    .actions .btn {
+        width: 100%;
+        justify-content: center; 
+    }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <svg id="icon-laptop" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0h-2m2 0v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2m-2 0h2m-2 0H4m0 0v-9m16 9h-2M6 5H4m16 0v2m-1.9 8H6.1m8 0h.1m-8.2 0h.1M6 16v-2m0 2H4"></path></svg>
+    <svg id="icon-back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <svg id="icon-prio-high" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  </defs>
+</svg>
+
+<div id="loadingScreen">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <h3 id="loadingText">Memverifikasi Sesi Admin...</h3>
+    <p class="small">Mengecek status login Anda.</p>
+    <div id="authError">
+      <p>Akses ditolak. Sesi Anda tidak valid atau bukan admin.</p>
+      <a href="index.html" class="btn" style="margin-top: 15px;">Kembali ke Halaman Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="app app-content">
+
+  <header class="app-header">
+    <div class="logo">ZP</div>
+    <div class="title"><div class="name">Zeppelin</div><div class="tag">ADMIN DASHBOARD</div></div>
+    <div class="controls">
+      <div id="dateTime" class="small"></div>
+      <div id="userInfo" class="small" style="text-align: right;">
+        Logged in as:<br>
+        <strong id="userEmailDisplay"></strong>
+      </div>
+      <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
+      
+      <a href="index.html" class="btn" title="Kembali ke Dashboard">
+        <svg><use href="#icon-back" /></svg>
+        Kembali ke Dashboard
+      </a>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    
+    <h2><svg><use href="#icon-laptop" /></svg>Manajemen Permintaan Perangkat</h2>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <div class="small">Total Pending</div>
+            <div id="statPending" class="count" style="color: var(--warning);">0</div>
+        </div>
+        <div class="detail-card">
+            <div class="small">Total Approved</div>
+            <div id="statApproved" class="count" style="color: var(--success);">0</div>
+        </div>
+        <div class="detail-card">
+            <div class="small">Total Rejected</div>
+            <div id="statRejected" class="count" style="color: var(--danger);">0</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom: 10px;">
+        <h3>Filter Permintaan</h3>
+        <div class="filter-bar-complex">
+            <input id="filterSearch" type="text" placeholder="Cari user, email, atau detail perangkat...">
+            
+            <select id="filterDept">
+                <option value="">Semua Departemen</option>
+            </select>
+            
+            <select id="filterStatus">
+                <option value="">Semua Status</option>
+                <option value="Pending" selected>Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+
+            <button id="clearFiltersBtn" class="btn ghost">Clear Filter</button>
+        </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Daftar Permintaan</h3>
+        <span id="requestCountInfo" class="small">Memuat...</span>
+      </div>
+      <div id="requestsContent" style="margin-top: 16px;">
+        <!-- Tabel permintaan akan dirender oleh JS -->
+      </div>
+    </div>
+    
+  </main>
+  
+  <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
+</div>
+
+<!-- [BARU] Popup Detail Permintaan -->
+<div id="requestDetailPopup" class="popup-overlay">
+  <div>
+    <h3>Proses Permintaan: <span id="popupDetailName" style="color: var(--primary);"></span></h3>
+    
+    <div id="popupContent" class="popup-content">
+        <strong>Dari User:</strong>
+        <p><span id="popupUserNama"></span> (<span id="popupUserDept"></span>)</p>
+        
+        <strong>Detail Permintaan:</strong>
+        <p><span id="popupDetailKategori"></span> - <span id="popupDetailPrioritas"></span></p>
+        
+        <strong>Perangkat:</strong>
+        <p id="popupDetailPerangkat"></p>
+        
+        <strong>Alasan User:</strong>
+        <p class="alasan" id="popupDetailAlasan"></p>
+
+        <div class="form-group" style="margin-top: 16px;">
+            <label for="adminNotes">Catatan Admin (Opsional)</label>
+            <textarea id="adminNotes" placeholder="Tulis catatan untuk user, misal: 'Akan diproses 3-5 hari kerja'..."></textarea>
+        </div>
+    </div>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <input type="hidden" id="popupRequestId" />
+      <button id="closeDetailPopup" type="button" class="btn ghost">Batal</button>
+      <button id="actionReject" type="button" class="btn" style="background: var(--danger);">Tolak Permintaan</button>
+      <button id="actionApprove" type="button" class="btn" style="background: var(--success);">Setujui Permintaan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" style="position: fixed; bottom: 18px; right: 18px; z-index: 99999;"></div>
+
+
+<script>
+// ===================================================================
+// === (ADMIN) KONFIGURASI ===
+// ===================================================================
+const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
+const ADMIN_EMAIL = "root@zeppelin.center";
+// ===================================================================
+
+// === KONFIGURASI FIREBASE (v8) ===
+const firebaseConfig = {
+  apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
+  authDomain: "it-support-53eeb.firebaseapp.com",
+  databaseURL: "https://it-support-53eeb-default-rtdb.firebaseio.com",
+  projectId: "it-support-53eeb",
+  storageBucket: "it-support-53eeb.firebasestorage.app",
+  messagingSenderId: "573924501146",
+  appId: "1:573924501146:web:12f34306ed675472322123",
+  measurementId: "G-33K6DDE1VR"
+};
+
+firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
+const db = firebase.database();
+const auth = firebase.auth();
+const usersRef = db.ref('users');
+const requestsRef = db.ref('device_requests'); // [BARU] Ref untuk permintaan
+
+/* Cache & State */
+let allUsersCache = []; 
+let allRequestsCache = []; // [BARU] Cache untuk permintaan
+let currentUser = null; 
+let dbListenerActive = false; 
+
+/* Utilities */
+function nowString(){ return new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' }); }
+
+function showToast(txt, t = 3000, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.style.padding = '12px 16px';
+    el.style.marginBottom = '10px';
+    
+    if (type === 'danger') { el.style.background = 'var(--danger)'; }
+    else if (type === 'warning') { el.style.background = 'var(--warning)'; }
+    else { el.style.background = 'var(--primary)'; }
+    
+    el.style.color = '#fff';
+    el.style.fontWeight = '600';
+    el.textContent = txt; 
+    container.appendChild(el);
+    setTimeout(() => el.remove(), t);
+}
+
+
+/* (ADMIN) Init */
+(function init(){
+  const dateTimeEl = document.getElementById('dateTime');
+  const footerDate = document.getElementById('footerDate');
+  footerDate.textContent = new Date().toLocaleDateString('id-ID', { year: 'numeric' });
+  function updateTime(){ dateTimeEl.textContent = new Date().toLocaleString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  setInterval(updateTime,1000); updateTime();
+
+  const loadingScreen = document.getElementById('loadingScreen');
+  const appContent = document.querySelector('.app-content');
+  const userEmailDisplay = document.getElementById('userEmailDisplay');
+  const authErrorDiv = document.getElementById('authError');
+  const loadingSpinner = document.querySelector('.loading-spinner');
+  const loadingText = document.getElementById('loadingText');
+
+  function showAuthError() {
+    loadingSpinner.style.display = 'none';
+    loadingText.textContent = 'Akses Ditolak';
+    authErrorDiv.style.display = 'block';
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await auth.signOut();
+    appContent.style.display = 'none';
+    loadingScreen.style.display = 'flex';
+    showAuthError();
+  });
+
+  /* LISTENER OTENTIKASI (v8) */
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      if (user.uid !== ADMIN_UID) {
+        showAuthError();
+        auth.signOut(); 
+      } else {
+        currentUser = user;
+        loadingScreen.style.display = 'none'; 
+        appContent.style.display = 'block'; 
+        userEmailDisplay.textContent = `ADMIN (root)`;
+        
+        if (!dbListenerActive) {
+          // Listener untuk data user (dibutuhkan untuk filter dept)
+          usersRef.on('value', (snapshot) => {
+              const dataObj = snapshot.val();
+              allUsersCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], uid: key })) : [];
+              renderRequestsTable(); // Render ulang tabel saat data user update
+              console.log('Data admin (users) dimuat.');
+          }, (error) => {
+              console.error("Firebase read (users) failed:", error);
+          });
+          
+          // [BARU] Listener untuk data permintaan
+          requestsRef.on('value', (snapshot) => {
+              const dataObj = snapshot.val();
+              allRequestsCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], id: key })) : [];
+              renderRequestsTable();
+              console.log('Data admin (requests) dimuat.');
+          }, (error) => {
+              console.error("Firebase read (requests) failed:", error);
+          });
+
+          dbListenerActive = true;
+        }
+      }
+    } else {
+      showAuthError();
+      appContent.style.display = 'none';
+      loadingScreen.style.display = 'flex';
+
+      if (dbListenerActive) {
+        usersRef.off(); 
+        requestsRef.off(); // [BARU] Matikan listener requests
+        dbListenerActive = false;
+        allUsersCache = []; 
+        allRequestsCache = []; // [BARU] Kosongkan cache
+      }
+    }
+  });
+
+  // Listener untuk filter
+  document.getElementById('filterStatus').addEventListener('change', renderRequestsTable);
+  document.getElementById('filterSearch').addEventListener('input', renderRequestsTable);
+  document.getElementById('filterDept').addEventListener('change', renderRequestsTable);
+  document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+      document.getElementById('filterSearch').value = '';
+      document.getElementById('filterDept').value = '';
+      document.getElementById('filterStatus').value = 'Pending'; // Kembali ke default
+      renderRequestsTable();
+  });
+  
+  // Listener untuk Popup
+  document.getElementById('closeDetailPopup').addEventListener('click', () => {
+      document.getElementById('requestDetailPopup').style.display = 'none';
+  });
+  document.getElementById('actionApprove').addEventListener('click', () => handleRequestAction('Approved'));
+  document.getElementById('actionReject').addEventListener('click', () => handleRequestAction('Rejected'));
+})();
+
+
+// ===================================================================
+// === [BARU] FUNGSI MANAJEMEN PERMINTAAN ===
+// ===================================================================
+function renderRequestsTable() {
+    const content = document.getElementById('requestsContent');
+    const info = document.getElementById('requestCountInfo');
+    
+    const filterStatus = document.getElementById('filterStatus').value;
+    const filterDept = document.getElementById('filterDept').value;
+    const search = (document.getElementById('filterSearch').value || '').toLowerCase();
+
+    // Update Statistik
+    let stats = { Pending: 0, Approved: 0, Rejected: 0 };
+    let departments = new Set();
+    
+    allRequestsCache.forEach(req => {
+        const status = req.status || 'Pending';
+        if (stats.hasOwnProperty(status)) {
+            stats[status]++;
+        }
+        if(req.departemen) departments.add(req.departemen);
+    });
+    document.getElementById('statPending').textContent = stats.Pending;
+    document.getElementById('statApproved').textContent = stats.Approved;
+    document.getElementById('statRejected').textContent = stats.Rejected;
+
+    // Update Filter Departemen Dinamis
+    const deptSelect = document.getElementById('filterDept');
+    const currentDept = deptSelect.value;
+    deptSelect.innerHTML = '<option value="">Semua Departemen</option>';
+    Array.from(departments).sort().forEach(dept => {
+        const option = new Option(dept, dept);
+        deptSelect.add(option);
+    });
+    deptSelect.value = currentDept;
+
+    // Logika Filter
+    const filteredRequests = allRequestsCache.filter(req => {
+        const userStatus = req.status || 'Pending'; 
+        const userDept = req.departemen || 'N/A';
+
+        const matchStatus = (filterStatus === "") ? true : (userStatus === filterStatus);
+        const matchDept = (filterDept === "") ? true : (userDept === filterDept);
+        const matchSearch = !search || 
+                            (req.nama || '').toLowerCase().includes(search) || 
+                            (req.email || '').toLowerCase().includes(search) ||
+                            (req.detail || '').toLowerCase().includes(search) ||
+                            (req.kategori || '').toLowerCase().includes(search);
+                            
+        return matchStatus && matchDept && matchSearch;
+    });
+    
+    info.textContent = `Menampilkan ${filteredRequests.length} dari ${allRequestsCache.length} permintaan`;
+    
+    if (!filteredRequests.length) {
+        content.innerHTML = `<p class="small" style="text-align:center; padding: 20px;">Tidak ada permintaan cocok dengan filter.</p>`;
+        return;
+    }
+    
+    // Urutkan: Pending & High di atas
+    filteredRequests.sort((a, b) => {
+        // Prioritaskan Pending
+        if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+        if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+        
+        // Jika sama-sama Pending, prioritaskan High
+        if (a.status === 'Pending' && b.status === 'Pending') {
+            if (a.prioritas === 'High' && b.prioritas !== 'High') return -1;
+            if (a.prioritas !== 'High' && b.prioritas === 'High') return 1;
+        }
+        // Jika status lain, urutkan berdasarkan tanggal terbaru
+        return new Date(b.created_at) - new Date(a.created_at);
+    });
+    
+    content.innerHTML = `
+        <div class="table-wrap" style="margin-top:0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>User</th>
+                    <th>Departemen</th>
+                    <th>Kategori</th>
+                    <th>Detail</th>
+                    <th>Prioritas</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredRequests.map(req => {
+                    const statusClass = `status-${req.status || 'Pending'}`;
+                    const createdDate = new Date(req.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
+                    let prioClass = `prio-${req.prioritas || 'Medium'}`;
+                    let prioIcon = '';
+                    if (req.prioritas === 'High') {
+                        prioIcon = '<svg style="width:14px; height:14px;"><use href="#icon-prio-high" /></svg>';
+                    }
+
+                    return `
+                        <tr>
+                            <td data-label="Tanggal">${createdDate}</td>
+                            <td data-label="User">${req.nama || 'N/A'}</td>
+                            <td data-label="Departemen">${req.departemen || 'N/A'}</td> 
+                            <td data-label="Kategori">${req.kategori || 'N/A'}</td>
+                            <td data-label="Detail">${req.detail || 'N/A'}</td>
+                            <td data-label="Prioritas" class="${prioClass}">${prioIcon} ${req.prioritas || 'N/A'}</td>
+                            <td data-label="Status"><span class="status ${statusClass}">${req.status}</span></td>
+                            <td data-label="Aksi" class="actions">
+                                <button class="btn ghost" onclick="showRequestDetail('${req.id}')" style="padding: 6px 10px; font-size:13px;">
+                                    Proses
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        </div>
+    `;
+}
+
+// Tampilkan Popup
+function showRequestDetail(requestId) {
+    const req = allRequestsCache.find(r => r.id === requestId);
+    if (!req) {
+        alert("Error: Permintaan tidak ditemukan.");
+        return;
+    }
+    
+    document.getElementById('popupRequestId').value = requestId;
+    document.getElementById('popupDetailName').textContent = req.detail || 'N/A';
+    
+    document.getElementById('popupUserNama').textContent = req.nama || 'N/A';
+    document.getElementById('popupUserDept').textContent = req.departemen || 'N/A';
+    
+    document.getElementById('popupDetailKategori').textContent = req.kategori || 'N/A';
+    document.getElementById('popupDetailPrioritas').textContent = req.prioritas || 'N/A';
+    document.getElementById('popupDetailPerangkat').textContent = req.detail || 'N/A';
+    document.getElementById('popupDetailAlasan').textContent = req.alasan || '(Tidak ada alasan)';
+    
+    document.getElementById('adminNotes').value = req.admin_notes || '';
+    
+    // Tampilkan/sembunyikan tombol berdasarkan status
+    document.getElementById('actionApprove').style.display = req.status === 'Approved' ? 'none' : 'inline-flex';
+    document.getElementById('actionReject').style.display = req.status === 'Rejected' ? 'none' : 'inline-flex';
+
+    document.getElementById('requestDetailPopup').style.display = 'flex';
+}
+
+// Aksi Popup (Approve / Reject)
+async function handleRequestAction(newStatus) {
+    const requestId = document.getElementById('popupRequestId').value;
+    const adminNotes = document.getElementById('adminNotes').value;
+    
+    if (!requestId) return;
+
+    try {
+        await requestsRef.child(requestId).update({
+            status: newStatus,
+            admin_notes: adminNotes,
+            processed_at: new Date().toISOString()
+        });
+        showToast(`Permintaan di-${newStatus}!`);
+        document.getElementById('requestDetailPopup').style.display = 'none';
+    } catch (e) {
+        console.error("Gagal update permintaan:", e);
+        alert('Gagal update: ' + e.message);
+    }
+}
+
+// Expose functions to global
+window.showRequestDetail = showRequestDetail; 
+
+</script>
+
+</body>
+</html>
