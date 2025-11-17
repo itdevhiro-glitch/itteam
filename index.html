@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
+<meta charset="utf-f" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Zeppelin — ADMIN DASHBOARD</title>
 <link rel="icon" type="image/png" href="icov2.png" />
@@ -263,6 +263,11 @@
         padding: 8px 10px;
         flex-grow: 1; 
     }
+    /* (PERUBAHAN RESPONSIVE) Menambahkan tombol baru ke grup */
+    .controls #showRequestManagement {
+        padding: 8px 10px;
+        flex-grow: 1;
+    }
     .controls #newReportBtn {
         width: 100%;
         justify-content: center;
@@ -343,9 +348,10 @@
     <svg id="icon-log" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
     <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
     <svg id="icon-bell" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    
+    <svg id="icon-laptop" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0h-2m2 0v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2m-2 0h2m-2 0H4m0 0v-9m16 9h-2M6 5H4m16 0v2m-1.9 8H6.1m8 0h.1m-8.2 0h.1M6 16v-2m0 2H4"></path></svg>
   </defs>
 </svg>
-
 <div id="loginScreen">
   <div id="loginBox">
     <form id="loginForm" onsubmit="return false;">
@@ -362,6 +368,7 @@
   <header class="app-header">
     <div class="logo">ZP</div>
     <div class="title"><div class="name">Zeppelin</div><div class="tag">ADMIN DASHBOARD</div></div>
+    
     <div class="controls">
       <div id="dateTime" class="small"></div>
       <div id="userInfo" class="small" style="text-align: right;">
@@ -369,6 +376,7 @@
         <strong id="userEmailDisplay"></strong>
       </div>
       <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
+      
       <button id="backupBtn" class="btn ghost" title="Backup Data">
         <svg><use href="#icon-download" /></svg>
       </button>
@@ -384,12 +392,15 @@
          <svg><use href="#icon-users" /></svg>
       </a>
       
+      <a href="permintaanadmin.html" id="showRequestManagement" class="btn ghost" title="Manajemen Permintaan">
+         <svg><use href="#icon-laptop" /></svg>
+      </a>
       <button id="newReportBtn" class="btn">
         <svg><use href="#icon-plus" /></svg>
         Buat Laporan
       </button>
     </div>
-  </header>
+    </header>
 
   <main id="mainContent">
     <div class="grid">
@@ -588,12 +599,10 @@ const db = firebase.database();
 const auth = firebase.auth();
 const reportsRef = db.ref('reports'); 
 const counterRef = db.ref('counter'); 
-// [DIHAPUS] usersRef tidak lagi dipakai di halaman ini
 const announcementsRef = db.ref('announcements'); 
 
 /* Cache & State */
 let allReportsCache = []; 
-// [DIHAPUS] allUsersCache tidak lagi dipakai di halaman ini
 let allAnnouncementsCache = []; 
 let currentUser = null; 
 let dbListenerActive = false; 
@@ -914,7 +923,7 @@ function exportToExcel(){
     await auth.signOut();
   });
 
-  /* [PERUBAHAN] LISTENER OTENTIKASI (DI SINI HANYA BUTUH reportsRef dan announcementsRef) */
+  /* LISTENER OTENTIKASI */
   auth.onAuthStateChanged((user) => {
     if (user) {
       if (user.uid !== ADMIN_UID) {
@@ -957,8 +966,6 @@ function exportToExcel(){
             }
         });
 
-        // [DIHAPUS] Listener untuk data user tidak ada di sini
-
         // Listener untuk data pengumuman
         announcementsRef.on('value', (snapshot) => {
             const dataObj = snapshot.val();
@@ -979,11 +986,9 @@ function exportToExcel(){
 
       if (dbListenerActive) {
         reportsRef.off(); 
-        // [DIHAPUS] usersRef.off()
         announcementsRef.off(); 
         dbListenerActive = false;
         allReportsCache = []; 
-        // [DIHAPUS] allUsersCache = []
         allAnnouncementsCache = []; 
       }
     }
@@ -1320,7 +1325,6 @@ function enableSummaryClicksNow(){
 }
 try{ enableSummaryClicksNow(); }catch(e){}
 
-// [DIHAPUS] Semua fungsi Manajemen User & Detail User
 
 /* === FUNGSI CRUD PENGUMUMAN (v2) === */
 
@@ -1471,7 +1475,6 @@ document.getElementById('announcementModalSave').addEventListener('click', async
 window.openModal = openModal;
 window.deleteReport = deleteReport;
 window.showLog = showLog;
-// [DIHAPUS] Global function untuk user management
 window.openAnnouncementModal = openAnnouncementModal;
 window.deleteAnnouncement = deleteAnnouncement;
 
