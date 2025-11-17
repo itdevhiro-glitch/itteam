@@ -94,6 +94,18 @@
       align-items: center;
       margin-bottom: 16px;
   }
+  /* [PERUBAHAN] Grid untuk filter + tombol create */
+  .filter-bar-complex {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+  }
+  .filter-bar-complex.has-create-btn {
+      grid-template-columns: 2fr 1fr 1fr auto;
+  }
+  
   .filter-bar-complex input,
   .filter-bar-complex select,
   .filter-bar-complex .btn {
@@ -110,28 +122,95 @@
       font-weight: 500;
       justify-content: center;
   }
+  .filter-bar-complex .btn.btn-create {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      white-space: nowrap;
+  }
   .filter-bar-complex .btn:hover {
       background: var(--border-color);
   }
+  .filter-bar-complex .btn.btn-create:hover {
+      background: var(--primary-hover);
+  }
   .filter-bar-complex input::placeholder { color: var(--muted); }
 
-  #userDetailPopup {
+  /* [PERUBAHAN] Popup styling (untuk create dan update) */
+  .popup-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
     z-index: 6000; align-items: center; justify-content: center; padding: 16px;
   }
-  #userDetailPopup > div {
+  .popup-overlay > div {
     background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
     width: 700px;
     max-width: 100%;
     max-height: 85%; overflow: auto;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
   }
-  #userDetailContent {
+  .popup-content {
     font-size: 14px; margin-top: 10px; line-height: 1.7;
-    flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
+    flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 16px; border-radius: 8px;
   }
-  #userDetailContent table { min-width: 600px; }
-
+  .popup-content table { min-width: 600px; }
+  
+  /* Form group styling */
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+      display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;
+  }
+  .form-group input, .form-group select {
+      width: 100%;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card); /* Beda dari filter, pakai card bg */
+      color: var(--text);
+  }
+  .form-group input:disabled {
+      background: var(--bg);
+      color: var(--muted);
+      cursor: not-allowed;
+  }
+  .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+  }
+  .popup-error {
+      display: none;
+      color: var(--danger);
+      background: #fee2e2;
+      border: 1px solid var(--danger);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 10px;
+      text-align: center;
+  }
+  
+  /* [PERUBAHAN] Tombol Aksi di dalam Popup */
+  .popup-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+  }
+  .popup-actions-grid .btn {
+      justify-content: center;
+      padding: 8px 10px;
+      font-size: 13px;
+  }
+  .btn-approve { background: var(--success); }
+  .btn-approve:hover { background: #15803d; }
+  .btn-reject { background: var(--danger); }
+  .btn-reject:hover { background: #b91c1c; }
+  .btn-pending { background: var(--warning); color: #fff; }
+  .btn-pending:hover { background: #d97706; }
+  
+  
   .detail-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -199,6 +278,9 @@
     .filter-bar-complex {
         grid-template-columns: 1fr; /* Stack filter di mobile */
     }
+    .filter-bar-complex.has-create-btn {
+        grid-template-columns: 1fr;
+    }
   }
   @media (max-width: 600px) {
     .controls {
@@ -220,6 +302,8 @@
     .detail-grid {
         grid-template-columns: 1fr 1fr;
     }
+    .form-grid-2 { grid-template-columns: 1fr; } /* Stack form di mobile */
+    .popup-actions-grid { grid-template-columns: 1fr; }
   }
   
   @media (max-width: 768px) {
@@ -269,9 +353,10 @@
         color: var(--muted);
         margin-bottom: 2px;
     }
+    /* [PERUBAHAN] Menyesuaikan tombol aksi di mobile */
     #userManagementContent .actions {
         display: grid; 
-        grid-template-columns: 1fr 1fr; 
+        grid-template-columns: 1fr; /* Hanya 1 tombol 'Edit' */
         gap: 6px;
     }
     #userManagementContent .actions .btn,
@@ -288,6 +373,7 @@
   <defs>
     <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
     <svg id="icon-back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <svg id="icon-add-user" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
   </defs>
 </svg>
 
@@ -318,7 +404,7 @@
       
       <a href="index.html" class="btn" title="Kembali ke Dashboard">
         <svg><use href="#icon-back" /></svg>
-        Kembali ke Dashboard
+        Kembali
       </a>
     </div>
   </header>
@@ -348,7 +434,8 @@
 
     <div class="card" style="padding-bottom: 10px;">
         <h3>Filter & Kontrol</h3>
-        <div class="filter-bar-complex">
+        <!-- [PERUBAHAN] Menambahkan tombol 'Buat User Baru' -->
+        <div class="filter-bar-complex has-create-btn">
             <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
             
             <select id="userFilterDept">
@@ -362,8 +449,14 @@
                 <option value="rejected">Rejected</option>
             </select>
 
-            <button id="clearFiltersBtn" class="btn ghost">Clear Filter</button>
+            <button id="showCreateUserPopupBtn" class="btn btn-create">
+                <svg><use href="#icon-add-user" /></svg>
+                Buat User
+            </button>
+            
+            <!-- Tombol clear filter dipindah ke baris baru agar rapi -->
         </div>
+        <button id="clearFiltersBtn" class="btn ghost" style="width: 100%; margin-top: 10px;">Clear Filter</button>
     </div>
 
     <div class="card">
@@ -372,7 +465,8 @@
         <span id="userCountInfo" class="small">Memuat...</span>
       </div>
       <div id="userManagementContent" style="margin-top: 16px;">
-        </div>
+        <!-- Tabel user akan dirender oleh JS -->
+      </div>
     </div>
     
   </main>
@@ -380,16 +474,96 @@
   <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
 </div>
 
-<div id="userDetailPopup">
+<!-- [PERUBAHAN] Popup Detail/Update User (Dimodifikasi) -->
+<div id="userDetailPopup" class="popup-overlay">
   <div>
     <h3>Detail User: <span id="userDetailName" style="color: var(--primary);"></span></h3>
-    <div id="userDetailContent">
+    
+    <!-- Form untuk update data -->
+    <form id="updateUserForm" class="popup-content" style="background: var(--card);">
+        <input type="hidden" id="updateUserId" />
+        
+        <h4>Informasi Akun</h4>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label for="updateUserName">Nama Lengkap</label>
+                <input type="text" id="updateUserName" required>
+            </div>
+            <div class="form-group">
+                <label for="updateUserDept">Departemen</label>
+                <input type="text" id="updateUserDept" required>
+            </div>
         </div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-      <button id="closeUserDetail" class="btn">Tutup</button>
+        <div class="form-group">
+            <label for="updateUserEmail">Email (Tidak bisa diubah)</label>
+            <input type="email" id="updateUserEmail" disabled>
+        </div>
+
+        <h4>Aksi Cepat (Status)</h4>
+        <div class="popup-actions-grid">
+            <button type="button" id="popupApproveBtn" class="btn btn-approve">Approve User</button>
+            <button type="button" id="popupRejectBtn" class="btn btn-reject">Reject User</button>
+            <button type="button" id="popupPendingBtn" class="btn btn-pending">Set ke Pending</button>
+        </div>
+        
+        <div class="popup-error" id="updateUserError"></div>
+
+        <h4 style="margin-top: 24px;">Ringkasan Tiket</h4>
+        <div id="userDetailTicketSummary">
+            <!-- Ringkasan tiket (dari JS) akan dimuat di sini -->
+        </div>
+    </form>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <button id="closeUserDetail" type="button" class="btn ghost">Tutup</button>
+      <button id="submitUpdateUser" type="submit" form="updateUserForm" class="btn">Simpan Perubahan</button>
     </div>
   </div>
 </div>
+
+<!-- [BARU] Popup Create User -->
+<div id="createUserPopup" class="popup-overlay">
+  <div>
+    <h3>Buat Akun User Baru</h3>
+    
+    <form id="createUserForm" class="popup-content" style="background: var(--card);">
+        <p class="small" style="margin-top: 0;">Akun akan dibuat di Firebase Authentication dan data akan disimpan di Realtime Database.</p>
+        
+        <div class="form-group">
+            <label for="createUserName">Nama Lengkap</label>
+            <input type="text" id="createUserName" required>
+        </div>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label for="createUserEmail">Email</label>
+                <input type="email" id="createUserEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="createUserDept">Departemen</label>
+                <input type="text" id="createUserDept" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="createUserPass">Password</label>
+            <input type="password" id="createUserPass" required minlength="6">
+            <small class="small">Minimal 6 karakter.</small>
+        </div>
+
+        <div class="popup-error" id="createUserError"></div>
+    </form>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <button id="closeCreateUserPopup" type="button" class="btn ghost">Batal</button>
+      <button id="submitCreateUser" type="submit" form="createUserForm" class="btn">
+          <span id="createBtnText">Buat Akun</span>
+          <span id="createBtnSpinner" style="display: none;">
+              <div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px; margin: 0; border-top-color: #fff;"></div>
+          </span>
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <div id="toastContainer" style="position: fixed; bottom: 18px; right: 18px; z-index: 99999;"></div>
 
@@ -414,10 +588,11 @@ const firebaseConfig = {
   measurementId: "G-33K6DDE1VR"
 };
 
-firebase.initializeApp(firebaseConfig);
-const analytics = firebase.analytics();
-const db = firebase.database();
-const auth = firebase.auth();
+// [PERUBAHAN] Inisialisasi app utama
+const mainApp = firebase.initializeApp(firebaseConfig);
+const analytics = mainApp.analytics();
+const db = mainApp.database();
+const auth = mainApp.auth();
 const reportsRef = db.ref('reports'); 
 const usersRef = db.ref('users');
 
@@ -549,11 +724,34 @@ function showToast(txt, t = 3000, type = 'success') {
       document.getElementById('userFilterStatus').value = '';
       renderUserManagementTable();
   });
+  
+  // [BARU] Listener untuk popup Create User
+  document.getElementById('showCreateUserPopupBtn').addEventListener('click', () => {
+      document.getElementById('createUserPopup').style.display = 'flex';
+  });
+  document.getElementById('closeCreateUserPopup').addEventListener('click', () => {
+      document.getElementById('createUserPopup').style.display = 'none';
+      document.getElementById('createUserForm').reset();
+      document.getElementById('createUserError').style.display = 'none';
+  });
+  document.getElementById('createUserForm').addEventListener('submit', handleCreateUser);
+
+  // [BARU] Listener untuk popup Update User
+  document.getElementById('closeUserDetail').addEventListener('click', () => {
+      document.getElementById('userDetailPopup').style.display = 'none';
+  });
+  document.getElementById('updateUserForm').addEventListener('submit', handleSubmitUpdateUser);
+  
+  // [BARU] Listener untuk tombol aksi di dalam popup update
+  document.getElementById('popupApproveBtn').addEventListener('click', handlePopupAction);
+  document.getElementById('popupRejectBtn').addEventListener('click', handlePopupAction);
+  document.getElementById('popupPendingBtn').addEventListener('click', handlePopupAction);
+
 })();
 
 
 // ===================================================================
-// === FUNGSI MANAJEMEN USER (v3) ===
+// === FUNGSI MANAJEMEN USER (v4 - Update & Create) ===
 // ===================================================================
 function renderUserManagementTable() {
     const content = document.getElementById('userManagementContent');
@@ -656,18 +854,8 @@ function renderUserManagementTable() {
                     if (status === 'approved') statusClass = 's-closed'; 
                     if (status === 'rejected') statusClass = 'cat-critical'; 
 
-                    let actions = '';
-                    if (status !== 'approved') {
-                        actions += `<button class="btn" onclick="approveUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--success); color: #fff;">Approve</button> `;
-                    }
-                    if (status !== 'rejected') {
-                        actions += `<button class="btn" onclick="rejectUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--danger); color: #fff;">Reject</button> `;
-                    }
-                    if (status === 'approved' || status === 'rejected') {
-                        actions += `<button class="btn ghost" onclick="makePending('${user.uid}')" style="padding: 4px 8px; font-size:12px;">Set Pending</button>`;
-                    }
-
-                    const nameButton = `<button type="button" class="btn-link" onclick="showUserDetail('${user.uid}')" title="Lihat detail user">${user.nama || 'N/A'}</button>`;
+                    // [PERUBAHAN] Aksi disederhanakan menjadi 1 tombol
+                    const actions = `<button class="btn ghost" onclick="showUserDetail('${user.uid}')" style="padding: 6px 10px; font-size:13px;">Edit / Detail</button>`;
                     
                     const openUrgentText = urgentTiket > 0 
                         ? `<span class="stat-col-urgent">${openTiket} / ${urgentTiket} 🔥</span>` 
@@ -675,7 +863,7 @@ function renderUserManagementTable() {
 
                     return `
                         <tr>
-                            <td data-label="Nama">${nameButton}</td>
+                            <td data-label="Nama">${user.nama || 'N/A'}</td>
                             <td data-label="Email">${user.email || 'N/A'}</td>
                             <td data-label="Departemen">${user.departemen || 'N/A'}</td> 
                             <td data-label="Status"><span class="status ${statusClass}">${status}</span></td>
@@ -691,71 +879,139 @@ function renderUserManagementTable() {
     `;
 }
 
-// Fungsi Aksi Admin (Approve, Reject, Pending)
-async function approveUser(uid) {
+// [BARU] Fungsi Aksi Admin (dari dalam popup)
+async function handlePopupAction(e) {
+    const uid = document.getElementById('updateUserId').value;
     if (!uid) return;
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
-        return;
-    }
-    try {
-        await usersRef.child(uid).update({ 
-            status: 'approved',
-            nama: user.nama,
-            email: user.email,
-            departemen: user.departemen || null
-        });
-        showToast('User disetujui ✅');
-    } catch (e) {
-        console.error("Gagal approve user:", e);
-        alert('Gagal update user: ' + e.message);
+    
+    let actionType = '';
+    if (e.target.id === 'popupApproveBtn') actionType = 'approved';
+    if (e.target.id === 'popupRejectBtn') actionType = 'rejected';
+    if (e.target.id === 'popupPendingBtn') actionType = 'pending';
+
+    if (actionType) {
+        await updateUserStatus(uid, actionType);
+        document.getElementById('userDetailPopup').style.display = 'none';
     }
 }
 
-async function rejectUser(uid) {
-    if (!uid) return;
+// [PERUBAHAN] Fungsi update status (dipanggil dari popup)
+async function updateUserStatus(uid, status) {
+    if (!uid || !status) return;
     const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
+    if (!user) {
+        showToast('Gagal update: Data user tidak ditemukan di cache.', 3000, 'danger');
         return;
     }
+    
     try {
         await usersRef.child(uid).update({ 
-            status: 'rejected',
-            nama: user.nama,
-            email: user.email,
-            departemen: user.departemen || null
+            status: status
+            // Data lain (nama, email, dept) di-update oleh form terpisah
+            // atau dipastikan ada saat user pertama kali dibuat
         });
-        showToast('User ditolak ❌');
+        showToast(`User di-set ke '${status}' ✅`);
     } catch (e) {
-        console.error("Gagal reject user:", e);
-        alert('Gagal update user: ' + e.message);
+        console.error("Gagal update status user:", e);
+        showToast('Gagal update status: ' + e.message, 3000, 'danger');
     }
 }
 
-async function makePending(uid) {
-    if (!uid) return;
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
+// [BARU] Fungsi handle submit form update
+async function handleSubmitUpdateUser(e) {
+    e.preventDefault();
+    const uid = document.getElementById('updateUserId').value;
+    const nama = document.getElementById('updateUserName').value;
+    const departemen = document.getElementById('updateUserDept').value;
+    const errorDiv = document.getElementById('updateUserError');
+
+    if (!uid || !nama || !departemen) {
+        errorDiv.textContent = 'Nama dan Departemen tidak boleh kosong.';
+        errorDiv.style.display = 'block';
         return;
     }
+    errorDiv.style.display = 'none';
+
     try {
-        await usersRef.child(uid).update({ 
-            status: 'pending',
-            nama: user.nama,
-            email: user.email,
-            departemen: user.departemen || null
+        await usersRef.child(uid).update({
+            nama: nama,
+            departemen: departemen
         });
-        showToast('User di-set ke Pending ⏳');
+        showToast('Data user berhasil diperbarui ✅');
+        document.getElementById('userDetailPopup').style.display = 'none';
     } catch (e) {
-        console.error("Gagal set pending:", e);
-        alert('Gagal update user: ' + e.message);
+        console.error("Gagal update data user:", e);
+        errorDiv.textContent = 'Gagal update: ' + e.message;
+        errorDiv.style.display = 'block';
     }
 }
 
-/* === FUNGSI DETAIL USER === */
+
+// [BARU] Fungsi handle submit form create user
+async function handleCreateUser(e) {
+    e.preventDefault();
+    const nama = document.getElementById('createUserName').value;
+    const email = document.getElementById('createUserEmail').value;
+    const departemen = document.getElementById('createUserDept').value;
+    const password = document.getElementById('createUserPass').value;
+    
+    const errorDiv = document.getElementById('createUserError');
+    const submitBtn = document.getElementById('submitCreateUser');
+    const btnText = document.getElementById('createBtnText');
+    const btnSpinner = document.getElementById('createBtnSpinner');
+
+    errorDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline-block';
+
+    // [PENTING] Buat instance Firebase App sekunder untuk create user
+    // Ini mencegah admin ter-logout saat user baru dibuat.
+    const appName = "secondaryApp-" + Date.now();
+    let secondaryApp;
+    try {
+        secondaryApp = firebase.initializeApp(firebaseConfig, appName);
+        
+        // 1. Buat user di Firebase Auth (menggunakan app sekunder)
+        const userCredential = await secondaryApp.auth().createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+        
+        // 2. Simpan data user di Realtime Database (menggunakan app utama)
+        await usersRef.child(uid).set({
+            uid: uid,
+            nama: nama,
+            email: email,
+            departemen: departemen,
+            status: 'approved', // User yang dibuat admin langsung 'approved'
+            created_at: new Date().toISOString()
+        });
+        
+        // 3. Logout dan hapus app sekunder
+        await secondaryApp.auth().signOut();
+        await secondaryApp.delete();
+        
+        showToast('User baru berhasil dibuat! ✅');
+        document.getElementById('createUserPopup').style.display = 'none';
+        document.getElementById('createUserForm').reset();
+
+    } catch (e) {
+        console.error("Gagal membuat user baru:", e);
+        errorDiv.textContent = 'Error: ' + e.message;
+        errorDiv.style.display = 'block';
+        
+        // Pastikan app sekunder dihapus jika terjadi error
+        if (secondaryApp) {
+            await secondaryApp.delete().catch(err => console.error("Gagal hapus secondary app", err));
+        }
+    } finally {
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline-block';
+        btnSpinner.style.display = 'none';
+    }
+}
+
+
+/* [PERUBAHAN] FUNGSI DETAIL USER (untuk form update) */
 function showUserDetail(uid) {
     const user = allUsersCache.find(u => u.uid === uid);
     if (!user) {
@@ -763,88 +1019,51 @@ function showUserDetail(uid) {
         return;
     }
     
+    // Set judul popup
     document.getElementById('userDetailName').textContent = user.nama || user.email;
-    const content = document.getElementById('userDetailContent');
     
+    // Isi form update
+    document.getElementById('updateUserId').value = uid;
+    document.getElementById('updateUserName').value = user.nama || '';
+    document.getElementById('updateUserEmail').value = user.email || '';
+    document.getElementById('updateUserDept').value = user.departemen || '';
+    
+    // Reset error
+    document.getElementById('updateUserError').style.display = 'none';
+    
+    // Atur visibilitas tombol status
+    const status = user.status || 'pending';
+    document.getElementById('popupApproveBtn').style.display = (status !== 'approved') ? 'block' : 'none';
+    document.getElementById('popupRejectBtn').style.display = (status !== 'rejected') ? 'block' : 'none';
+    document.getElementById('popupPendingBtn').style.display = (status !== 'pending') ? 'block' : 'none';
+
+    // Render ringkasan tiket
+    const ticketSummaryContent = document.getElementById('userDetailTicketSummary');
     const userReports = allReportsCache.filter(r => r.uid === uid);
     const byStatus = { Total: userReports.length, Open: 0, Progress: 0, Closed: 0 };
-    const byCat = { Low: 0, Normal: 0, Critical: 0 };
     
     userReports.forEach(r => {
         byStatus[r.status] = (byStatus[r.status] || 0) + 1;
-        byCat[r.kategori || 'Normal'] = (byCat[r.kategori || 'Normal'] || 0) + 1;
     });
 
-    userReports.sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
-    const recent5 = userReports.slice(0, 5);
-    
-    let html = `
-        <p class="small" style="font-size: 14px; margin-top: -10px; margin-bottom: 15px;">
-            <strong>Email:</strong> ${user.email || 'N/A'}<br>
-            <strong>Departemen:</strong> ${user.departemen || 'N/A'}
-        </p>
-
-        <h4>Ringkasan Tiket</h4>
-        <div class="detail-grid">
+    ticketSummaryContent.innerHTML = `
+        <div class="detail-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="detail-card"><div class="small">Total Tiket</div><div class="count">${byStatus.Total}</div></div>
             <div class="detail-card"><div class="small">Open</div><div class="count" style="color:var(--warning)">${byStatus.Open}</div></div>
             <div class="detail-card"><div class="small">Progress</div><div class="count" style="color:var(--primary)">${byStatus.Progress}</div></div>
             <div class="detail-card"><div class="small">Closed</div><div class="count" style="color:var(--success)">${byStatus.Closed}</div></div>
         </div>
-        
-        <h4>Distribusi Kategori</h4>
-        <div class="detail-grid">
-            <div class="detail-card"><div class="small">Low</div><div class="count" style="color:#0284c7">${byCat.Low}</div></div>
-            <div class="detail-card"><div class="small">Normal</div><div class="count" style="color:#d97706">${byCat.Normal}</div></div>
-            <div class="detail-card"><div class="small">Critical</div><div class="count" style="color:#dc2626">${byCat.Critical}</div></div>
-        </div>
-
-        <h4>5 Laporan Terakhir</h4>
     `;
-
-    if (recent5.length === 0) {
-        html += `<p class="small">User ini belum membuat laporan.</p>`;
-    } else {
-        html += `
-            <div class="table-wrap" style="margin-top:0;">
-            <table style="width:100%; min-width: 500px;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Jenis</th>
-                        <th>Status</th>
-                        <th>Dibuat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${recent5.map(r => {
-                        const statusClass = r.status === 'Open' ? 's-open' : (r.status === 'Progress' ? 's-progress' : 's-closed');
-                        return `
-                        <tr>
-                            <td data-label="ID">${r.urgent ? '🔥' : ''} ${r.id}</td>
-                            <td data-label="Jenis">${r.jenis}</td>
-                            <td data-label="Status"><span class="status ${statusClass}">${r.status}</span></td>
-                            <td data-label="Dibuat">${r.created}</td>
-                        </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-            </div>
-        `;
-    }
-    content.innerHTML = html;
+    
+    // Tampilkan popup
     document.getElementById('userDetailPopup').style.display = 'flex';
 }
-document.getElementById('closeUserDetail')?.addEventListener('click', () => {
-    document.getElementById('userDetailPopup').style.display = 'none';
-});
 
 // Expose functions to global
-window.approveUser = approveUser;
-window.rejectUser = rejectUser;
-window.makePending = makePending;
 window.showUserDetail = showUserDetail; 
+
+// Fungsi lama (approveUser, rejectUser, makePending) tidak lagi diexpose
+// karena sudah diganti dengan handlePopupAction dan updateUserStatus
 
 </script>
 
