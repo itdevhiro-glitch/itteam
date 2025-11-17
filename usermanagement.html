@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen User — ADMIN DASHBOARD</title>
+<link rel="icon" type="image/png" href="icov2.png" />
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<style>
+  /* [SAMA] Menggunakan CSS yang 100% sama dari index.html untuk konsistensi */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg: #f4f7fa; --card: #ffffff; --muted:#6c757d; --text:#212529; --primary:#007bff;
+    --primary-hover:#0069d9; --accent:#58a6ff; --success:#16a34a; --warning: #f59e0b;
+    --danger:#dc3545; --radius: 10px; --border-color: #e9ecef; --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+  }
+  [data-theme="dark"]{
+    --bg:#0f172a; --card:#1e293b; --muted:#94a3b8; --text:#f1f5f9; --primary:#3b82f6;
+    --primary-hover:#2563eb; --border-color: #334155; --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:'Inter', system-ui, Roboto, Arial, sans-serif; background:var(--bg);
+    color:var(--text); padding:24px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  .app{max-width:1400px;margin:0 auto}
+  header.app-header{
+    display:flex; align-items:center; gap:16px; margin-bottom:24px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color); flex-wrap: wrap;
+  }
+  .logo{
+    width:48px; height:48px; border-radius:var(--radius);
+    background:linear-gradient(135deg, var(--primary), var(--accent));
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-weight:800; font-size:18px;
+  }
+  .title .name{font-size:22px;font-weight:800}
+  .title .tag{font-size:13px;color:var(--muted);font-weight:500;}
+  .controls{margin-left:auto;display:flex;gap:10px;align-items:center; flex-wrap: wrap;}
+  .btn{
+    background:var(--primary); color:#fff; border:none; padding:9px 14px; border-radius:8px;
+    cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;
+    font-size:14px; transition: background-color 0.2s ease; text-decoration: none; line-height: 1;
+  }
+  .btn:hover{ background: var(--primary-hover); }
+  .btn.ghost{ background:transparent; border:1px solid var(--border-color); color:var(--text); font-weight: 500; }
+  .btn.ghost:hover{ background: var(--border-color); }
+  .btn:not(.ghost){ box-shadow: var(--shadow-sm); }
+  .btn svg{width:16px;height:16px;stroke-width:2.5}
+  
+  .btn-link {
+    background: none; border: none; padding: 0;
+    color: var(--primary); font-weight: 600; cursor: pointer;
+    text-align: left; font-size: 14px; font-family: 'Inter', sans-serif;
+  }
+  .btn-link:hover { text-decoration: underline; }
+
+  .card{
+    background:var(--card); padding: 20px 24px; border-radius:var(--radius);
+    box-shadow:var(--shadow-sm); border:1px solid var(--border-color); margin-bottom: 20px;
+  }
+  h2 { font-size: 24px; font-weight: 800; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
+  h2 svg { width: 28px; height: 28px; }
+  h3 { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 16px; }
+  h4 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }
+  .small{font-size:13px;color:var(--muted);font-weight:500;}
+  
+  .table-wrap{overflow:auto}
+  table{width:100%;border-collapse:collapse;min-width:900px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border-color);vertical-align: middle;}
+  th{
+    background:var(--bg); color:var(--muted); font-size:12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; position:relative; user-select:none;
+  }
+  .status {
+    display:inline-block; padding: 4px 12px; border-radius:999px;
+    font-weight:600; font-size:12px; line-height: 1.5;
+  }
+  .s-open{background:#fffbeb;color:#b45309} /* (Pending) */
+  .s-progress{background:#e0f2fe;color:#0284c7} /* (Custom) */
+  .s-closed{background:#dcfce7;color:#16a34a} /* (Approved) */
+  .cat-critical{background:#fee2e2;color:#dc2626} /* (Rejected) */
+  .cat-normal{background:#fffbeb;color:#d97706} /* (Pending) */
+
+  .filter-bar-complex {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr; /* Kolom search lebih besar */
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+  }
+  .filter-bar-complex input,
+  .filter-bar-complex select,
+  .filter-bar-complex .btn {
+      width: 100%;
+      font-size: 14px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg);
+      color: var(--text);
+  }
+  .filter-bar-complex .btn {
+      background: var(--card);
+      font-weight: 500;
+      justify-content: center;
+  }
+  .filter-bar-complex .btn:hover {
+      background: var(--border-color);
+  }
+  .filter-bar-complex input::placeholder { color: var(--muted); }
+
+  #userDetailPopup {
+    display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+    z-index: 6000; align-items: center; justify-content: center; padding: 16px;
+  }
+  #userDetailPopup > div {
+    background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
+    width: 700px;
+    max-width: 100%;
+    max-height: 85%; overflow: auto;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
+  }
+  #userDetailContent {
+    font-size: 14px; margin-top: 10px; line-height: 1.7;
+    flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
+  }
+  #userDetailContent table { min-width: 600px; }
+
+  .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+  }
+  .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+  }
+  .detail-card .count {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 8px;
+      color: var(--primary);
+  }
+  .detail-card .small {
+      font-weight: 600;
+  }
+  .stat-col { text-align: center !important; font-weight: 600; }
+  .stat-col-urgent { color: var(--danger); font-weight: 800; }
+  footer.small{ margin-top:32px; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* [PERUBAHAN] CSS untuk Loading Screen (Pengganti Login) */
+  #loadingScreen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 10000;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .loading-box {
+    width: 400px; max-width: 100%;
+    background: var(--card); padding: 28px;
+    border-radius: var(--radius); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md); text-align: center;
+  }
+  .loading-box h3 { margin-bottom: 8px; }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px auto;
+  }
+  #authError {
+      display: none; /* Sembunyi by default */
+  }
+  #authError p {
+      color: var(--danger);
+      font-weight: 600;
+      margin: 0;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Sembunyikan app-content by default */
+  .app-content { display: none; }
+  
+  /* [SAMA] Media Query Responsive */
+  @media (max-width: 900px) {
+    body { padding: 16px; }
+    .app { padding: 0; }
+    .filter-bar-complex {
+        grid-template-columns: 1fr; /* Stack filter di mobile */
+    }
+  }
+  @media (max-width: 600px) {
+    .controls {
+    }
+    .app-header { position: relative; }
+    .controls {
+        margin-left: 0;
+        width: 100%;
+        gap: 6px;
+        justify-content: flex-start;
+        flex-wrap: wrap; 
+    }
+    .controls #userInfo { display: none; } 
+    .controls #logoutBtn {
+        position: absolute;
+        top: 20px;
+        right: 0;
+    }
+    .detail-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    /* Responsive untuk tabel user */
+    #userManagementContent .table-wrap {
+        overflow: hidden; 
+    }
+    #userManagementContent table,
+    #userDetailContent table {
+        min-width: 0; 
+    }
+    #userManagementContent table thead,
+    #userDetailContent table thead {
+        border: none; clip: rect(0 0 0 0);
+        height: 1px; margin: -1px; overflow: hidden;
+        padding: 0; position: absolute; width: 1px;
+    }
+    #userManagementContent table tr,
+    #userDetailContent table tr {
+        display: block;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        margin-bottom: 16px;
+        padding: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+    #userManagementContent table td,
+    #userDetailContent table td {
+        display: block;
+        padding: 8px 0; 
+        border-bottom: none;
+        font-size: 14px;
+        text-align: left !important; 
+    }
+    #userManagementContent table td:not(:first-child),
+    #userDetailContent table td:not(:first-child) {
+        border-top: 1px dashed var(--border-color);
+        padding-top: 10px;
+        margin-top: 6px;
+    }
+    #userManagementContent table td:before,
+    #userDetailContent table td:before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 2px;
+    }
+    #userManagementContent .actions {
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 6px;
+    }
+    #userManagementContent .actions .btn,
+    #userManagementContent .actions .btn.ghost {
+        width: 100%;
+        justify-content: center; 
+    }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    <svg id="icon-back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </defs>
+</svg>
+
+<div id="loadingScreen">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <h3 id="loadingText">Memverifikasi Sesi Admin...</h3>
+    <p class="small">Mengecek status login Anda.</p>
+    <div id="authError">
+      <p>Akses ditolak. Sesi Anda tidak valid atau bukan admin.</p>
+      <a href="index.html" class="btn" style="margin-top: 15px;">Kembali ke Halaman Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="app app-content">
+
+  <header class="app-header">
+    <div class="logo">ZP</div>
+    <div class="title"><div class="name">Zeppelin</div><div class="tag">ADMIN DASHBOARD</div></div>
+    <div class="controls">
+      <div id="dateTime" class="small"></div>
+      <div id="userInfo" class="small" style="text-align: right;">
+        Logged in as:<br>
+        <strong id="userEmailDisplay"></strong>
+      </div>
+      <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
+      
+      <a href="index.html" class="btn" title="Kembali ke Dashboard">
+        <svg><use href="#icon-back" /></svg>
+        Kembali ke Dashboard
+      </a>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    
+    <h2><svg><use href="#icon-users" /></svg>Manajemen User</h2>
+
+    <div class="detail-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Total User</div>
+            <div id="userStatTotal" class="count" style="font-size: 20px;">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Pending</div>
+            <div id="userStatPending" class="count" style="font-size: 20px; color: var(--warning);">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Approved</div>
+            <div id="userStatApproved" class="count" style="font-size: 20px; color: var(--success);">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Rejected</div>
+            <div id="userStatRejected" class="count" style="font-size: 20px; color: var(--danger);">0</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom: 10px;">
+        <h3>Filter & Kontrol</h3>
+        <div class="filter-bar-complex">
+            <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
+            
+            <select id="userFilterDept">
+                <option value="">Semua Departemen</option>
+            </select>
+            
+            <select id="userFilterStatus">
+                <option value="">Semua Status</option>
+                <option value="pending" selected>Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+
+            <button id="clearFiltersBtn" class="btn ghost">Clear Filter</button>
+        </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Daftar User</h3>
+        <span id="userCountInfo" class="small">Memuat...</span>
+      </div>
+      <div id="userManagementContent" style="margin-top: 16px;">
+        </div>
+    </div>
+    
+  </main>
+  
+  <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
+</div>
+
+<div id="userDetailPopup">
+  <div>
+    <h3>Detail User: <span id="userDetailName" style="color: var(--primary);"></span></h3>
+    <div id="userDetailContent">
+        </div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button id="closeUserDetail" class="btn">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" style="position: fixed; bottom: 18px; right: 18px; z-index: 99999;"></div>
+
+
+<script>
+// ===================================================================
+// === (ADMIN) KONFIGURASI ===
+// ===================================================================
+const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
+const ADMIN_EMAIL = "root@zeppelin.center";
+// ===================================================================
+
+// === KONFIGURASI FIREBASE ===
+const firebaseConfig = {
+  apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
+  authDomain: "it-support-53eeb.firebaseapp.com",
+  databaseURL: "https://it-support-53eeb-default-rtdb.firebaseio.com",
+  projectId: "it-support-53eeb",
+  storageBucket: "it-support-53eeb.firebasestorage.app",
+  messagingSenderId: "573924501146",
+  appId: "1:573924501146:web:12f34306ed675472322123",
+  measurementId: "G-33K6DDE1VR"
+};
+
+firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
+const db = firebase.database();
+const auth = firebase.auth();
+const reportsRef = db.ref('reports'); 
+const usersRef = db.ref('users');
+
+/* Cache & State */
+let allReportsCache = []; 
+let allUsersCache = []; 
+let currentUser = null; 
+let dbListenerActive = false; 
+
+/* Utilities */
+function nowString(){ return new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' }); }
+
+function showToast(txt, t = 3000, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.style.padding = '12px 16px';
+    el.style.marginBottom = '10px';
+    
+    if (type === 'danger') {
+        el.style.background = 'var(--danger)';
+    } else if (type === 'warning') {
+        el.style.background = 'var(--warning)';
+    } else {
+        el.style.background = 'var(--primary)'; // Default
+    }
+    
+    el.style.color = '#fff';
+    el.style.fontWeight = '600';
+    el.textContent = txt; 
+    container.appendChild(el);
+    setTimeout(() => el.remove(), t);
+}
+
+
+/* (ADMIN) Init */
+(function init(){
+  const dateTimeEl = document.getElementById('dateTime');
+  const footerDate = document.getElementById('footerDate');
+  footerDate.textContent = new Date().toLocaleDateString('id-ID', { year: 'numeric' });
+  function updateTime(){ dateTimeEl.textContent = new Date().toLocaleString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  setInterval(updateTime,1000); updateTime();
+
+  /* [PERUBAHAN] Kontrol Otentikasi */
+  const loadingScreen = document.getElementById('loadingScreen');
+  const appContent = document.querySelector('.app-content');
+  const userEmailDisplay = document.getElementById('userEmailDisplay');
+  const authErrorDiv = document.getElementById('authError');
+  const loadingSpinner = document.querySelector('.loading-spinner');
+  const loadingText = document.getElementById('loadingText');
+
+  function showAuthError() {
+    loadingSpinner.style.display = 'none';
+    loadingText.textContent = 'Akses Ditolak';
+    authErrorDiv.style.display = 'block';
+  }
+
+  // Handle Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await auth.signOut();
+    // Saat logout, tampilkan layar error
+    appContent.style.display = 'none';
+    loadingScreen.style.display = 'flex';
+    showAuthError();
+  });
+
+  /* [PERUBAHAN] LISTENER OTENTIKASI */
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      // User is logged in, check if they are ADMIN
+      if (user.uid !== ADMIN_UID) {
+        // Not admin. Show error screen and log them out.
+        showAuthError();
+        auth.signOut(); 
+      } else {
+        // IS ADMIN. Show content.
+        currentUser = user;
+        loadingScreen.style.display = 'none'; 
+        appContent.style.display = 'block'; 
+        userEmailDisplay.textContent = `ADMIN (root)`;
+        
+        if (!dbListenerActive) {
+          // Listener Laporan (diperlukan untuk hitung tiket)
+          reportsRef.on('value', (snapshot) => {
+            const dataObj = snapshot.val();
+            allReportsCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], id: key })) : [];
+            renderUserManagementTable();
+            console.log('Data admin (reports) dimuat dari Firebase.');
+          }, (error) => {
+            console.error("Firebase read (reports) failed:", error);
+          });
+
+          // Listener untuk data user
+          usersRef.on('value', (snapshot) => {
+              const dataObj = snapshot.val();
+              allUsersCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], uid: key })) : [];
+              renderUserManagementTable();
+              console.log('Data admin (users) dimuat dari Firebase.');
+          }, (error) => {
+              console.error("Firebase read (users) failed:", error);
+          });
+
+          dbListenerActive = true;
+        }
+      }
+    } else {
+      // User is not logged in. Show error screen.
+      showAuthError();
+      appContent.style.display = 'none';
+      loadingScreen.style.display = 'flex';
+
+      if (dbListenerActive) {
+        reportsRef.off(); 
+        usersRef.off(); 
+        dbListenerActive = false;
+        allReportsCache = []; 
+        allUsersCache = []; 
+      }
+    }
+  });
+
+  // Listener untuk filter
+  document.getElementById('userFilterStatus')?.addEventListener('change', renderUserManagementTable);
+  document.getElementById('userSearchInput')?.addEventListener('input', renderUserManagementTable);
+  document.getElementById('userFilterDept')?.addEventListener('change', renderUserManagementTable);
+  document.getElementById('clearFiltersBtn')?.addEventListener('click', () => {
+      document.getElementById('userSearchInput').value = '';
+      document.getElementById('userFilterDept').value = '';
+      document.getElementById('userFilterStatus').value = '';
+      renderUserManagementTable();
+  });
+})();
+
+
+// ===================================================================
+// === FUNGSI MANAJEMEN USER (v3) ===
+// ===================================================================
+function renderUserManagementTable() {
+    const content = document.getElementById('userManagementContent');
+    const info = document.getElementById('userCountInfo');
+    
+    // Cek jika elemen ada (mencegah error jika render pertama gagal)
+    const filterStatusEl = document.getElementById('userFilterStatus');
+    const filterDeptEl = document.getElementById('userFilterDept');
+    const searchEl = document.getElementById('userSearchInput');
+
+    if (!content || !info || !filterStatusEl || !filterDeptEl || !searchEl) {
+        console.warn("Elemen UI manajemen user belum siap.");
+        return; 
+    }
+    
+    const filterStatus = filterStatusEl.value;
+    const filterDept = filterDeptEl.value;
+    const search = (searchEl.value || '').toLowerCase();
+
+    // Update Statistik
+    let stats = { total: 0, pending: 0, approved: 0, rejected: 0 };
+    let departments = new Set();
+    allUsersCache.forEach(user => {
+        if (user.uid === ADMIN_UID) return;
+        const status = user.status || 'pending';
+        stats.total++;
+        stats[status]++;
+        if(user.departemen) departments.add(user.departemen);
+    });
+    document.getElementById('userStatTotal').textContent = stats.total;
+    document.getElementById('userStatPending').textContent = stats.pending;
+    document.getElementById('userStatApproved').textContent = stats.approved;
+    document.getElementById('userStatRejected').textContent = stats.rejected;
+
+    // Update Filter Departemen Dinamis
+    const deptSelect = document.getElementById('userFilterDept');
+    const currentDept = deptSelect.value;
+    deptSelect.innerHTML = '<option value="">Semua Departemen</option>';
+    Array.from(departments).sort().forEach(dept => {
+        const option = new Option(dept, dept);
+        deptSelect.add(option);
+    });
+    deptSelect.value = currentDept;
+
+    if (!allUsersCache.length) {
+        content.innerHTML = '<p class="small" style="text-align:center; padding: 20px;">Tidak ada user terdaftar.</p>';
+        if (info) info.textContent = `Menampilkan 0 user`;
+        return;
+    }
+
+    // Logika Filter Kompleks
+    const filteredUsers = allUsersCache.filter(user => {
+        if (user.uid === ADMIN_UID) return false; 
+        
+        const userStatus = user.status || 'pending'; 
+        const userDept = user.departemen || 'N/A';
+
+        const matchStatus = (filterStatus === "") ? true : (userStatus === filterStatus);
+        const matchDept = (filterDept === "") ? true : (userDept === filterDept);
+        const matchSearch = !search || 
+                            (user.nama || '').toLowerCase().includes(search) || 
+                            (user.email || '').toLowerCase().includes(search);
+                            
+        return matchStatus && matchDept && matchSearch;
+    });
+    
+    if (info) info.textContent = `Menampilkan ${filteredUsers.length} dari ${stats.total} user`;
+    
+    if (!filteredUsers.length) {
+        content.innerHTML = `<p class="small" style="text-align:center; padding: 20px;">Tidak ada user cocok dengan filter.</p>`;
+        return;
+    }
+    
+    content.innerHTML = `
+        <div class="table-wrap" style="margin-top:0;">
+        <table style="width:100%; min-width: 900px;">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Departemen</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Total Tiket</th>
+                    <th style="text-align: center;">Open / Urgent</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredUsers
+                    .sort((a,b) => (a.nama || '').localeCompare(b.nama || '')) 
+                    .map(user => {
+                    
+                    const userReports = allReportsCache.filter(r => r.uid === user.uid);
+                    const totalTiket = userReports.length;
+                    const openTiket = userReports.filter(r => r.status === 'Open' || r.status === 'Progress').length;
+                    const urgentTiket = userReports.filter(r => r.urgent === true).length;
+                    
+                    const status = user.status || 'pending'; 
+                    let statusClass = 'cat-normal'; // (Pending)
+                    if (status === 'approved') statusClass = 's-closed'; 
+                    if (status === 'rejected') statusClass = 'cat-critical'; 
+
+                    let actions = '';
+                    if (status !== 'approved') {
+                        actions += `<button class="btn" onclick="approveUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--success); color: #fff;">Approve</button> `;
+                    }
+                    if (status !== 'rejected') {
+                        actions += `<button class="btn" onclick="rejectUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--danger); color: #fff;">Reject</button> `;
+                    }
+                    if (status === 'approved' || status === 'rejected') {
+                        actions += `<button class="btn ghost" onclick="makePending('${user.uid}')" style="padding: 4px 8px; font-size:12px;">Set Pending</button>`;
+                    }
+
+                    const nameButton = `<button type="button" class="btn-link" onclick="showUserDetail('${user.uid}')" title="Lihat detail user">${user.nama || 'N/A'}</button>`;
+                    
+                    const openUrgentText = urgentTiket > 0 
+                        ? `<span class="stat-col-urgent">${openTiket} / ${urgentTiket} 🔥</span>` 
+                        : `${openTiket} / 0`;
+
+                    return `
+                        <tr>
+                            <td data-label="Nama">${nameButton}</td>
+                            <td data-label="Email">${user.email || 'N/A'}</td>
+                            <td data-label="Departemen">${user.departemen || 'N/A'}</td> 
+                            <td data-label="Status"><span class="status ${statusClass}">${status}</span></td>
+                            <td data-label="Total Tiket" class="stat-col">${totalTiket}</td>
+                            <td data-label="Open / Urgent" class="stat-col">${openUrgentText}</td>
+                            <td data-label="Aksi" class="actions">${actions}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        </div>
+    `;
+}
+
+// Fungsi Aksi Admin (Approve, Reject, Pending)
+async function approveUser(uid) {
+    if (!uid) return;
+    const user = allUsersCache.find(u => u.uid === uid);
+    if (!user || !user.nama || !user.email) {
+        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
+        return;
+    }
+    try {
+        await usersRef.child(uid).update({ 
+            status: 'approved',
+            nama: user.nama,
+            email: user.email,
+            departemen: user.departemen || null
+        });
+        showToast('User disetujui ✅');
+    } catch (e) {
+        console.error("Gagal approve user:", e);
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+async function rejectUser(uid) {
+    if (!uid) return;
+    const user = allUsersCache.find(u => u.uid === uid);
+    if (!user || !user.nama || !user.email) {
+        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
+        return;
+    }
+    try {
+        await usersRef.child(uid).update({ 
+            status: 'rejected',
+            nama: user.nama,
+            email: user.email,
+            departemen: user.departemen || null
+        });
+        showToast('User ditolak ❌');
+    } catch (e) {
+        console.error("Gagal reject user:", e);
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+async function makePending(uid) {
+    if (!uid) return;
+    const user = allUsersCache.find(u => u.uid === uid);
+    if (!user || !user.nama || !user.email) {
+        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
+        return;
+    }
+    try {
+        await usersRef.child(uid).update({ 
+            status: 'pending',
+            nama: user.nama,
+            email: user.email,
+            departemen: user.departemen || null
+        });
+        showToast('User di-set ke Pending ⏳');
+    } catch (e) {
+        console.error("Gagal set pending:", e);
+        alert('Gagal update user: ' + e.message);
+    }
+}
+
+/* === FUNGSI DETAIL USER === */
+function showUserDetail(uid) {
+    const user = allUsersCache.find(u => u.uid === uid);
+    if (!user) {
+        alert("User tidak ditemukan di cache.");
+        return;
+    }
+    
+    document.getElementById('userDetailName').textContent = user.nama || user.email;
+    const content = document.getElementById('userDetailContent');
+    
+    const userReports = allReportsCache.filter(r => r.uid === uid);
+    const byStatus = { Total: userReports.length, Open: 0, Progress: 0, Closed: 0 };
+    const byCat = { Low: 0, Normal: 0, Critical: 0 };
+    
+    userReports.forEach(r => {
+        byStatus[r.status] = (byStatus[r.status] || 0) + 1;
+        byCat[r.kategori || 'Normal'] = (byCat[r.kategori || 'Normal'] || 0) + 1;
+    });
+
+    userReports.sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
+    const recent5 = userReports.slice(0, 5);
+    
+    let html = `
+        <p class="small" style="font-size: 14px; margin-top: -10px; margin-bottom: 15px;">
+            <strong>Email:</strong> ${user.email || 'N/A'}<br>
+            <strong>Departemen:</strong> ${user.departemen || 'N/A'}
+        </p>
+
+        <h4>Ringkasan Tiket</h4>
+        <div class="detail-grid">
+            <div class="detail-card"><div class="small">Total Tiket</div><div class="count">${byStatus.Total}</div></div>
+            <div class="detail-card"><div class="small">Open</div><div class="count" style="color:var(--warning)">${byStatus.Open}</div></div>
+            <div class="detail-card"><div class="small">Progress</div><div class="count" style="color:var(--primary)">${byStatus.Progress}</div></div>
+            <div class="detail-card"><div class="small">Closed</div><div class="count" style="color:var(--success)">${byStatus.Closed}</div></div>
+        </div>
+        
+        <h4>Distribusi Kategori</h4>
+        <div class="detail-grid">
+            <div class="detail-card"><div class="small">Low</div><div class="count" style="color:#0284c7">${byCat.Low}</div></div>
+            <div class="detail-card"><div class="small">Normal</div><div class="count" style="color:#d97706">${byCat.Normal}</div></div>
+            <div class="detail-card"><div class="small">Critical</div><div class="count" style="color:#dc2626">${byCat.Critical}</div></div>
+        </div>
+
+        <h4>5 Laporan Terakhir</h4>
+    `;
+
+    if (recent5.length === 0) {
+        html += `<p class="small">User ini belum membuat laporan.</p>`;
+    } else {
+        html += `
+            <div class="table-wrap" style="margin-top:0;">
+            <table style="width:100%; min-width: 500px;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Jenis</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${recent5.map(r => {
+                        const statusClass = r.status === 'Open' ? 's-open' : (r.status === 'Progress' ? 's-progress' : 's-closed');
+                        return `
+                        <tr>
+                            <td data-label="ID">${r.urgent ? '🔥' : ''} ${r.id}</td>
+                            <td data-label="Jenis">${r.jenis}</td>
+                            <td data-label="Status"><span class="status ${statusClass}">${r.status}</span></td>
+                            <td data-label="Dibuat">${r.created}</td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+            </div>
+        `;
+    }
+    content.innerHTML = html;
+    document.getElementById('userDetailPopup').style.display = 'flex';
+}
+document.getElementById('closeUserDetail')?.addEventListener('click', () => {
+    document.getElementById('userDetailPopup').style.display = 'none';
+});
+
+// Expose functions to global
+window.approveUser = approveUser;
+window.rejectUser = rejectUser;
+window.makePending = makePending;
+window.showUserDetail = showUserDetail; 
+
+</script>
+
+</body>
+</html>
