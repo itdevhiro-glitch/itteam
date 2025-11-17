@@ -141,22 +141,18 @@
   .flex{display:flex;gap:8px;align-items:center}
   footer.small{ margin-top:32px; text-align:center; color:var(--muted); font-size:13px; }
   
-  #logPopup, #globalLogPopup, #summaryPopup, #userManagementPopup, #userDetailPopup {
+  #logPopup, #globalLogPopup, #summaryPopup {
     display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
     z-index: 6000; align-items: center; justify-content: center; padding: 16px;
   }
-  #logPopup > div, #globalLogPopup > div, #summaryPopup > div, #userManagementPopup > div, #userDetailPopup > div {
+  #logPopup > div, #globalLogPopup > div, #summaryPopup > div {
     background: var(--card); color: var(--text); padding: 24px; border-radius: 12px;
     width: 900px; /* Lebar default popup */
     max-width: 100%;
     max-height: 85%; overflow: auto;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;
   }
-  #userDetailPopup > div {
-    width: 700px;
-  }
 
-  #userManagementContent, #userDetailContent,
   #globalLogContent, #logContent {
     font-size: 14px; margin-top: 10px; line-height: 1.7;
     flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
@@ -167,14 +163,8 @@
     flex-grow: 1; overflow-y: auto; background: var(--bg); padding: 12px; border-radius: 8px;
   }
 
-  #userManagementContent table, #userDetailContent table {
-      min-width: 600px;
-  }
-  #userManagementContent .actions {
-      display: flex; gap: 4px; flex-wrap: wrap;
-  }
   #summaryContent table { font-size: 13px; }
-  #logControlPanel, #userManagementControlPanel {
+  #logControlPanel {
     display: flex; gap: 10px; align-items: center; margin-bottom: 16px;
     padding-bottom: 16px; border-bottom: 1px solid var(--border-color);
     flex-wrap: wrap;
@@ -244,7 +234,7 @@
     .row {
         grid-template-columns: 1fr 1fr;
     }
-    #logPopup > div, #globalLogPopup > div, #summaryPopup > div, #userManagementPopup > div, #userDetailPopup > div {
+    #logPopup > div, #globalLogPopup > div, #summaryPopup > div {
         width: 95%;
     }
   }
@@ -283,83 +273,58 @@
     }
   }
 
-  @media (max-width: 768px) {
-    #userManagementContent .table-wrap,
-    #userDetailContent .table-wrap {
-        overflow: hidden; 
-    }
-    
-    #userManagementContent table,
-    #userDetailContent table {
-        min-width: 0; 
-    }
-
-    #userManagementContent table thead,
-    #userDetailContent table thead {
-        border: none; clip: rect(0 0 0 0);
-        height: 1px; margin: -1px; overflow: hidden;
-        padding: 0; position: absolute; width: 1px;
-    }
-
-    #userManagementContent table tr,
-    #userDetailContent table tr {
-        display: block;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        margin-bottom: 16px;
-        padding: 12px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    #userManagementContent table td,
-    #userDetailContent table td {
-        display: block;
-        padding: 8px 0; 
-        border-bottom: none;
-        font-size: 14px;
-        text-align: left !important; 
-    }
-
-    #userManagementContent table td:not(:first-child),
-    #userDetailContent table td:not(:first-child) {
-        border-top: 1px dashed var(--border-color);
-        padding-top: 10px;
-        margin-top: 6px;
-    }
-
-    #userManagementContent table td:before,
-    #userDetailContent table td:before {
-        content: attr(data-label);
-        display: block;
-        font-weight: 600;
-        font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 2px;
-    }
-    
-    #userManagementContent .actions {
-        display: grid; 
-        grid-template-columns: 1fr 1fr; 
-        gap: 6px;
-    }
-    #userManagementContent .actions .btn,
-    #userManagementContent .actions .btn.ghost {
-        width: 100%;
-        justify-content: center; 
-    }
+  /* CSS UNTUK LIST PENGUMUMAN */
+  .announcement-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
+  .announcement-card {
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-left-width: 5px;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* Prioritas Warna */
+  .announcement-card[data-priority="info"] { border-left-color: var(--primary); }
+  .announcement-card[data-priority="warning"] { border-left-color: var(--warning); }
+  .announcement-card[data-priority="critical"] { border-left-color: var(--danger); }
 
-  #announcementsTable {
-      min-width: 0; 
+  .announcement-card .content {
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-wrap;
   }
-  #announcementsTable .actions {
-      display: flex;
-      gap: 4px;
+  .announcement-card .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
   }
-  #announcementsTable .actions .btn,
-  #announcementsTable .actions .btn.ghost {
-        padding: 4px 8px; 
-        font-size:12px;
+  .announcement-card .meta .author-date {
+    font-weight: 500;
+  }
+  .announcement-card .meta .author-date strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .announcement-card .actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto; 
+  }
+  .announcement-card .actions .btn,
+  .announcement-card .actions .btn.ghost {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
   }
   
   #am_title {
@@ -414,9 +379,11 @@
       <button id="showGlobalLog" class="btn ghost" title="Lihat Log Aktivitas">
          <svg><use href="#icon-log" /></svg>
       </button>
-      <button id="showUserManagement" class="btn ghost" title="Manajemen User">
+      
+      <a href="usermanagement.html" id="showUserManagement" class="btn ghost" title="Manajemen User">
          <svg><use href="#icon-users" /></svg>
-      </button>
+      </a>
+      
       <button id="newReportBtn" class="btn">
         <svg><use href="#icon-plus" /></svg>
         Buat Laporan
@@ -446,20 +413,8 @@
           Buat Pengumuman Baru
         </button>
       </div>
-      <div class="table-wrap" style="margin-top:12px;">
-        <table id="announcementsTable" aria-describedby="Daftar pengumuman">
-          <thead>
-            <tr>
-              <th>Judul Pengumuman</th>
-              <th style="width: 150px;">Oleh</th>
-              <th style="width: 200px;">Dibuat</th>
-              <th style="width: 150px;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="announcementsTbody">
-          </tbody>
-        </table>
-      </div>
+      <div id="announcementList" class="announcement-list" style="margin-top: 16px;">
+        </div>
     </div>
     
     <div class="card" style="margin-top:18px">
@@ -565,38 +520,6 @@
   </div>
 </div>
 
-<div id="userManagementPopup">
-  <div>
-    <h3>👥 Manajemen User</h3>
-    <div id="userManagementControlPanel">
-      <label class="small" for="userFilterStatus">Filter Status:</label>
-      <select id="userFilterStatus" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border-color); background: var(--bg); color: var(--text);">
-        <option value="">Semua</option>
-        <option value="pending" selected>Pending</option>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
-      </select>
-      <span id="userCountInfo" style="margin-left:auto;font-size:13px;color:var(--muted);"></span>
-    </div>
-    <div id="userManagementContent">
-      </div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-      <button id="closeUserManagement" class="btn">Tutup</button>
-    </div>
-  </div>
-</div>
-
-<div id="userDetailPopup">
-  <div>
-    <h3>Detail User: <span id="userDetailName" style="color: var(--primary);"></span></h3>
-    <div id="userDetailContent">
-        </div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-      <button id="closeUserDetail" class="btn">Tutup</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-backdrop" id="announcementModalBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
     <h3 id="announcementModalTitle">Buat Pengumuman Baru</h3>
@@ -606,9 +529,27 @@
         <label class="small">Judul / Isi Pengumuman</label>
         <textarea id="am_title" required placeholder="Tulis isi pengumuman di sini..."></textarea>
       </div>
+
+      <div class="form-row" style="margin-top:10px">
+        <div>
+          <label class="small">Oleh (Author)</label>
+          <input id="am_author" required readonly value="Admin (root)">
+        </div>
+        
+        <div>
+          <label class="small">Prioritas</label>
+          <select id="am_priority" required>
+            <option value="info">Info (Biru)</option>
+            <option value="warning">Warning (Kuning)</option>
+            <option value="critical">Critical (Merah)</option>
+          </select>
+        </div>
+      </div>
+      
       <div style="margin-top:10px">
-        <label class="small">Oleh (Author)</label>
-        <input id="am_author" required readonly value="Admin (root)">
+        <label class="small">Berlaku Sampai (Opsional)</label>
+        <input id="am_expires" type="date">
+        <div class="small" style="margin-top:4px;">Kosongkan jika ingin tampil selamanya.</div>
       </div>
       
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
@@ -630,7 +571,6 @@ const ADMIN_EMAIL = "root@zeppelin.center";
 // ===================================================================
 
 // === KONFIGURASI FIREBASE ===
-// [FIX 1] Dihapus karakter spasi tidak terlihat dari semua kunci (apiKey, authDomain, dll.)
 const firebaseConfig = {
   apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
   authDomain: "it-support-53eeb.firebaseapp.com",
@@ -648,12 +588,12 @@ const db = firebase.database();
 const auth = firebase.auth();
 const reportsRef = db.ref('reports'); 
 const counterRef = db.ref('counter'); 
-const usersRef = db.ref('users');
+// [DIHAPUS] usersRef tidak lagi dipakai di halaman ini
 const announcementsRef = db.ref('announcements'); 
 
 /* Cache & State */
 let allReportsCache = []; 
-let allUsersCache = []; 
+// [DIHAPUS] allUsersCache tidak lagi dipakai di halaman ini
 let allAnnouncementsCache = []; 
 let currentUser = null; 
 let dbListenerActive = false; 
@@ -833,7 +773,7 @@ function showToast(txt, t = 3000, type = 'success') {
     
     el.style.color = '#fff';
     el.style.fontWeight = '600';
-    el.textContent = txt; // [FIX] Pastikan teks diset
+    el.textContent = txt; 
     document.body.appendChild(el);
     setTimeout(() => el.remove(), t);
 }
@@ -962,7 +902,6 @@ function exportToExcel(){
     }
 
     try {
-      // [FIX] Bug config sudah diperbaiki, ini seharusnya berfungsi sekarang
       await auth.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
     } catch (err) {
       console.error("Login Gagal:", err);
@@ -975,7 +914,7 @@ function exportToExcel(){
     await auth.signOut();
   });
 
-  /* (DIUBAH) LISTENER OTENTIKASI (Menambahkan listener PENGUMUMAN) */
+  /* [PERUBAHAN] LISTENER OTENTIKASI (DI SINI HANYA BUTUH reportsRef dan announcementsRef) */
   auth.onAuthStateChanged((user) => {
     if (user) {
       if (user.uid !== ADMIN_UID) {
@@ -997,9 +936,6 @@ function exportToExcel(){
           renderTable(currentPage);
           renderDashboard(); 
           renderCharts();
-          if (document.getElementById('userManagementPopup').style.display === 'flex') {
-                renderUserManagementTable();
-          }
           console.log('Data admin (reports) dimuat dari Firebase.');
         }, (error) => {
           console.error("Firebase read (reports) failed:", error);
@@ -1021,23 +957,13 @@ function exportToExcel(){
             }
         });
 
-        // Listener untuk data user
-        usersRef.on('value', (snapshot) => {
-            const dataObj = snapshot.val();
-            allUsersCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], uid: key })) : [];
-            if (document.getElementById('userManagementPopup').style.display === 'flex') {
-                renderUserManagementTable();
-            }
-            console.log('Data admin (users) dimuat dari Firebase.');
-        }, (error) => {
-            console.error("Firebase read (users) failed:", error);
-        });
+        // [DIHAPUS] Listener untuk data user tidak ada di sini
 
         // Listener untuk data pengumuman
         announcementsRef.on('value', (snapshot) => {
             const dataObj = snapshot.val();
             allAnnouncementsCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], key: key })) : [];
-            renderAnnouncementsTable(); 
+            renderAnnouncementsList(); 
             console.log('Data admin (announcements) dimuat dari Firebase.');
         }, (error) => {
             console.error("Firebase read (announcements) failed:", error);
@@ -1053,11 +979,11 @@ function exportToExcel(){
 
       if (dbListenerActive) {
         reportsRef.off(); 
-        usersRef.off(); 
+        // [DIHAPUS] usersRef.off()
         announcementsRef.off(); 
         dbListenerActive = false;
         allReportsCache = []; 
-        allUsersCache = []; 
+        // [DIHAPUS] allUsersCache = []
         allAnnouncementsCache = []; 
       }
     }
@@ -1394,276 +1320,53 @@ function enableSummaryClicksNow(){
 }
 try{ enableSummaryClicksNow(); }catch(e){}
 
-/* === FUNGSI MANAJEMEN USER === */
-function renderUserManagementTable() {
-    const content = document.getElementById('userManagementContent');
-    const filter = document.getElementById('userFilterStatus').value;
-    const info = document.getElementById('userCountInfo');
-    
-    if (!allUsersCache.length) {
-        content.innerHTML = '<p class="small" style="text-align:center; padding: 20px;">Tidak ada user terdaftar.</p>';
-        if (info) info.textContent = `Menampilkan 0 user`;
-        return;
-    }
+// [DIHAPUS] Semua fungsi Manajemen User & Detail User
 
-    const filteredUsers = allUsersCache.filter(user => {
-        if (user.uid === ADMIN_UID) return false; 
-        if (filter === "") return true; 
-        const userStatus = user.status || 'pending'; 
-        return userStatus === filter; 
-    });
-    
-    if (info) info.textContent = `Menampilkan ${filteredUsers.length} user`;
-    
-    if (!filteredUsers.length) {
-        content.innerHTML = `<p class="small" style="text-align:center; padding: 20px;">Tidak ada user dengan status '${filter}'.</p>`;
-        return;
-    }
-    
-    content.innerHTML = `
-        <div class="table-wrap" style="margin-top:0;">
-        <table style="width:100%; min-width: 600px;">
-            <thead>
-                <tr>
-                    <th>Nama</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th style="text-align: center;">Total Tiket</th>
-                    <th style="text-align: center;">Open / Urgent</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${filteredUsers
-                    .sort((a,b) => (a.nama || '').localeCompare(b.nama || '')) 
-                    .map(user => {
-                    
-                    const userReports = allReportsCache.filter(r => r.uid === user.uid);
-                    const totalTiket = userReports.length;
-                    const openTiket = userReports.filter(r => r.status === 'Open' || r.status === 'Progress').length;
-                    const urgentTiket = userReports.filter(r => r.urgent === true).length;
-                    
-                    const status = user.status || 'pending'; 
-                    let statusClass = 'cat-normal'; 
-                    if (status === 'approved') statusClass = 's-closed'; 
-                    if (status === 'rejected') statusClass = 'cat-critical'; 
-
-                    let actions = '';
-                    if (status !== 'approved') {
-                        actions += `<button class="btn" onclick="approveUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--success); color: #fff;">Approve</button> `;
-                    }
-                    if (status !== 'rejected') {
-                        actions += `<button class="btn" onclick="rejectUser('${user.uid}')" style="padding: 4px 8px; font-size:12px; background:var(--danger); color: #fff;">Reject</button> `;
-                    }
-                    if (status === 'approved' || status === 'rejected') {
-                        actions += `<button class="btn ghost" onclick="makePending('${user.uid}')" style="padding: 4px 8px; font-size:12px;">Set Pending</button>`;
-                    }
-
-                    const nameButton = `<button type="button" class="btn-link" onclick="showUserDetail('${user.uid}')" title="Lihat detail user">${user.nama || 'N/A'}</button>`;
-                    
-                    const openUrgentText = urgentTiket > 0 
-                        ? `<span class="stat-col-urgent">${openTiket} / ${urgentTiket} 🔥</span>` 
-                        : `${openTiket} / 0`;
-
-                    return `
-                        <tr>
-                            <td data-label="Nama">${nameButton}</td>
-                            <td data-label="Email">${user.email || 'N/A'}</td>
-                            <td data-label="Status"><span class="status ${statusClass}">${status}</span></td>
-                            <td data-label="Total Tiket" class="stat-col">${totalTiket}</td>
-                            <td data-label="Open / Urgent" class="stat-col">${openUrgentText}</td>
-                            <td data-label="Aksi" class="actions">${actions}</td>
-                        </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
-        </div>
-    `;
-}
-
-// [FIX 2] Fungsi Aksi Admin Diperbarui untuk lolos validasi
-async function approveUser(uid) {
-    if (!uid) return;
-    // Ambil data user saat ini dari cache untuk lolos validasi
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
-        return;
-    }
-    try {
-        // Kirim data lengkap agar lolos validasi .hasChildren(['nama','email'])
-        await usersRef.child(uid).update({ 
-            status: 'approved',
-            nama: user.nama,   // Kirim ulang nama
-            email: user.email  // Kirim ulang email
-        });
-        showToast('User disetujui ✅');
-    } catch (e) {
-        console.error("Gagal approve user:", e);
-        alert('Gagal update user: ' + e.message);
-    }
-}
-
-async function rejectUser(uid) {
-    if (!uid) return;
-    // Ambil data user saat ini dari cache
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
-        return;
-    }
-    try {
-        // Kirim data lengkap
-        await usersRef.child(uid).update({ 
-            status: 'rejected',
-            nama: user.nama,
-            email: user.email
-        });
-        showToast('User ditolak ❌');
-    } catch (e) {
-        console.error("Gagal reject user:", e);
-        alert('Gagal update user: ' + e.message);
-    }
-}
-
-async function makePending(uid) {
-    if (!uid) return;
-    // Ambil data user saat ini dari cache
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user || !user.nama || !user.email) {
-        alert('Gagal update: Data user (nama/email) tidak ditemukan di cache.');
-        return;
-    }
-    try {
-        // Kirim data lengkap
-        await usersRef.child(uid).update({ 
-            status: 'pending',
-            nama: user.nama,
-            email: user.email
-        });
-        showToast('User di-set ke Pending ⏳');
-    } catch (e) {
-        console.error("Gagal set pending:", e);
-        alert('Gagal update user: ' + e.message);
-    }
-}
-
-
-(function initUserManagement() {
-    document.getElementById('showUserManagement')?.addEventListener('click', () => {
-        renderUserManagementTable();
-        document.getElementById('userManagementPopup').style.display = 'flex';
-    });
-    document.getElementById('closeUserManagement')?.addEventListener('click', () => {
-        document.getElementById('userManagementPopup').style.display = 'none';
-    });
-    document.getElementById('userFilterStatus')?.addEventListener('change', renderUserManagementTable);
-})();
-
-/* === FUNGSI DETAIL USER === */
-function showUserDetail(uid) {
-    const user = allUsersCache.find(u => u.uid === uid);
-    if (!user) {
-        alert("User tidak ditemukan di cache.");
-        return;
-    }
-    
-    document.getElementById('userDetailName').textContent = user.nama || user.email;
-    const content = document.getElementById('userDetailContent');
-    
-    const userReports = allReportsCache.filter(r => r.uid === uid);
-    const byStatus = { Total: userReports.length, Open: 0, Progress: 0, Closed: 0 };
-    const byCat = { Low: 0, Normal: 0, Critical: 0 };
-    
-    userReports.forEach(r => {
-        byStatus[r.status] = (byStatus[r.status] || 0) + 1;
-        byCat[r.kategori || 'Normal'] = (byCat[r.kategori || 'Normal'] || 0) + 1;
-    });
-
-    userReports.sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
-    const recent5 = userReports.slice(0, 5);
-    
-    let html = `
-        <h4>Ringkasan Tiket</h4>
-        <div class="detail-grid">
-            <div class="detail-card"><div class="small">Total Tiket</div><div class="count">${byStatus.Total}</div></div>
-            <div class="detail-card"><div class="small">Open</div><div class="count" style="color:var(--warning)">${byStatus.Open}</div></div>
-            <div class="detail-card"><div class="small">Progress</div><div class="count" style="color:var(--primary)">${byStatus.Progress}</div></div>
-            <div class="detail-card"><div class="small">Closed</div><div class="count" style="color:var(--success)">${byStatus.Closed}</div></div>
-        </div>
-        
-        <h4>Distribusi Kategori</h4>
-        <div class="detail-grid">
-            <div class="detail-card"><div class="small">Low</div><div class="count" style="color:#0284c7">${byCat.Low}</div></div>
-            <div class="detail-card"><div class="small">Normal</div><div class="count" style="color:#d97706">${byCat.Normal}</div></div>
-            <div class="detail-card"><div class="small">Critical</div><div class="count" style="color:#dc2626">${byCat.Critical}</div></div>
-        </div>
-
-        <h4>5 Laporan Terakhir</h4>
-    `;
-
-    if (recent5.length === 0) {
-        html += `<p class="small">User ini belum membuat laporan.</p>`;
-    } else {
-        html += `
-            <div class="table-wrap" style="margin-top:0;">
-            <table style="width:100%; min-width: 500px;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Jenis</th>
-                        <th>Status</th>
-                        <th>Dibuat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${recent5.map(r => {
-                        const statusClass = r.status === 'Open' ? 's-open' : (r.status === 'Progress' ? 's-progress' : 's-closed');
-                        return `
-                        <tr>
-                            <td data-label="ID">${r.urgent ? '🔥' : ''} ${r.id}</td>
-                            <td data-label="Jenis">${r.jenis}</td>
-                            <td data-label="Status"><span class="status ${statusClass}">${r.status}</span></td>
-                            <td data-label="Dibuat">${r.created}</td>
-                        </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-            </div>
-        `;
-    }
-    content.innerHTML = html;
-    document.getElementById('userDetailPopup').style.display = 'flex';
-}
-document.getElementById('closeUserDetail')?.addEventListener('click', () => {
-    document.getElementById('userDetailPopup').style.display = 'none';
-});
-
-
-/* === FUNGSI CRUD PENGUMUMAN === */
+/* === FUNGSI CRUD PENGUMUMAN (v2) === */
 
 const annModalBackdrop = document.getElementById('announcementModalBackdrop');
 const annModalForm = document.getElementById('announcementModalForm');
 const annModalTitle = document.getElementById('announcementModalTitle');
 let annModalEditingId = null; 
 
-// (R) Render Tabel Pengumuman
-function renderAnnouncementsTable() {
-    const tbody = document.getElementById('announcementsTbody');
-    if (!tbody) return;
+// (R) Render Kartu Pengumuman
+function renderAnnouncementsList() {
+    const listContainer = document.getElementById('announcementList');
+    if (!listContainer) return;
 
-    const sortedData = allAnnouncementsCache.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    const now = new Date().getTime();
+    const activeAnnouncements = allAnnouncementsCache.filter(item => {
+        if (!item.expires) return true; 
+        const expiryTime = new Date(item.expires + 'T23:59:59').getTime();
+        return expiryTime >= now; 
+    });
+
+    const sortedData = activeAnnouncements.sort((a, b) => {
+        const priorityOrder = { 'critical': 3, 'warning': 2, 'info': 1 };
+        const priorityA = priorityOrder[a.priority] || 1;
+        const priorityB = priorityOrder[b.priority] || 1;
+        
+        if (priorityA !== priorityB) {
+            return priorityB - priorityA; 
+        }
+        return (b.timestamp || 0) - (a.timestamp || 0); 
+    });
     
     if (sortedData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 20px;">Belum ada pengumuman.</td></tr>';
+        listContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">Belum ada pengumuman aktif.</div>';
         return;
     }
 
-    tbody.innerHTML = sortedData.map(item => {
+    listContainer.innerHTML = sortedData.map(item => {
         const time = item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
-        const title = (item.title || '(Tanpa judul)').replace(/\n/g, '<br>'); 
+        const content = (item.title || '(Tanpa judul)').replace(/\n/g, '<br>'); 
+        const priority = item.priority || 'info';
+        
+        let expiryText = '';
+        if (item.expires) {
+            const expiryDate = new Date(item.expires).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            expiryText = ` | <span style="color: var(--danger); font-weight: 600;">Berlaku s/d ${expiryDate}</span>`;
+        }
 
         const action_buttons = `
             <button class="btn ghost" onclick="openAnnouncementModal('${item.key}')">Edit</button>
@@ -1671,12 +1374,15 @@ function renderAnnouncementsTable() {
         `;
         
         return `
-            <tr>
-                <td>${title}</td>
-                <td>${item.author || 'N/A'}</td>
-                <td>${time}</td>
-                <td class="actions">${action_buttons}</td>
-            </tr>
+            <article class="announcement-card" data-priority="${priority}">
+                <div class="content">${content}</div>
+                <div class="meta">
+                    <div class="author-date">
+                        Oleh: <strong>${item.author || 'N/A'}</strong> (${time}) ${expiryText}
+                    </div>
+                    <div class="actions">${action_buttons}</div>
+                </div>
+            </article>
         `;
     }).join('');
 }
@@ -1687,17 +1393,19 @@ function openAnnouncementModal(editKey) {
     annModalForm.reset();
     
     if (editKey) {
-        // Mode Update
         annModalTitle.textContent = 'Edit Pengumuman';
         const item = allAnnouncementsCache.find(a => a.key === editKey);
         if (item) {
             document.getElementById('am_title').value = item.title || '';
             document.getElementById('am_author').value = item.author || 'Admin (root)';
+            document.getElementById('am_priority').value = item.priority || 'info';
+            document.getElementById('am_expires').value = item.expires || '';
         }
     } else {
-        // Mode Create
         annModalTitle.textContent = 'Buat Pengumuman Baru';
         document.getElementById('am_author').value = 'Admin (root)'; 
+        document.getElementById('am_priority').value = 'info';
+        document.getElementById('am_expires').value = '';
     }
     
     annModalBackdrop.style.display = 'flex';
@@ -1727,6 +1435,8 @@ document.getElementById('announcementModalCancel').addEventListener('click', () 
 document.getElementById('announcementModalSave').addEventListener('click', async () => {
     const title = document.getElementById('am_title').value.trim();
     const author = document.getElementById('am_author').value.trim();
+    const priority = document.getElementById('am_priority').value;
+    const expires = document.getElementById('am_expires').value; 
 
     if (!title) {
         alert('Judul/Isi Pengumuman tidak boleh kosong.');
@@ -1736,16 +1446,16 @@ document.getElementById('announcementModalSave').addEventListener('click', async
     const data = {
         title: title,
         author: author,
+        priority: priority,
+        expires: expires || null, 
         timestamp: firebase.database.ServerValue.TIMESTAMP 
     };
 
     try {
         if (annModalEditingId) {
-            // Mode Update
             await announcementsRef.child(annModalEditingId).update(data);
             showToast('Pengumuman diperbarui ✅');
         } else {
-            // Mode Create
             await announcementsRef.push(data);
             showToast('Pengumuman dipublikasikan ✅');
         }
@@ -1761,10 +1471,7 @@ document.getElementById('announcementModalSave').addEventListener('click', async
 window.openModal = openModal;
 window.deleteReport = deleteReport;
 window.showLog = showLog;
-window.approveUser = approveUser;
-window.rejectUser = rejectUser;
-window.makePending = makePending;
-window.showUserDetail = showUserDetail; 
+// [DIHAPUS] Global function untuk user management
 window.openAnnouncementModal = openAnnouncementModal;
 window.deleteAnnouncement = deleteAnnouncement;
 
