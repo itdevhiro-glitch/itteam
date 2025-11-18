@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Manajemen Permintaan — ADMIN DASHBOARD</title>
 <link rel="icon" type="image/png" href="icov2.png" />
-<!-- Menggunakan SDK v8.x.x agar konsisten dengan usermanagement.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 <style>
   /* [SAMA SEPERTI USERMANAGEMENT.HTML] */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -197,7 +199,7 @@
   .form-group label {
       display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;
   }
-  .form-group textarea {
+  .form-group textarea, .form-group select {
       width: 100%;
       font-size: 14px;
       padding: 10px 12px;
@@ -205,8 +207,8 @@
       border: 1px solid var(--border-color);
       background: var(--card);
       color: var(--text);
-      min-height: 80px;
   }
+  .form-group textarea { min-height: 80px; }
   
   @media (max-width: 900px) {
     body { padding: 16px; }
@@ -357,8 +359,7 @@
         <span id="requestCountInfo" class="small">Memuat...</span>
       </div>
       <div id="requestsContent" style="margin-top: 16px;">
-        <!-- Tabel permintaan akan dirender oleh JS -->
-      </div>
+        </div>
     </div>
     
   </main>
@@ -366,7 +367,6 @@
   <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
 </div>
 
-<!-- [BARU] Popup Detail Permintaan -->
 <div id="requestDetailPopup" class="popup-overlay">
   <div>
     <h3>Proses Permintaan: <span id="popupDetailName" style="color: var(--primary);"></span></h3>
@@ -384,6 +384,14 @@
         <strong>Alasan User:</strong>
         <p class="alasan" id="popupDetailAlasan"></p>
 
+        <div id="assetAssignmentSection" style="display: none; border-top: 1px dashed var(--border-color); margin-top: 16px; padding-top: 16px;">
+            <strong style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-box" style="color: var(--primary);"></i> Tetapkan Aset dari Stok</strong>
+            <p class="small" style="font-size: 13px; margin-bottom: 8px;">Pilih aset yang akan diberikan kepada user. (Hanya menampilkan stok Laptop/Desktop/Monitor yang tidak terpakai).</p>
+            <div class="form-group" style="margin: 0;">
+              <select id="assetAssignmentDropdown">
+                  </select>
+            </div>
+        </div>
         <div class="form-group" style="margin-top: 16px;">
             <label for="adminNotes">Catatan Admin (Opsional)</label>
             <textarea id="adminNotes" placeholder="Tulis catatan untuk user, misal: 'Akan diproses 3-5 hari kerja'..."></textarea>
@@ -424,14 +432,18 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const analytics = firebase.analytics();
-const db = firebase.database();
+const db = firebase.database(); // <-- Inisialisasi Realtime Database (RTDB)
 const auth = firebase.auth();
+const fb_db = firebase.firestore(); // <-- [BARU] Inisialisasi Firestore
+
 const usersRef = db.ref('users');
-const requestsRef = db.ref('device_requests'); // [BARU] Ref untuk permintaan
+const requestsRef = db.ref('device_requests'); // Ref untuk permintaan (RTDB)
+let fb_assetsCollectionRef; // <-- Variabel untuk koleksi Aset (Firestore)
 
 /* Cache & State */
 let allUsersCache = []; 
-let allRequestsCache = []; // [BARU] Cache untuk permintaan
+let allRequestsCache = []; 
+let allAssetsCache = []; // [BARU] Cache untuk Aset dari Firestore
 let currentUser = null; 
 let dbListenerActive = false; 
 
@@ -497,6 +509,10 @@ function showToast(txt, t = 3000, type = 'success') {
         appContent.style.display = 'block'; 
         userEmailDisplay.textContent = `ADMIN (root)`;
         
+        // Inisialisasi Koleksi Aset di Firestore
+        fb_assetsCollectionRef = fb_db.collection('users').doc(user.uid).collection('assets_v2');
+        console.log("Koneksi ke Firestore (Aset) berhasil:", `users/${user.uid}/assets_v2`);
+        
         if (!dbListenerActive) {
           // Listener untuk data user (dibutuhkan untuk filter dept)
           usersRef.on('value', (snapshot) => {
@@ -508,7 +524,7 @@ function showToast(txt, t = 3000, type = 'success') {
               console.error("Firebase read (users) failed:", error);
           });
           
-          // [BARU] Listener untuk data permintaan
+          // Listener untuk data permintaan (RTDB)
           requestsRef.on('value', (snapshot) => {
               const dataObj = snapshot.val();
               allRequestsCache = dataObj ? Object.keys(dataObj).map(key => ({ ...dataObj[key], id: key })) : [];
@@ -516,6 +532,16 @@ function showToast(txt, t = 3000, type = 'success') {
               console.log('Data admin (requests) dimuat.');
           }, (error) => {
               console.error("Firebase read (requests) failed:", error);
+          });
+
+          // [BARU] Listener untuk data Aset (Firestore)
+          // Kita butuh ini untuk mengisi dropdown stok
+          fb_assetsCollectionRef.onSnapshot((snapshot) => {
+              allAssetsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              console.log(`Data Aset (Stok) dimuat: ${allAssetsCache.length} item.`);
+          }, (error) => {
+              console.error("Firebase read (assets) failed:", error);
+              showToast("Gagal memuat data stok aset!", 5000, 'danger');
           });
 
           dbListenerActive = true;
@@ -528,10 +554,12 @@ function showToast(txt, t = 3000, type = 'success') {
 
       if (dbListenerActive) {
         usersRef.off(); 
-        requestsRef.off(); // [BARU] Matikan listener requests
+        requestsRef.off(); 
+        // Note: kita tidak bisa mematikan listener onSnapshot Firestore secara eksplisit di sini tanpa menyimpannya
         dbListenerActive = false;
         allUsersCache = []; 
-        allRequestsCache = []; // [BARU] Kosongkan cache
+        allRequestsCache = []; 
+        allAssetsCache = []; // [BARU] Kosongkan cache aset
       }
     }
   });
@@ -557,7 +585,7 @@ function showToast(txt, t = 3000, type = 'success') {
 
 
 // ===================================================================
-// === [BARU] FUNGSI MANAJEMEN PERMINTAAN ===
+// === [DIUBAH] FUNGSI MANAJEMEN PERMINTAAN (DENGAN INTEGRASI) ===
 // ===================================================================
 function renderRequestsTable() {
     const content = document.getElementById('requestsContent');
@@ -679,7 +707,7 @@ function renderRequestsTable() {
     `;
 }
 
-// Tampilkan Popup
+// [DIUBAH] Tampilkan Popup dengan Logika Stok
 function showRequestDetail(requestId) {
     const req = allRequestsCache.find(r => r.id === requestId);
     if (!req) {
@@ -704,27 +732,118 @@ function showRequestDetail(requestId) {
     document.getElementById('actionApprove').style.display = req.status === 'Approved' ? 'none' : 'inline-flex';
     document.getElementById('actionReject').style.display = req.status === 'Rejected' ? 'none' : 'inline-flex';
 
+    // --- [BARU] Logika untuk menampilkan dropdown assignment aset ---
+    const assetSection = document.getElementById('assetAssignmentSection');
+    const assetDropdown = document.getElementById('assetAssignmentDropdown');
+    assetDropdown.innerHTML = '<option value="">-- Pilih Aset dari Stok --</option>'; // Reset
+    
+    const reqDetail = (req.detail || '').toLowerCase();
+    
+    // Cek apakah ini permintaan Laptop, Desktop, atau Monitor
+    const isAssignableRequest = reqDetail.includes('laptop') || reqDetail.includes('desktop') || reqDetail.includes('monitor');
+    
+    if (isAssignableRequest) {
+        // Filter stok aset (Tipe L/D/M dan PIC nya kosong)
+        const stock = allAssetsCache.filter(asset =>
+            (asset.type === 'Laptop' || asset.type === 'Desktop' || asset.type === 'Monitor') &&
+            (!asset.pic || asset.pic === '') // 'pic' kosong berarti tidak terpakai/stok
+        );
+
+        if (stock.length > 0) {
+            stock.forEach(item => {
+                const option = new Option(`${item.name} (Tipe: ${item.type}, S/N: ${item.serial || 'N/A'})`, item.id);
+                assetDropdown.add(option);
+            });
+        } else {
+            assetDropdown.innerHTML = '<option value="">-- STOK UNTUK ASET INI KOSONG --</option>';
+        }
+        assetSection.style.display = 'block'; // Tampilkan
+    } else {
+        assetSection.style.display = 'none'; // Sembunyikan
+    }
+    // --- Akhir Logika Dropdown ---
+
     document.getElementById('requestDetailPopup').style.display = 'flex';
 }
 
-// Aksi Popup (Approve / Reject)
+// [DIUBAH] Aksi Popup (Approve / Reject) dengan Integrasi Stok Firestore
 async function handleRequestAction(newStatus) {
     const requestId = document.getElementById('popupRequestId').value;
     const adminNotes = document.getElementById('adminNotes').value;
     
     if (!requestId) return;
 
+    // Dapatkan data permintaan lengkap dari cache
+    const req = allRequestsCache.find(r => r.id === requestId);
+    if (!req) {
+        alert('Error: Data permintaan tidak ditemukan di cache.');
+        return;
+    }
+    
+    // Disable tombol
+    document.getElementById('actionApprove').disabled = true;
+    document.getElementById('actionReject').disabled = true;
+
     try {
-        await requestsRef.child(requestId).update({
-            status: newStatus,
-            admin_notes: adminNotes,
-            processed_at: new Date().toISOString()
-        });
-        showToast(`Permintaan di-${newStatus}!`);
+        if (newStatus === 'Approved') {
+            // Cek apakah ini request yang 'assignable' (Dropdown-nya terlihat)
+            const assetSection = document.getElementById('assetAssignmentSection');
+            let finalAdminNotes = adminNotes;
+
+            if (assetSection.style.display === 'block') {
+                // --- [LOGIKA BARU] Assign Aset dari Stok ---
+                const selectedAssetId = document.getElementById('assetAssignmentDropdown').value;
+                if (!selectedAssetId) {
+                    showToast('Pilih aset dari stok untuk ditetapkan ke user!', 4000, 'danger');
+                    return; // Hentikan proses
+                }
+                
+                // 1. Update Aset di Firestore
+                const assetUpdateData = {
+                    pic: req.nama,                      // Tetapkan PIC ke user peminta
+                    location: req.departemen,           // Tetapkan Lokasi ke dept peminta
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await fb_assetsCollectionRef.doc(selectedAssetId).update(assetUpdateData);
+                
+                // 2. Siapkan catatan untuk RTDB
+                finalAdminNotes = `Disetujui. Aset (ID: ${selectedAssetId}) telah ditetapkan untuk ${req.nama}.\n\n${adminNotes}`;
+                showToast(`Permintaan di-SETUJUI dan aset (ID: ${selectedAssetId}) telah di-assign!`);
+
+            } else {
+                // --- [LOGIKA BARU] Permintaan Biasa (Mouse, Keyboard, Upgrade, dll) ---
+                // Tidak ada aksi ke database Aset, hanya setujui permintaan.
+                finalAdminNotes = `Disetujui.\n\n${adminNotes}`;
+                showToast(`Permintaan di-SETUJUI! (Non-stok)`);
+            }
+            
+            // 3. Update Permintaan di RTDB (Berlaku untuk SEMUA jenis persetujuan)
+            await requestsRef.child(requestId).update({
+                status: newStatus,
+                admin_notes: finalAdminNotes,
+                processed_at: new Date().toISOString()
+            });
+
+        } else { 
+            // --- Logika LAMA (jika di-REJECT) ---
+            await requestsRef.child(requestId).update({
+                status: newStatus, // Akan "Rejected"
+                admin_notes: adminNotes,
+                processed_at: new Date().toISOString()
+            });
+            showToast(`Permintaan di-${newStatus}!`, 3000, 'warning');
+        }
+        
+        // Apapun hasilnya, tutup popup
         document.getElementById('requestDetailPopup').style.display = 'none';
+
     } catch (e) {
-        console.error("Gagal update permintaan:", e);
-        alert('Gagal update: ' + e.message);
+        console.error(`Gagal memproses permintaan (${newStatus}):`, e);
+        showToast(`Gagal: ${e.message}`, 4000, 'danger');
+    } finally {
+        // Aktifkan kembali tombol
+        document.getElementById('actionApprove').disabled = false;
+        document.getElementById('actionReject').disabled = false;
     }
 }
 
