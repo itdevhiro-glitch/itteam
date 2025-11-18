@@ -120,11 +120,11 @@
     background:var(--primary); color:#fff; border-color:var(--primary); font-weight: 600;
   }
   
-  .modal-backdrop, #announcementModalBackdrop {
+  .modal-backdrop, #announcementModalBackdrop, #announcementDetailModal {
     position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none;
     align-items:center; justify-content:center; z-index:9999; padding: 16px;
   }
-  .modal, #announcementModalBackdrop > .modal { 
+  .modal, #announcementModalBackdrop > .modal, #announcementDetailModal > .modal { 
     width:720px; max-width: 100%;
     background:var(--card); padding: 24px; border-radius:12px; 
     box-shadow:0 12px 40px rgba(0,0,0,0.35); 
@@ -278,60 +278,81 @@
     }
   }
 
-  /* CSS UNTUK LIST PENGUMUMAN */
-  .announcement-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .announcement-card {
-    background: var(--bg);
-    border: 1px solid var(--border-color);
-    border-left-width: 5px;
-    border-radius: var(--radius);
-    padding: 14px 18px;
+  /* (REWORK) CSS UNTUK LIST PENGUMUMAN (SIMPLE) */
+  #announcementList {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    padding: 8px 0; /* Memberi padding di dalam card, tapi tidak pada item */
   }
-  /* Prioritas Warna */
-  .announcement-card[data-priority="info"] { border-left-color: var(--primary); }
-  .announcement-card[data-priority="warning"] { border-left-color: var(--warning); }
-  .announcement-card[data-priority="critical"] { border-left-color: var(--danger); }
-
-  .announcement-card .content {
-    font-size: 15px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-  .announcement-card .meta {
+  .simple-announcement-item {
+    padding: 12px 24px; /* Sesuaikan padding dengan .card */
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: 8px;
+  }
+  .simple-announcement-item:last-child {
+    border-bottom: none;
+  }
+  .simple-announcement-item:hover {
+    background-color: var(--bg);
+  }
+  .simple-announcement-item .pin-icon {
+    font-size: 12px;
+    color: var(--warning);
+  }
+  .simple-announcement-item .category-tag {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .simple-announcement-item .category-tag.critical { color: var(--danger); }
+  .simple-announcement-item .category-tag.event { color: var(--warning); }
+  
+  /* (REWORK) Menyesuaikan padding card pengumuman */
+  .card-announcement {
+    padding: 0 !important; /* Hapus padding default card */
+    overflow: hidden; /* Agar border-radius rapi */
+  }
+  .card-announcement-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    padding: 20px 24px; /* Padding dikembalikan ke header */
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* (BARU) CSS untuk Modal Detail */
+  #annDetailMeta {
     font-size: 13px;
     color: var(--muted);
-  }
-  .announcement-card .meta .author-date {
     font-weight: 500;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1.5;
   }
-  .announcement-card .meta .author-date strong {
+  #annDetailMeta strong {
     color: var(--text);
     font-weight: 600;
   }
-  .announcement-card .actions {
-    display: flex;
-    gap: 6px;
-    margin-left: auto; 
+  #annDetailContent {
+    max-height: 50vh;
+    overflow-y: auto;
+    line-height: 1.7;
+    font-size: 15px;
+    /* (BARU) Mengizinkan format HTML dari Quill */
+    white-space: normal; 
   }
-  .announcement-card .actions .btn,
-  .announcement-card .actions .btn.ghost {
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 600;
-  }
+  #annDetailContent p { margin-bottom: 1em; }
+  #annDetailContent ol, #annDetailContent ul { margin-left: 1.5em; margin-bottom: 1em; }
   
+  /* (MODIFIKASI) ID am_title sekarang adalah textarea */
   #am_title {
       min-height: 150px;
   }
@@ -349,7 +370,6 @@
     <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
     <svg id="icon-bell" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
     <svg id="icon-laptop" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0h-2m2 0v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2m-2 0h2m-2 0H4m0 0v-9m16 9h-2M6 5H4m16 0v2m-1.9 8H6.1m8 0h.1m-8.2 0h.1M6 16v-2m0 2H4"></path></svg>
-    <!-- (BARU) Tambahkan Ikon untuk Aset -->
     <svg id="icon-archive" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
   </defs>
 </svg>
@@ -397,7 +417,6 @@
          <svg><use href="#icon-laptop" /></svg>
       </a>
       
-      <!-- (BARU) Tambahkan Link ke Manajer Aset -->
       <a href="https://itdevhiro-glitch.github.io/widget/asset.html" target="_blank" id="showAssetManager" class="btn ghost" title="Manajemen Aset">
          <svg><use href="#icon-archive" /></svg>
       </a>
@@ -423,15 +442,15 @@
       </div>
     </div>
     
-    <div class="card" style="margin-top:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <h3 class="section-title" style="margin:0;">📢 Manajemen Pengumuman</h3>
+    <div class="card card-announcement" style="margin-top:18px">
+      <div class="card-announcement-header">
+        <h3 class="section-title" style="margin:0;">📢 Pengumuman</h3>
         <button id="newAnnouncementBtn" class="btn">
           <svg><use href="#icon-plus" /></svg>
-          Buat Pengumuman Baru
+          Buat Baru
         </button>
       </div>
-      <div id="announcementList" class="announcement-list" style="margin-top: 16px;">
+      <div id="announcementList">
         </div>
     </div>
     
@@ -544,8 +563,14 @@
     <form id="announcementModalForm" onsubmit="return false;">
       
       <div>
-        <label class="small">Judul / Isi Pengumuman</label>
+        <label class="small">Judul Pengumuman</label>
+        <input id="am_headline" type="text" required placeholder="Judul singkat, cth: Libur Nasional">
+      </div>
+
+      <div style="margin-top:10px">
+        <label class="small">Isi Pengumuman (Mendukung format tebal, miring, link, list)</label>
         <textarea id="am_title" required placeholder="Tulis isi pengumuman di sini..."></textarea>
+        <div class="small" style="margin-top:4px;">Catatan: Di halaman HRD, ini akan tampil sebagai Rich Text. Di sini, Anda bisa gunakan tag HTML dasar jika perlu (cth: &lt;b&gt;tebal&lt;/b&gt;).</div>
       </div>
 
       <div class="form-row" style="margin-top:10px">
@@ -555,11 +580,12 @@
         </div>
         
         <div>
-          <label class="small">Prioritas</label>
-          <select id="am_priority" required>
-            <option value="info">Info (Biru)</option>
-            <option value="warning">Warning (Kuning)</option>
-            <option value="critical">Critical (Merah)</option>
+          <label class="small">Kategori</label>
+          <select id="am_category" required>
+            <option value="Umum">Umum</option>
+            <option value="Penting">Penting</option>
+            <option value="Event">Event</option>
+            <option value="Peraturan">Peraturan</option>
           </select>
         </div>
       </div>
@@ -570,11 +596,30 @@
         <div class="small" style="margin-top:4px;">Kosongkan jika ingin tampil selamanya.</div>
       </div>
       
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button id="announcementModalSave" class="btn">Publikasikan</button>
-        <button id="announcementModalCancel" type="button" class="btn ghost">Batal</button>
+      <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px">
+        <div class="flex" style="background: var(--bg); padding: 8px 12px; border-radius: 8px;">
+          <input id="am_isPinned" type="checkbox" style="width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;">
+          <label for="am_isPinned" class="small" style="font-weight: 600; cursor: pointer; color: var(--text);">Sematkan Pengumuman</label>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="announcementModalSave" class="btn">Publikasikan</button>
+          <button id="announcementModalCancel" type="button" class="btn ghost">Batal</button>
+        </div>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="announcementDetailModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="annDetailTitle" style="margin-bottom: 8px;">Judul Detail Pengumuman</h3>
+    <div id="annDetailMeta">
+      </div>
+    <div id="annDetailContent">
+      </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button id="annDetailClose" type="button" class="btn">Tutup</button>
+    </div>
   </div>
 </div>
 
@@ -618,6 +663,17 @@ let dbListenerActive = false;
 function nowString(){ return new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' }); }
 function isoNow(){ return new Date().toISOString(); }
 function msToDuration(ms){ if(ms==null) return '-'; const s=Math.floor(ms/1000); const d=Math.floor(s/86400); const h=Math.floor((s%86400)/3600); const m=Math.floor((s%3600)/60); let p=[]; if(d) p.push(d+'d'); if(h) p.push(h+'h'); if(m||(!d&&!h)) p.push(m+'m'); return p.join(' '); }
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function(match) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match];
+    });
+}
+function nl2br(str) {
+    if (!str) return '';
+    return str.replace(/(\r\n|\n\r|\r|\n)/g, '<br>');
+}
+
 
 function getReports(){ return allReportsCache; }
 
@@ -885,7 +941,7 @@ function exportToExcel(){
         alert('File restore tidak valid. Error: ' + err.message); 
       } 
     }; 
-    r.readAsText(f); 
+    r.readText(f); 
     restoreFile.value = '';
   });
 
@@ -1001,6 +1057,21 @@ function exportToExcel(){
     }
   });
   enableTableSorting();
+  
+  // (BARU) Event listener untuk modal detail (menggunakan event delegation)
+  document.getElementById('announcementList').addEventListener('click', (e) => {
+    const item = e.target.closest('.simple-announcement-item');
+    if (item) {
+      const key = item.dataset.key;
+      openAnnouncementDetails(key);
+    }
+  });
+  
+  // (BARU) Listener untuk tombol tutup modal detail
+  document.getElementById('annDetailClose').addEventListener('click', () => {
+    document.getElementById('announcementDetailModal').style.display = 'none';
+  });
+  
 })();
 
 /* MODAL ADD/EDIT (Laporan) */
@@ -1333,72 +1404,98 @@ function enableSummaryClicksNow(){
 try{ enableSummaryClicksNow(); }catch(e){}
 
 
-/* === FUNGSI CRUD PENGUMUMAN (v2) === */
+/* === (REWORK) FUNGSI CRUD PENGUMUMAN (v4 - Simple List + Popup) === */
 
 const annModalBackdrop = document.getElementById('announcementModalBackdrop');
 const annModalForm = document.getElementById('announcementModalForm');
 const annModalTitle = document.getElementById('announcementModalTitle');
 let annModalEditingId = null; 
 
-// (R) Render Kartu Pengumuman
+// (REWORK) Render list pengumuman sederhana
 function renderAnnouncementsList() {
     const listContainer = document.getElementById('announcementList');
     if (!listContainer) return;
 
-    const now = new Date().getTime();
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
     const activeAnnouncements = allAnnouncementsCache.filter(item => {
-        if (!item.expires) return true; 
-        const expiryTime = new Date(item.expires + 'T23:59:59').getTime();
-        return expiryTime >= now; 
+        if (item.expiresAt && item.expiresAt < todayStr) {
+            return false; 
+        }
+        return true;
     });
 
     const sortedData = activeAnnouncements.sort((a, b) => {
-        const priorityOrder = { 'critical': 3, 'warning': 2, 'info': 1 };
-        const priorityA = priorityOrder[a.priority] || 1;
-        const priorityB = priorityOrder[b.priority] || 1;
-        
-        if (priorityA !== priorityB) {
-            return priorityB - priorityA; 
-        }
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
         return (b.timestamp || 0) - (a.timestamp || 0); 
     });
     
     if (sortedData.length === 0) {
-        listContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">Belum ada pengumuman aktif.</div>';
+        listContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px 24px;">Belum ada pengumuman aktif.</div>';
         return;
     }
 
+    // (REWORK) Render sebagai item list sederhana
     listContainer.innerHTML = sortedData.map(item => {
-        const time = item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
-        const content = (item.title || '(Tanpa judul)').replace(/\n/g, '<br>'); 
-        const priority = item.priority || 'info';
+        const headline = escapeHTML(item.title) || '(Tanpa Judul)';
         
-        let expiryText = '';
-        if (item.expires) {
-            const expiryDate = new Date(item.expires).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            expiryText = ` | <span style="color: var(--danger); font-weight: 600;">Berlaku s/d ${expiryDate}</span>`;
-        }
+        let categoryClass = '';
+        if (item.category === 'Penting') categoryClass = 'critical';
+        else if (item.category === 'Event' || item.category === 'Peraturan') categoryClass = 'event';
+        const categoryTag = item.category === 'Umum' ? '' : `<span class="category-tag ${categoryClass}">[${escapeHTML(item.category)}]</span>`;
+        
+        const pinTag = item.isPinned ? '<span class="pin-icon">📌</span>' : '';
 
-        const action_buttons = `
-            <button class="btn ghost" onclick="openAnnouncementModal('${item.key}')">Edit</button>
-            <button class="btn ghost" onclick="deleteAnnouncement('${item.key}')" style="color: var(--danger); border-color: var(--danger);">Hapus</button>
-        `;
-        
         return `
-            <article class="announcement-card" data-priority="${priority}">
-                <div class="content">${content}</div>
-                <div class="meta">
-                    <div class="author-date">
-                        Oleh: <strong>${item.author || 'N/A'}</strong> (${time}) ${expiryText}
-                    </div>
-                    <div class="actions">${action_buttons}</div>
-                </div>
-            </article>
+            <div class="simple-announcement-item" data-key="${item.key}">
+                ${pinTag}
+                ${categoryTag}
+                <span class="title-text">${headline}</span>
+            </div>
         `;
     }).join('');
 }
 
-// (C + U) Buka Modal
+// (BARU) Fungsi untuk membuka modal detail
+function openAnnouncementDetails(key) {
+    const item = allAnnouncementsCache.find(a => a.key === key);
+    if (!item) return;
+    
+    const modal = document.getElementById('announcementDetailModal');
+    
+    // Isi Judul
+    document.getElementById('annDetailTitle').textContent = item.title || '(Tanpa Judul)';
+    
+    // Isi Meta
+    const time = item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'N/A';
+    let metaHTML = `Oleh: <strong>${escapeHTML(item.author)}</strong><br>Diterbitkan: <strong>${time}</strong><br>Kategori: <strong>${escapeHTML(item.category)}</strong>`;
+    if (item.expiresAt) {
+        metaHTML += `<br><span style="color: var(--danger);">Berakhir: <strong>${item.expiresAt}</strong></span>`;
+    }
+    document.getElementById('annDetailMeta').innerHTML = metaHTML;
+    
+    // Isi Konten
+    // Di sini kita asumsikan 'content' adalah teks biasa atau HTML sederhana.
+    // Jika 'content' dari `content-management.html` adalah HTML (dari Quill), kita set innerHTML.
+    // Jika itu plain text (dari textarea ini), kita gunakan nl2br(escapeHTML(..))
+    // Kita anggap saja ini bisa HTML sederhana.
+    let contentHTML = item.content || '(Tidak ada isi)';
+    // Jika *bukan* dari Quill (cth, masih data lama), kita format.
+    if (!contentHTML.startsWith('<')) {
+        contentHTML = nl2br(escapeHTML(contentHTML));
+    }
+    document.getElementById('annDetailContent').innerHTML = contentHTML;
+    
+    // Tampilkan Modal
+    modal.style.display = 'flex';
+}
+
+// (C + U) Buka Modal Edit/Create
 function openAnnouncementModal(editKey) {
     annModalEditingId = editKey || null;
     annModalForm.reset();
@@ -1407,15 +1504,21 @@ function openAnnouncementModal(editKey) {
         annModalTitle.textContent = 'Edit Pengumuman';
         const item = allAnnouncementsCache.find(a => a.key === editKey);
         if (item) {
-            document.getElementById('am_title').value = item.title || '';
+            document.getElementById('am_headline').value = item.title || '';
+            // Di admin dashboard ini, kita anggap 'content' diedit sebagai plain text di textarea
+            // Jika 'content' adalah HTML, ini akan menampilkannya sebagai HTML mentah.
+            // Untuk simple admin, ini OK. HRD punya editor Quill.
+            document.getElementById('am_title').value = item.content || ''; 
             document.getElementById('am_author').value = item.author || 'Admin (root)';
-            document.getElementById('am_priority').value = item.priority || 'info';
-            document.getElementById('am_expires').value = item.expires || '';
+            document.getElementById('am_category').value = item.category || 'Umum';
+            document.getElementById('am_isPinned').checked = item.isPinned || false;
+            document.getElementById('am_expires').value = item.expiresAt || ''; 
         }
     } else {
         annModalTitle.textContent = 'Buat Pengumuman Baru';
         document.getElementById('am_author').value = 'Admin (root)'; 
-        document.getElementById('am_priority').value = 'info';
+        document.getElementById('am_category').value = 'Umum';
+        document.getElementById('am_isPinned').checked = false;
         document.getElementById('am_expires').value = '';
     }
     
@@ -1436,7 +1539,7 @@ async function deleteAnnouncement(key) {
     }
 }
 
-// Event Listeners untuk Modal Pengumuman
+// Event Listeners untuk Modal Create/Edit
 document.getElementById('newAnnouncementBtn').addEventListener('click', () => openAnnouncementModal(null));
 document.getElementById('announcementModalCancel').addEventListener('click', () => {
     annModalBackdrop.style.display = 'none';
@@ -1444,26 +1547,37 @@ document.getElementById('announcementModalCancel').addEventListener('click', () 
 
 // (C + U) Simpan Pengumuman
 document.getElementById('announcementModalSave').addEventListener('click', async () => {
-    const title = document.getElementById('am_title').value.trim();
+    const title = document.getElementById('am_headline').value.trim();
+    // (MODIFIKASI) Ambil 'content' dari textarea am_title.
+    // Admin dashboard ini akan menyimpan 'content' sebagai plain text.
+    // Halaman HRD (dgn Quill) akan menyimpan 'content' sebagai HTML.
+    // Ini tidak masalah, `content-management.html` akan memuat keduanya ke Quill.
+    // Dan modal detail di sini akan menampilkannya.
+    const content = document.getElementById('am_title').value.trim(); 
     const author = document.getElementById('am_author').value.trim();
-    const priority = document.getElementById('am_priority').value;
-    const expires = document.getElementById('am_expires').value; 
+    const category = document.getElementById('am_category').value;
+    const isPinned = document.getElementById('am_isPinned').checked;
+    const expiresAt = document.getElementById('am_expires').value; 
 
-    if (!title) {
-        alert('Judul/Isi Pengumuman tidak boleh kosong.');
+    if (!title || !content) {
+        alert('Judul dan Isi Pengumuman tidak boleh kosong.');
         return;
     }
 
+    // (MODIFIKASI) Struktur data tetap sama
     const data = {
         title: title,
+        content: content, // Disimpan dari textarea
         author: author,
-        priority: priority,
-        expires: expires || null, 
+        category: category,
+        isPinned: isPinned,
+        expiresAt: expiresAt || null, 
         timestamp: firebase.database.ServerValue.TIMESTAMP 
     };
 
     try {
         if (annModalEditingId) {
+            delete data.timestamp; 
             await announcementsRef.child(annModalEditingId).update(data);
             showToast('Pengumuman diperbarui ✅');
         } else {
@@ -1484,6 +1598,7 @@ window.deleteReport = deleteReport;
 window.showLog = showLog;
 window.openAnnouncementModal = openAnnouncementModal;
 window.deleteAnnouncement = deleteAnnouncement;
+window.openAnnouncementDetails = openAnnouncementDetails; // (BARU) Expose fungsi detail
 
 </script>
 
