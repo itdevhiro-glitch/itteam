@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
+        /* ... (CSS Dihilangkan untuk kejelasan) ... */
         * {
             margin: 0;
             padding: 0;
@@ -177,7 +178,29 @@
         .chat-info {
             flex-grow: 1;
             overflow: hidden;
+            position: relative;
         }
+        .new-message-badge {
+            position: absolute;
+            right: 0; 
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #F37321; 
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            min-width: 25px; 
+            text-align: center;
+            display: none; 
+            line-height: 1;
+        }
+        
+        .chat-item.active .new-message-badge {
+            background-color: #D9232D; 
+        }
+
         .chat-info h4 {
             font-size: 1rem;
             font-weight: 700;
@@ -302,6 +325,7 @@
         }
         .message-item.received.private .message-sender,
         .message-item.received.admin .message-sender {
+            /* Menonaktifkan nama pengirim di chat pribadi/admin */
             display: none; 
         }
 
@@ -369,6 +393,9 @@
             gap: 15px;
             font-weight: 500;
             transition: bottom 0.5s ease-in-out;
+        }
+        .toast-notification.success {
+             background-color: #10B981; 
         }
         .toast-notification.show {
             bottom: 30px;
@@ -469,12 +496,6 @@
                 <div id="group-chat-list">
                     </div>
 
-                <div id="admin-chat-section" style="display:none;">
-                    <div class="chat-list-title">Chat Admin</div>
-                    <div id="admin-chat-list">
-                        </div>
-                </div>
-
                 <div class="chat-list-title">Chat Pribadi Karyawan</div>
                 <div id="private-chat-list">
                     <div class="chat-item" data-type="empty">
@@ -515,7 +536,7 @@
     </div> 
     
     <div id="toast-notification" class="toast-notification">
-        <i class="fa-solid fa-circle-xmark"></i>
+        <i class="fa-solid fa-bell"></i>
         <p>Gagal memproses. Coba lagi.</p>
     </div>
 
@@ -529,7 +550,6 @@
             onValue, 
             set, 
             push,
-            get,
             query,
             orderByChild,
             limitToLast
@@ -561,9 +581,11 @@
             type: null,
             name: null
         };
-        let usersData = {};
+        let usersData = {}; // Cache data semua user
         let chatUnsubscribe = null;
         
+        let unreadCounts = {}; 
+        let currentLastRead = {}; 
 
         const logoutBtn = document.getElementById('logout-btn');
         const userGreeting = document.getElementById('user-greeting');
@@ -580,18 +602,26 @@
         const chatInputArea = document.getElementById('chat-input-area');
         
         const groupChatListEl = document.getElementById('group-chat-list');
-        const adminChatListEl = document.getElementById('admin-chat-list');
-        const adminChatSectionEl = document.getElementById('admin-chat-section');
         const privateChatListEl = document.getElementById('private-chat-list');
 
-        function showToast(message) {
+
+        function showToast(message, isSuccess = false) {
             const toast = document.getElementById('toast-notification');
             if (toast) {
                 toast.querySelector('p').textContent = message;
-                toast.classList.add('show');
+                toast.querySelector('i').className = isSuccess ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+                toast.classList.remove('success');
+                if (isSuccess) toast.classList.add('success');
+                
+                // Hapus kelas 'show' sebelum menambahkannya untuk memastikan transisi
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10); // sedikit delay agar transisi jalan
+
                 setTimeout(() => {
                     toast.classList.remove('show');
-                }, 3000);
+                }, 4000); 
             }
         }
         function escapeHTML(str) {
@@ -607,6 +637,7 @@
             });
         }
         window.autoExpand = function(field) {
+            // Reset height to collapse it if content size has reduced
             field.style.height = 'inherit';
             const computed = window.getComputedStyle(field);
             const height = parseInt(computed.getPropertyValue('border-top-width'), 10)
@@ -614,19 +645,36 @@
                          + field.scrollHeight
                          + parseInt(computed.getPropertyValue('padding-bottom'), 10)
                          + parseInt(computed.getPropertyValue('border-bottom-width'), 10);
-
-            field.style.height = height + 'px';
+            
+            // Limit max height to 100px (sesuai CSS)
+            if (height > 100) {
+                field.style.height = '100px';
+                field.style.overflowY = 'auto';
+            } else {
+                field.style.height = height + 'px';
+                field.style.overflowY = 'hidden';
+            }
         };
+        
+        function getInitials(name, email) {
+            if (name) {
+                return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            }
+            if (email) {
+                return email.substring(0, 2).toUpperCase();
+            }
+            return '??';
+        }
 
         logoutBtn.addEventListener('click', () => {
+            if (chatUnsubscribe) chatUnsubscribe();
             signOut(auth).then(() => {
-                window.location.href = 'login.html'; 
+                window.location.href = 'index.html'; 
             }).catch((error) => {
-                showToast("Gagal logout."); 
+                showToast("Gagal logout.", false); 
             });
         });
 
-        // (MODIFIKASI) Otentikasi khusus Admin (root)
         onAuthStateChanged(auth, (user) => {
             if (user && user.uid === ADMIN_ROOT_UID_KEY) {
                 loggedInUser = user;
@@ -642,19 +690,23 @@
                 
                 fetchUsersAndSetupLists();
                 setupListeners();
+                monitorAllChatsForUnread(); 
 
             } else if (user) {
-                // User yang login BUKAN admin root, paksa logout dan redirect ke login
+                 // Pengguna login tapi bukan Admin Root
+                 if (chatUnsubscribe) chatUnsubscribe();
                  signOut(auth);
-                 window.location.href = 'login.html?reason=unauthorized';
+                 // Redirect ke halaman login yang sebenarnya, index.html menangani auth
+                 window.location.href = 'index.html'; 
                  return;
             } else {
-                // Tidak ada user yang login
-                window.location.href = 'login.html';
+                // Tidak ada pengguna login
+                 window.location.href = 'index.html';
             }
         });
 
         function fetchUsersAndSetupLists() {
+            // Listener untuk semua user (termasuk yang non-approved, tapi akan difilter)
             onValue(ref(db, 'users'), (snapshot) => {
                 usersData = {};
                 const usersArray = [];
@@ -662,14 +714,13 @@
                 if (snapshot.exists()) {
                     snapshot.forEach((childSnapshot) => {
                         let user = childSnapshot.val();
-                        
                         const userUid = user.uid || childSnapshot.key;
                         
                         if (!userUid || userUid.length < 5 || userUid === 'status') return; 
                         
                         user.uid = userUid;
-
-                        // (MODIFIKASI) Admin dapat melihat SEMUA user yang approved
+                        
+                        // Hanya tambahkan user yang sudah di-approve dan bukan diri sendiri
                         if (user.status === 'approved' && user.uid !== loggedInUser.uid) {
                             usersData[user.uid] = user;
                             usersArray.push(user);
@@ -677,10 +728,7 @@
                     });
                 }
                 
-                // Admin sudah terdaftar di loggedInUserData, tidak perlu menambahkan ke list usersData
-
                 renderGroupChatList();
-                // renderAdminChatList(); // (MODIFIKASI) Admin tidak chatting dengan dirinya sendiri
                 renderPrivateChatList(usersArray);
             }, (error) => {
                 console.error("Gagal memuat daftar user:", error);
@@ -691,59 +739,48 @@
         function renderGroupChatList() {
             groupChatListEl.innerHTML = '';
             
-            // Admin (root) tidak memiliki departemen yang valid untuk grup chat divisi
-            groupChatListEl.innerHTML = `<div class="chat-item" data-type="empty"><p class="chat-info">Sebagai Admin, Anda tidak tergabung di Grup Divisi.</p></div>`;
-            
+            // Logika: Admin tidak tergabung di grup divisi, hanya di grup "Semua Karyawan"
             const allId = 'all_employees';
-            const allName = 'Semua Karyawan';
+            const allName = 'Grup Semua Karyawan';
             const allLastMessage = "Grup chat seluruh karyawan Zeppelin.";
-            groupChatListEl.innerHTML += createChatItemHTML('group', allId, allName, allLastMessage, 'fa-globe', 'group-avatar');
-        }
-
-        // (MODIFIKASI) Fungsi ini tidak digunakan di sini (Admin tidak perlu chat dengan Admin)
-        function renderAdminChatList() {
-             adminChatSectionEl.style.display = 'none';
+            
+            // Format ID chat untuk grup
+            const chatId = `group_${allId}`;
+            
+            groupChatListEl.innerHTML += createChatItemHTML('group', chatId, allName, allLastMessage, 'fa-globe', 'group-avatar');
         }
 
         function renderPrivateChatList(users) {
             privateChatListEl.innerHTML = ''; 
             
             if (users.length === 0) {
-                privateChatListEl.innerHTML = '<div class="chat-item" data-type="empty"><p class="chat-info">Tidak ada kontak karyawan lain saat ini.</p></div>';
+                privateChatListEl.innerHTML = '<div class="chat-item" data-type="empty"><p class="chat-info">Tidak ada kontak karyawan aktif saat ini.</p></div>';
                 return;
             }
             
-            users.sort((a, b) => (a.nama || a.email).localeCompare(b.nama || b.email));
+            users.sort((a, b) => (a.nama || a.email).localeCompare(b.nama || a.email));
 
             users.forEach(user => {
                 if(user.uid) { 
                     const name = user.nama || user.email; 
-                    const lastMessage = user.departemen || user.email;
+                    const lastMessage = user.departemen ? `Divisi: ${user.departemen}` : user.email;
+                    const initials = getInitials(user.nama, user.email);
                     
-                    let initials;
-                    if (user.nama) {
-                         initials = user.nama.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-                    } else if (user.email) {
-                         initials = user.email.substring(0, 2).toUpperCase(); 
-                    } else {
-                         initials = '??';
-                    }
+                    // Format ID chat untuk private chat (gunakan UID user lawan)
+                    const chatId = user.uid;
                     
-                    privateChatListEl.innerHTML += createChatItemHTML('private', user.uid, name, lastMessage, initials, '');
+                    privateChatListEl.innerHTML += createChatItemHTML('private', chatId, name, lastMessage, initials, '');
                 }
             });
+            
+             // Memperbarui badge untuk memastikan status pesan baru terlihat setelah list di-render
+            updateAllChatBadges();
         }
 
         function createChatItemHTML(type, id, name, lastMessage, avatarContent, avatarClass) {
-            let dataId = id;
-            if (type === 'admin') {
-                dataId = `admin_${id}`;
-            } else if (type === 'group') {
-                dataId = `group_${id}`;
-            }
+            // ID yang sebenarnya disimpan di data-id (bisa UID user atau ID gabungan)
+            let dataId = id; 
             
-            // Jika konten avatar adalah Font Awesome class, gunakan <i>
-            // Jika konten avatar adalah inisial, gunakan langsung string
             const isFaIcon = avatarContent.startsWith('fa-'); 
             const avatarHtml = isFaIcon ? `<i class="fa-solid ${avatarContent}"></i>` : avatarContent;
 
@@ -755,6 +792,7 @@
                     <div class="chat-info">
                         <h4>${escapeHTML(name)}</h4>
                         <p>${escapeHTML(lastMessage)}</p>
+                        <span class="new-message-badge" id="badge-${CSS.escape(dataId)}"></span>
                     </div>
                 </div>
             `;
@@ -772,21 +810,17 @@
                 }
             });
 
-            const navLogo = document.querySelector('.nav-logo');
-            if (navLogo) {
-                navLogo.addEventListener('click', (e) => {
-                    if (window.innerWidth <= 768) {
-                        e.preventDefault(); 
-                        window.location.href = 'index.html'; // (MODIFIKASI) Link ke index.html
-                    }
-                });
-            }
-
+            // Logika untuk tombol sidebar di mobile
             sidebarToggleBtn.addEventListener('click', () => {
-                if (chatSidebar.classList.contains('open')) {
-                    chatSidebar.classList.remove('open');
+                chatSidebar.classList.toggle('open');
+            });
+            
+            window.addEventListener('resize', () => {
+                 if (window.innerWidth <= 900) {
+                    sidebarToggleBtn.style.display = 'block';
                 } else {
-                    chatSidebar.classList.add('open');
+                    sidebarToggleBtn.style.display = 'none';
+                    chatSidebar.classList.remove('open');
                 }
             });
             
@@ -803,8 +837,30 @@
             });
         }
         
+        function getChatPath(chatId, chatType) {
+            if (chatType === 'group') {
+                // Grup ID sudah dalam format group_...
+                return `chats/group_chats/${chatId.replace('group_', '')}`; 
+            
+            } else if (chatType === 'private') {
+                // Private chat menggunakan UID lawan
+                const targetUID = chatId; // UID lawan
+                const myId = loggedInUser.uid;
+                // Selalu gabungkan UID dalam urutan alfabetis
+                const combinedId = [myId, targetUID].sort().join('_'); 
+                return `chats/private_chats/${combinedId}`;
+            }
+            return null;
+        }
+
         function switchChat(id, type, name) {
-            if (activeChat.id === id) return;
+            const path = getChatPath(id, type);
+
+            if (activeChat.id === id) {
+                 // Jika chat yang sama di-klik lagi, pastikan sidebar tertutup di mobile
+                 if (window.innerWidth <= 900) chatSidebar.classList.remove('open');
+                 return;
+            }
 
             if (chatUnsubscribe) {
                 chatUnsubscribe();
@@ -828,6 +884,7 @@
             
             activeChatNameEl.textContent = name;
             
+            // Kloning Avatar
             if (activeItem) {
                 const avatarClone = activeItem.querySelector('.chat-avatar').cloneNode(true);
                 avatarClone.id = 'active-chat-avatar';
@@ -835,61 +892,61 @@
                 if (currentAvatar) {
                     currentAvatar.parentNode.replaceChild(avatarClone, currentAvatar);
                 }
-            }
-
-            let chatPath;
-            let targetUID;
-            let isInputDisabled = false;
-            
-            if (type === 'group') {
-                targetUID = id.replace('group_', '');
-                chatPath = `chats/group_chats/${targetUID}`; 
-            
-            } else if (type === 'admin') {
-                targetUID = id.replace('admin_', ''); 
-                const myId = loggedInUser.uid; 
-                
-                const combinedId = [myId, targetUID].sort().join('_'); 
-                chatPath = `chats/private_chats/${combinedId}`;
-                
-                // Admin (root) selalu diizinkan mengirim di private chat yang melibatkan dirinya.
-                isInputDisabled = false; 
-
-            } else if (type === 'private') {
-                targetUID = id; 
-                const myId = loggedInUser.uid;
-                const combinedId = [myId, targetUID].sort().join('_'); 
-                chatPath = `chats/private_chats/${combinedId}`;
-                
-            }
-            
-            if (isInputDisabled) {
-                chatInputArea.classList.add('disabled');
-                messageInput.placeholder = "Anda tidak bisa mengirim pesan ke chat ini.";
-                sendButton.disabled = true;
             } else {
-                chatInputArea.classList.remove('disabled');
-                messageInput.placeholder = "Ketik pesan Anda...";
-                sendButton.disabled = false;
+                // Fallback jika item tidak ditemukan
+                 activeChatAvatarEl.textContent = getInitials(name, '');
             }
+            
+            // =================================================================
+            // === LOGIKA INSTAN UNTUK HIDE BADGE ===
+            // =================================================================
+            const badgeEl = document.getElementById(`badge-${safeId}`);
+            if (badgeEl) {
+                badgeEl.style.display = 'none'; // <-- Sembunyikan badge di UI secara instan
+                badgeEl.textContent = '';
+                unreadCounts[id] = 0; // Reset hitungan lokal untuk mencegah Toast
+            }
+            // =================================================================
 
-            const messagesQuery = query(ref(db, chatPath), orderByChild('timestamp'), limitToLast(50));
+            if (!path) {
+                chatInputArea.classList.add('disabled');
+                messageInput.placeholder = "Chat tidak valid.";
+                sendButton.disabled = true;
+                chatMessagesEl.innerHTML = '<div class="welcome-screen" style="height: auto; padding-top: 50px;"><i class="fa-solid fa-exclamation-triangle"></i><h4>Kesalahan Chat</h4><p>Chat tidak valid. Silakan pilih kontak lain.</p></div>';
+                return;
+            }
+            
+            // Enable input area
+            chatInputArea.classList.remove('disabled');
+            messageInput.placeholder = "Ketik pesan Anda...";
+            sendButton.disabled = false;
+
+
+            const messagesQuery = query(ref(db, path), orderByChild('timestamp'), limitToLast(50));
             chatMessagesEl.innerHTML = ''; 
             
+            // Update lastRead *setelah* chat dibuka (Asynchronous DB update)
+            updateLastReadTimestamp(id);
+
             chatUnsubscribe = onValue(messagesQuery, (snapshot) => {
-                chatMessagesEl.innerHTML = '';
+                // Gunakan Document Fragment untuk performa render
+                const fragment = document.createDocumentFragment();
                 let messageCount = 0;
                 
                 snapshot.forEach((childSnapshot) => {
                     const message = childSnapshot.val();
-                    renderMessage(message, type);
+                    fragment.appendChild(renderMessage(message, type));
                     messageCount++;
                 });
 
+                chatMessagesEl.innerHTML = ''; 
                 if (messageCount === 0) {
                     chatMessagesEl.innerHTML = '<div class="welcome-screen" style="height: auto; padding-top: 50px;"><i class="fa-solid fa-cloud"></i><h4>Mulai Percakapan Baru</h4><p>Belum ada pesan di sini. Jadilah yang pertama!</p></div>';
+                } else {
+                    chatMessagesEl.appendChild(fragment);
                 }
 
+                // Scroll ke bawah
                 chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
                 
                  if (window.innerWidth <= 900) {
@@ -913,16 +970,13 @@
             
             let senderNameHtml = '';
             
+            // Hanya tampilkan nama pengirim untuk chat Grup (agar Admin tahu siapa yang bicara)
             if (!isSent && chatType === 'group') {
-                
-                let senderName;
-                if (message.senderName) {
-                    senderName = message.senderName;
-                } else {
-                    const sender = usersData[message.senderId] || { nama: 'Pengirim' };
-                    senderName = sender.nama || 'Pengirim';
+                let senderName = message.senderName;
+                if (!senderName) {
+                    const sender = usersData[message.senderId];
+                    senderName = sender ? sender.nama || 'Pengirim Tidak Dikenal' : 'Pengirim Tidak Dikenal';
                 }
-                
                 senderNameHtml = `<span class="message-sender">${escapeHTML(senderName)}</span>`;
             }
 
@@ -936,7 +990,7 @@
                 </div>
             `;
             
-            chatMessagesEl.appendChild(itemElement);
+            return itemElement;
         }
 
         function sendMessage() {
@@ -954,36 +1008,195 @@
                 timestamp: Date.now()
             };
             
-            let chatRef;
-            let targetUID;
+            const path = getChatPath(activeChat.id, activeChat.type);
             
-            if (activeChat.type === 'group') {
-                targetUID = activeChat.id.replace('group_', '');
-                chatRef = ref(db, `chats/group_chats/${targetUID}`);
-            
-            } else if (activeChat.type === 'admin' || activeChat.type === 'private') {
-                targetUID = activeChat.id.replace('admin_', ''); 
-                const myId = loggedInUser.uid;
-                
-                const combinedId = [myId, targetUID].sort().join('_'); 
-                chatRef = ref(db, `chats/private_chats/${combinedId}`);
-                
-            } else {
-                sendButton.disabled = false;
-                return;
+            if (!path) {
+                 sendButton.disabled = false;
+                 showToast("Kesalahan: Jalur chat tidak valid.", false);
+                 return;
             }
+            
+            const chatRef = ref(db, path);
             
             push(chatRef, message)
                 .then(() => {
                     sendButton.disabled = false;
+                    // Update lastRead Admin segera setelah Admin mengirim pesan
+                    updateLastReadTimestamp(activeChat.id); 
                 })
                 .catch((error) => {
                     console.error("Gagal mengirim pesan:", error);
-                    showToast("Gagal mengirim pesan.");
+                    showToast("Gagal mengirim pesan.", false);
                     sendButton.disabled = false;
                 });
         }
         
+        // =================================================================
+        // === FUNGSI INDIKATOR PESAN BARU (UNREAD) ===
+        // =================================================================
+
+        function updateLastReadTimestamp(chatId) {
+            // Untuk chat pribadi, chatId adalah UID lawan. Untuk grup, chatId adalah group_...
+            const lastReadPath = `users/${loggedInUser.uid}/lastRead/${chatId}`;
+
+            // Set lastRead di database secara asinkron (permanen)
+            set(ref(db, lastReadPath), Date.now())
+                .then(() => {
+                     console.log(`[DB SUCCESS] Last Read untuk chat ${chatId} berhasil diperbarui.`);
+                })
+                .catch(error => {
+                     console.error(`[DB ERROR] Gagal menulis Last Read untuk chat ${chatId}. Cek Firebase Rules!`, error);
+                     showToast("Gagal menyimpan status baca. Periksa log konsol.", false);
+                });
+        }
+
+        function monitorAllChatsForUnread() {
+            // Listener status terakhir dibaca Admin. Ini memicu update badge global.
+            onValue(ref(db, `users/${loggedInUser.uid}/lastRead`), (snapshot) => {
+                currentLastRead = snapshot.val() || {};
+                // Panggil updateAllChatBadges() di sini, BUKAN di akhir monitorAllChatsForUnread.
+                // Ini akan dipanggil secara implisit oleh listener group/private di bawah jika ada perubahan.
+            });
+            
+            // Monitor semua grup chat
+            onValue(ref(db, 'chats/group_chats'), (groupSnapshot) => {
+                if (groupSnapshot.exists()) {
+                    groupSnapshot.forEach(chatSnapshot => {
+                        const chatId = `group_${chatSnapshot.key}`;
+                        checkUnreadMessages(chatId, chatSnapshot);
+                    });
+                }
+            });
+            
+            // Monitor semua private chat
+            onValue(ref(db, 'chats/private_chats'), (privateSnapshot) => {
+                 if (privateSnapshot.exists()) {
+                     privateSnapshot.forEach(chatSnapshot => {
+                         const combinedId = chatSnapshot.key;
+                         // Hanya monitor chat yang melibatkan Admin (Root)
+                         if (combinedId.includes(loggedInUser.uid)) { 
+                             // ID chat private yang disimpan di lastRead/UI adalah UID lawan
+                             const targetUID = combinedId.split('_').find(uid => uid !== loggedInUser.uid);
+                             if (targetUID) {
+                                 checkUnreadMessages(targetUID, chatSnapshot);
+                             }
+                         }
+                     });
+                 }
+             });
+        }
+        
+        // PERBAIKAN KRITIS: Tidak perlu lagi menerima lastReadTimestamp sebagai parameter, 
+        // karena kita mengambilnya secara sinkron dari state global currentLastRead.
+        function checkUnreadMessages(chatId, chatSnapshot) {
+            let newUnreadCount = 0;
+            let lastMessageTimestamp = 0;
+            let lastMessageSenderId = null;
+            let lastMessageText = '';
+            
+            // Ambil timestamp terakhir dibaca DARI STATE GLOBAL currentLastRead
+            const lastReadTimestamp = currentLastRead[chatId] || 0;
+            
+            chatSnapshot.forEach(messageSnapshot => {
+                const message = messageSnapshot.val();
+                
+                if (message.timestamp > lastMessageTimestamp) {
+                    lastMessageTimestamp = message.timestamp;
+                    lastMessageSenderId = message.senderId;
+                    lastMessageText = message.text;
+                }
+
+                // Hitung pesan yang DITERIMA dan terjadi SETELAH lastRead
+                if (message.senderId !== loggedInUser.uid && message.timestamp > lastReadTimestamp) {
+                    newUnreadCount++;
+                }
+            });
+            
+            const oldUnreadCount = unreadCounts[chatId] || 0;
+            unreadCounts[chatId] = newUnreadCount;
+            
+            updateChatPreview(chatId, lastMessageText, lastMessageSenderId, lastMessageTimestamp, newUnreadCount);
+
+            updateChatBadge(chatId, newUnreadCount);
+            
+            // Notifikasi Toast hanya jika ada penambahan pesan baru dan chat tidak aktif
+            if (newUnreadCount > oldUnreadCount && activeChat.id !== chatId && lastMessageSenderId !== loggedInUser.uid) {
+                const chatName = getChatNameFromId(chatId);
+                showToast(`Pesan baru dari ${chatName} (${newUnreadCount} pesan)`, true);
+            }
+        }
+        
+        // Perbaikan: Tambahkan hitungan pesan baru ke updateChatPreview untuk tampilan lebih baik
+        function updateChatPreview(chatId, lastMessageText, lastMessageSenderId, lastMessageTimestamp, unreadCount) {
+             const safeId = CSS.escape(chatId);
+             const item = document.querySelector(`.chat-item[data-id="${safeId}"]`);
+             
+             if (!item) return; // Item tidak ada (mungkin user sudah dihapus)
+
+             const previewEl = item.querySelector('p');
+             let previewText = lastMessageText || '';
+
+             // Teks preview
+             if (lastMessageSenderId === loggedInUser.uid) {
+                previewText = 'Anda: ' + previewText;
+             } else if (lastMessageSenderId && item.getAttribute('data-type') === 'group') {
+                const senderName = usersData[lastMessageSenderId]?.nama || 'Seseorang';
+                previewText = `${senderName.split(' ')[0]}: ${previewText}`;
+             }
+             
+             // Tambahkan indikator 'Pesan Baru' jika ada pesan yang belum dibaca dan tidak ada teks pesan terakhir
+             if (unreadCount > 0 && !lastMessageText) {
+                  previewText = `(${unreadCount} pesan baru)`;
+             } else {
+                  previewText = previewText.substring(0, 40) + (previewText.length > 40 ? '...' : '');
+             }
+             
+             previewEl.textContent = previewText;
+        }
+
+        function updateChatBadge(chatId, count) {
+            const safeId = CSS.escape(chatId);
+            const badgeEl = document.getElementById(`badge-${safeId}`);
+            
+            if (badgeEl) {
+                if (activeChat.id === chatId) {
+                    // JIKA CHAT AKTIF, SELALU SEMBUNYIKAN BADGE (Sesuai permintaan)
+                    badgeEl.style.display = 'none';
+                    badgeEl.textContent = '';
+                    // Karena kita reset lastRead di switchChat, hitungan selanjutnya akan 0
+                    return; 
+                }
+                
+                // JIKA CHAT TIDAK AKTIF, tampilkan hitungan jika > 0
+                if (count > 0) {
+                    badgeEl.textContent = count > 99 ? '99+' : count;
+                    badgeEl.style.display = 'block';
+                } else {
+                    badgeEl.style.display = 'none';
+                }
+            }
+        }
+        
+        function updateAllChatBadges() {
+            // Logika ini dipanggil saat currentLastRead berubah, memaksa semua badge untuk diperbarui.
+            document.querySelectorAll('.chat-item').forEach(item => {
+                const chatId = item.getAttribute('data-id');
+                if (chatId) {
+                    const count = unreadCounts[chatId] || 0;
+                    updateChatBadge(chatId, count);
+                }
+            });
+        }
+
+        function getChatNameFromId(chatId) {
+            const item = document.querySelector(`.chat-item[data-id="${CSS.escape(chatId)}"]`);
+            return item ? item.querySelector('h4').textContent : 'Chat Lain';
+        }
+        
+        // =================================================================
+        // === END FUNGSI UNREAD ===
+        // =================================================================
+
         document.getElementById('search-contact').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             document.querySelectorAll('.chat-item:not([data-type="empty"])').forEach(item => {
