@@ -366,9 +366,10 @@
     }
 
     /* Memastikan card tidak meluap */
-    .grid > .card, .card-announcement {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
+    /* Adjust margin untuk kompensasi padding body dan menghindari scroll horizontal */
+    .grid > .card, .card-announcement, .card {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
         margin-left: -12px; /* Mengimbangi padding body 12px */
         margin-right: -12px;
         width: calc(100% + 24px); /* Penuh lebar */
@@ -388,9 +389,34 @@
         margin-left: -12px;
         margin-right: -12px;
         width: calc(100% + 24px);
+        overflow-x: auto;
     }
     .table-wrap table {
         min-width: 600px; /* Lebar minimum untuk memastikan scrolling horizontal */
+    }
+    
+    /* Toast notifikasi untuk mobile */
+    #toast-notification-mobile {
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--primary);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        z-index: 9999;
+        display: none; /* Dikelola oleh JS */
+        max-width: 90%;
+        text-align: left; /* Teks profesional */
+        transition: bottom 0.3s ease-out;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    #toast-notification-mobile.show {
+        bottom: 20px;
+        display: block;
     }
   }
 
@@ -613,6 +639,9 @@
   <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
 </div>
 
+<div id="toast-notification-mobile"></div>
+
+
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
     <h3 id="modalTitle">Edit Laporan</h3>
@@ -663,7 +692,7 @@
       <span id="logCountInfo" style="margin-left:auto;font-size:13px;color:gray;"></span>
     </div>
     <div id="globalLogContent"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
       <button id="closeGlobalLog" class="btn">Tutup</button>
     </div>
   </div>
@@ -785,11 +814,13 @@ let currentUser = null;
 let dbListenerActive = false; 
 
 // === STATE CHAT NOTIFIKASI ===
+// chatUnreadCounts kini menyimpan objek: { count: number, lastMessage: string, senderName: string, lastNotifiedCount: number }
 let chatUnreadCounts = {}; 
 let lastReadTimestamps = {};
 let totalUnreadChat = 0;
 const chatUnreadBadgeEl = document.getElementById('chatUnreadBadge');
 const chatNotificationBtn = document.getElementById('chatNotificationBtn');
+const mobileToast = document.getElementById('toast-notification-mobile');
 
 
 /* Utilities */
@@ -807,6 +838,23 @@ function nl2br(str) {
     return str.replace(/(\r\n|\n\r|\r|\n)/g, '<br>');
 }
 
+function showChatNotificationToast(sender, message) {
+    // Memastikan toast hanya muncul sekali per detik
+    if (mobileToast.classList.contains('show')) return;
+    
+    const preview = message.substring(0, 50) + (message.length > 50 ? '...' : '');
+    mobileToast.innerHTML = `
+        <strong style="color: var(--warning);">Pesan Baru (Pribadi):</strong>
+        <br><strong>${escapeHTML(sender)}:</strong> ${escapeHTML(preview)}
+    `;
+    mobileToast.style.backgroundColor = 'var(--primary)'; 
+    mobileToast.classList.add('show');
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        mobileToast.classList.remove('show');
+    }, 5000); 
+}
 
 function getReports(){ return allReportsCache; }
 
@@ -1231,8 +1279,11 @@ let monitorChatListeners = [];
 
 function updateChatNotificationBadge() {
     let total = 0;
-    Object.keys(chatUnreadCounts).forEach(key => {
-        total += chatUnreadCounts[key];
+    Object.keys(chatUnreadCounts).forEach(chatId => {
+        // Hanya hitung chat pribadi (yang ID-nya bukan group_...)
+        if (chatId && !chatId.startsWith('group_')) {
+            total += chatUnreadCounts[chatId].count;
+        }
     });
     totalUnreadChat = total;
     
@@ -1244,8 +1295,26 @@ function updateChatNotificationBadge() {
     }
 }
 
+function getSenderName(senderId) {
+    // Fungsi sinkron sederhana untuk mendapatkan nama dari node users jika tersedia
+    // Karena kita tidak me-load seluruh daftar user di dashboard, kita fetch on demand.
+    return new Promise((resolve) => {
+        // Cek dulu apakah data sudah ada di cache lokal (dari data user login/user reports)
+        const userCache = window.allReportsCache?.find(r => r.uid === senderId);
+        if (userCache && userCache.nama) {
+            return resolve(userCache.nama);
+        }
+
+        // Fetch dari DB
+        usersRef.child(senderId).child('nama').once('value').then(snapshot => {
+            resolve(snapshot.val() || 'Karyawan');
+        }).catch(() => {
+            resolve('Karyawan'); // Fallback
+        });
+    });
+}
+
 function monitorAllChatsForNotifications() {
-    // Pastikan user sudah login
     if (!ADMIN_UID) return;
     
     const lastReadRef = usersRef.child(ADMIN_UID).child('lastRead');
@@ -1253,30 +1322,19 @@ function monitorAllChatsForNotifications() {
     // 1. Ambil status terakhir dibaca Admin
     const unsubscribeLastRead = lastReadRef.on('value', (snapshot) => {
         lastReadTimestamps = snapshot.val() || {};
-        // Perubahan lastRead memicu hitungan ulang badge global (meskipun chat listeners sudah melakukannya)
         updateChatNotificationBadge(); 
     });
     monitorChatListeners.push(() => lastReadRef.off('value', unsubscribeLastRead));
 
-    // 2. Monitor semua grup chat
-    const unsubscribeGroups = groupChatsRef.on('value', (groupSnapshot) => {
-        if (groupSnapshot.exists()) {
-            groupSnapshot.forEach(chatSnapshot => {
-                const chatId = `group_${chatSnapshot.key}`;
-                calculateUnread(chatId, chatSnapshot);
-            });
-        }
-    });
-    monitorChatListeners.push(() => groupChatsRef.off('value', unsubscribeGroups));
-    
-    // 3. Monitor semua private chat
-    const unsubscribePrivate = privateChatsRef.on('value', (privateSnapshot) => {
+    // 2. Monitor semua private chat (ABAIKAN GROUP CHAT)
+    const privateChatsQuery = privateChatsRef.orderByKey(); 
+
+    const unsubscribePrivate = privateChatsQuery.on('value', (privateSnapshot) => {
          if (privateSnapshot.exists()) {
              privateSnapshot.forEach(chatSnapshot => {
                  const combinedId = chatSnapshot.key;
-                 // Hanya monitor chat yang melibatkan Admin (Root)
+                 // Filter: Hanya monitor chat yang melibatkan Admin (Root)
                  if (combinedId.includes(ADMIN_UID)) { 
-                     // ID chat untuk lastRead/UI adalah UID lawan
                      const targetUID = combinedId.split('_').find(uid => uid !== ADMIN_UID);
                      if (targetUID) {
                          calculateUnread(targetUID, chatSnapshot);
@@ -1289,26 +1347,61 @@ function monitorAllChatsForNotifications() {
 }
 
 
-function calculateUnread(chatId, chatSnapshot) {
+async function calculateUnread(chatId, chatSnapshot) {
     let newUnreadCount = 0;
+    let lastMessageTimestamp = 0;
+    let lastMessageText = '';
+    let lastMessageSenderId = null;
     
-    // Ambil timestamp terakhir dibaca DARI STATE GLOBAL lastReadTimestamps
     const lastReadTimestamp = lastReadTimestamps[chatId] || 0;
     
     chatSnapshot.forEach(messageSnapshot => {
         const message = messageSnapshot.val();
         
+        // Selalu lacak pesan terakhir
+        if (message.timestamp > lastMessageTimestamp) {
+            lastMessageTimestamp = message.timestamp;
+            lastMessageText = message.text || '';
+            lastMessageSenderId = message.senderId;
+        }
+
         // Hitung pesan yang DITERIMA dan terjadi SETELAH lastRead
         if (message.senderId !== ADMIN_UID && message.timestamp > lastReadTimestamp) {
             newUnreadCount++;
         }
     });
     
-    const oldUnreadCount = chatUnreadCounts[chatId] || 0;
-    chatUnreadCounts[chatId] = newUnreadCount;
+    const oldState = chatUnreadCounts[chatId] || { count: 0, lastNotifiedCount: 0 };
     
-    // Hanya panggil update badge global jika hitungan berubah
-    if (newUnreadCount !== oldUnreadCount) {
+    // === Logic Pop-up Notifikasi (Debounce) ===
+    // Pop-up jika:
+    // 1. Ada pesan baru (newUnreadCount > oldState.count)
+    // 2. Notifikasi belum pernah ditampilkan untuk hitungan ini (newUnreadCount > oldState.lastNotifiedCount)
+    // 3. Pesan dikirim oleh user, BUKAN oleh Admin
+    // 4. Ada teks pesan
+    if (newUnreadCount > oldState.count && newUnreadCount > oldState.lastNotifiedCount && lastMessageSenderId !== ADMIN_UID && lastMessageText) {
+        
+        const senderName = await getSenderName(lastMessageSenderId);
+        showChatNotificationToast(senderName, lastMessageText);
+        
+        // Tandai hitungan ini sebagai yang terakhir dinotifikasi (Debounce)
+        oldState.lastNotifiedCount = newUnreadCount;
+    } else if (newUnreadCount < oldState.count) {
+        // Jika hitungan berkurang (Admin membuka chat di jendela lain), reset lastNotifiedCount
+        oldState.lastNotifiedCount = 0;
+    }
+
+
+    // Perbarui state lokal
+    chatUnreadCounts[chatId] = {
+        count: newUnreadCount,
+        lastMessage: lastMessageText,
+        senderName: lastMessageSenderId,
+        lastNotifiedCount: oldState.lastNotifiedCount // Pertahankan state notifikasi
+    };
+    
+    // Panggil update badge global jika hitungan berubah
+    if (newUnreadCount !== oldState.count) {
         updateChatNotificationBadge();
     }
 }
