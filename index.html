@@ -55,6 +55,7 @@
     background:var(--primary); color:#fff; border:none; padding:9px 14px; border-radius:8px;
     cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;
     font-size:14px; transition: background-color 0.2s ease; text-decoration: none; line-height: 1;
+    position: relative; /* Untuk badge notif */
   }
   .btn:hover{ background: var(--primary-hover); }
   .btn.ghost{ background:transparent; border:1px solid var(--border-color); color:var(--text); font-weight: 500; }
@@ -62,6 +63,24 @@
   .btn:not(.ghost){ box-shadow: var(--shadow-sm); }
   .btn svg{width:16px;height:16px;stroke-width:2.5}
   
+  /* Badge Notifikasi Chat */
+  .chat-notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--danger);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 50%;
+    padding: 3px 6px;
+    min-width: 20px;
+    text-align: center;
+    line-height: 1;
+    box-shadow: 0 0 0 2px var(--card);
+    display: none; /* Default hidden */
+  }
+
   .btn-link {
     background: none; border: none; padding: 0;
     color: var(--primary); font-weight: 600; cursor: pointer;
@@ -242,39 +261,75 @@
   }
   
   @media (max-width: 600px) {
+    body { padding: 12px; } /* Padding body sedikit dikurangi */
+    .app { padding: 0; }
+
     .row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Ringkasan menjadi kolom tunggal */
     }
     /* Mengubah header menjadi position: relative agar tombol logout bisa absolute di dalamnya */
     .app-header { 
         position: relative; 
-        /* Padding horizontal dikurangi untuk memaksimalkan ruang */
-        padding-left: 16px; 
-        padding-right: 16px;
+        padding-left: 0px; 
+        padding-right: 0px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
     }
+    .logo { margin-left: 10px; }
+    .title { margin-left: -6px; }
     
     /* Tombol Logout (dipindahkan ke kanan atas) */
-    .controls #logoutBtn {
-        position: absolute;
-        top: 15px;
-        right: 10px; /* Disesuaikan dengan padding header */
-        padding: 8px 10px; 
-        font-size: 0.85rem;
+    /* Dipindahkan ke luar alur controls utama */
+    #logoutBtn {
+        position: absolute !important; 
+        top: 12px;
+        right: 12px; 
+        padding: 6px 10px !important; 
+        font-size: 0.8rem;
+        display: inline-flex !important;
+        width: auto !important;
+        height: auto !important;
+        z-index: 10;
     }
 
-    /* === PERBAIKAN KRITIS 3: Memastikan semua tombol dalam controls muat === */
+    /* Ikon Notifikasi Chat (dibuat lebih kecil) */
+    /* Dipindahkan ke luar alur controls utama */
+    #chatNotificationBtn {
+        padding: 8px !important; /* Ukuran icon-only */
+        width: 38px !important;
+        height: 38px !important;
+        position: absolute !important; 
+        top: 12px;
+        right: 80px; 
+        display: inline-flex !important;
+        z-index: 10;
+    }
+    #chatNotificationBtn svg {
+        width: 20px;
+        height: 20px;
+    }
+    .controls #chatUnreadBadge {
+        top: 0px; 
+        right: 0px; 
+        font-size: 8px;
+        min-width: 16px;
+        padding: 2px 4px;
+    }
+
+    /* === Kontrol Lain di Bawah Header (Mobile) === */
     .controls {
-        /* Menggunakan lebar 100% dari container setelah logo */
         margin-left: 0;
         width: 100%;
         gap: 6px;
         justify-content: flex-start;
         flex-wrap: wrap; 
+        padding: 0 10px; /* Padding horizontal untuk konten controls */
         margin-top: 10px; 
     }
     
-    .controls #dateTime { display: none; } 
-    .controls #userInfo { display: none; } 
+    .controls #dateTime, .controls #userInfo { 
+        display: none; 
+    } 
     
     /* Tombol Icon-Only (Semua tombol ghost) */
     .controls .btn.ghost {
@@ -285,7 +340,6 @@
         display: inline-flex; 
         justify-content: center;
         align-items: center;
-        margin-right: 2px; 
     }
     
     .controls #newReportBtn {
@@ -293,15 +347,50 @@
         justify-content: center;
         margin-top: 8px;
         flex-basis: 100%; 
+        padding: 10px;
     }
     
     .controls > * {
         margin-bottom: 6px; 
     }
-    /* === END PERBAIKAN KRITIS 3 === */
 
-    .detail-grid {
-        grid-template-columns: 1fr 1fr;
+    /* Perbaikan: Atur lebar filter bar agar tidak meluap */
+    .filter-bar {
+        width: 100%;
+        padding: 0; 
+        margin-bottom: 10px;
+    }
+    .filter-bar input, .filter-bar select {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    /* Memastikan card tidak meluap */
+    .grid > .card, .card-announcement {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        margin-left: -12px; /* Mengimbangi padding body 12px */
+        margin-right: -12px;
+        width: calc(100% + 24px); /* Penuh lebar */
+        max-width: none;
+    }
+    .card-announcement-header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .simple-announcement-item {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    
+    /* Memastikan tabel tetap di-scroll horizontal */
+    .table-wrap {
+        margin-left: -12px;
+        margin-right: -12px;
+        width: calc(100% + 24px);
+    }
+    .table-wrap table {
+        min-width: 600px; /* Lebar minimum untuk memastikan scrolling horizontal */
     }
   }
 
@@ -425,6 +514,11 @@
       </div>
       <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
       
+      <a href="chatadm.html" id="chatNotificationBtn" class="btn ghost" title="Pesan Baru" style="padding: 9px 14px;">
+         <svg><use href="#icon-message-circle" /></svg>
+         <span id="chatUnreadBadge" class="chat-notification-badge"></span>
+      </a>
+      
       <button id="backupBtn" class="btn ghost" title="Backup Data">
         <svg><use href="#icon-download" /></svg>
       </button>
@@ -440,9 +534,6 @@
          <svg><use href="#icon-users" /></svg>
       </a>
       
-      <a href="chatadm.html" id="showChatAdmin" class="btn ghost" title="Pusat Chat Admin">
-         <svg><use href="#icon-message-circle" /></svg>
-      </a>
       
       <a href="permintaanadmin.html" id="showRequestManagement" class="btn ghost" title="Manajemen Permintaan">
          <svg><use href="#icon-laptop" /></svg>
@@ -683,12 +774,23 @@ const auth = firebase.auth();
 const reportsRef = db.ref('reports'); 
 const counterRef = db.ref('counter'); 
 const announcementsRef = db.ref('announcements'); 
+const usersRef = db.ref('users'); 
+const groupChatsRef = db.ref('chats/group_chats'); 
+const privateChatsRef = db.ref('chats/private_chats'); 
 
 /* Cache & State */
 let allReportsCache = []; 
 let allAnnouncementsCache = []; 
 let currentUser = null; 
 let dbListenerActive = false; 
+
+// === STATE CHAT NOTIFIKASI ===
+let chatUnreadCounts = {}; 
+let lastReadTimestamps = {};
+let totalUnreadChat = 0;
+const chatUnreadBadgeEl = document.getElementById('chatUnreadBadge');
+const chatNotificationBtn = document.getElementById('chatNotificationBtn');
+
 
 /* Utilities */
 function nowString(){ return new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'medium' }); }
@@ -1014,6 +1116,15 @@ function exportToExcel(){
   
   // Handle Logout
   document.getElementById('logoutBtn').addEventListener('click', async () => {
+    // Stop all listeners before signing out
+    if (dbListenerActive) {
+        reportsRef.off(); 
+        announcementsRef.off(); 
+        if (monitorChatListeners) {
+            monitorChatListeners.forEach(off => off());
+            monitorChatListeners = [];
+        }
+    }
     await auth.signOut();
   });
 
@@ -1069,6 +1180,9 @@ function exportToExcel(){
         }, (error) => {
             console.error("Firebase read (announcements) failed:", error);
         });
+        
+        // Mulai monitor chat notifikasi
+        monitorAllChatsForNotifications();
 
         dbListenerActive = true;
       }
@@ -1081,6 +1195,10 @@ function exportToExcel(){
       if (dbListenerActive) {
         reportsRef.off(); 
         announcementsRef.off(); 
+        if (monitorChatListeners) {
+            monitorChatListeners.forEach(off => off());
+            monitorChatListeners = [];
+        }
         dbListenerActive = false;
         allReportsCache = []; 
         allAnnouncementsCache = []; 
@@ -1104,6 +1222,102 @@ function exportToExcel(){
   });
   
 })();
+
+// ===================================================================
+// === FUNGSI NOTIFIKASI CHAT (DUPLIKASI LOGIKA DARI CHATADM) ===
+// ===================================================================
+
+let monitorChatListeners = [];
+
+function updateChatNotificationBadge() {
+    let total = 0;
+    Object.keys(chatUnreadCounts).forEach(key => {
+        total += chatUnreadCounts[key];
+    });
+    totalUnreadChat = total;
+    
+    if (total > 0) {
+        chatUnreadBadgeEl.textContent = total > 99 ? '99+' : total;
+        chatUnreadBadgeEl.style.display = 'block';
+    } else {
+        chatUnreadBadgeEl.style.display = 'none';
+    }
+}
+
+function monitorAllChatsForNotifications() {
+    // Pastikan user sudah login
+    if (!ADMIN_UID) return;
+    
+    const lastReadRef = usersRef.child(ADMIN_UID).child('lastRead');
+    
+    // 1. Ambil status terakhir dibaca Admin
+    const unsubscribeLastRead = lastReadRef.on('value', (snapshot) => {
+        lastReadTimestamps = snapshot.val() || {};
+        // Perubahan lastRead memicu hitungan ulang badge global (meskipun chat listeners sudah melakukannya)
+        updateChatNotificationBadge(); 
+    });
+    monitorChatListeners.push(() => lastReadRef.off('value', unsubscribeLastRead));
+
+    // 2. Monitor semua grup chat
+    const unsubscribeGroups = groupChatsRef.on('value', (groupSnapshot) => {
+        if (groupSnapshot.exists()) {
+            groupSnapshot.forEach(chatSnapshot => {
+                const chatId = `group_${chatSnapshot.key}`;
+                calculateUnread(chatId, chatSnapshot);
+            });
+        }
+    });
+    monitorChatListeners.push(() => groupChatsRef.off('value', unsubscribeGroups));
+    
+    // 3. Monitor semua private chat
+    const unsubscribePrivate = privateChatsRef.on('value', (privateSnapshot) => {
+         if (privateSnapshot.exists()) {
+             privateSnapshot.forEach(chatSnapshot => {
+                 const combinedId = chatSnapshot.key;
+                 // Hanya monitor chat yang melibatkan Admin (Root)
+                 if (combinedId.includes(ADMIN_UID)) { 
+                     // ID chat untuk lastRead/UI adalah UID lawan
+                     const targetUID = combinedId.split('_').find(uid => uid !== ADMIN_UID);
+                     if (targetUID) {
+                         calculateUnread(targetUID, chatSnapshot);
+                     }
+                 }
+             });
+         }
+     });
+     monitorChatListeners.push(() => privateChatsRef.off('value', unsubscribePrivate));
+}
+
+
+function calculateUnread(chatId, chatSnapshot) {
+    let newUnreadCount = 0;
+    
+    // Ambil timestamp terakhir dibaca DARI STATE GLOBAL lastReadTimestamps
+    const lastReadTimestamp = lastReadTimestamps[chatId] || 0;
+    
+    chatSnapshot.forEach(messageSnapshot => {
+        const message = messageSnapshot.val();
+        
+        // Hitung pesan yang DITERIMA dan terjadi SETELAH lastRead
+        if (message.senderId !== ADMIN_UID && message.timestamp > lastReadTimestamp) {
+            newUnreadCount++;
+        }
+    });
+    
+    const oldUnreadCount = chatUnreadCounts[chatId] || 0;
+    chatUnreadCounts[chatId] = newUnreadCount;
+    
+    // Hanya panggil update badge global jika hitungan berubah
+    if (newUnreadCount !== oldUnreadCount) {
+        updateChatNotificationBadge();
+    }
+}
+
+
+// ===================================================================
+// === END FUNGSI NOTIFIKASI CHAT ===
+// ===================================================================
+
 
 /* MODAL ADD/EDIT (Laporan) */
 const modalBackdrop = document.getElementById('modalBackdrop');
