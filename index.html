@@ -212,7 +212,7 @@
     }
     .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* KANBAN BOARD STYLES - FIXED */
+    /* KANBAN BOARD STYLES */
     .kanban-board {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
         align-items: start; height: calc(100vh - 220px); overflow-x: auto;
@@ -220,7 +220,7 @@
     .kanban-col {
         background: var(--bg-hover); border-radius: var(--radius);
         padding: 16px; display: flex; flex-direction: column; 
-        max-height: 100%; /* Penting untuk scroll dalam kolom */
+        max-height: 100%;
     }
     .kanban-header {
         display: flex; justify-content: space-between; align-items: center;
@@ -272,7 +272,7 @@
     
     .btn-create { background: var(--primary); color: #fff; }
 
-    /* FORM STYLES (Used in Filter & Modals) */
+    /* FORM STYLES */
     .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
     select, input, textarea {
         width: 100%; padding: 10px 12px; border-radius: 8px; 
@@ -377,7 +377,7 @@
                 <i class="ri-logout-box-line"></i> Sign Out
             </div>
             <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">
-                v3.1.0 (All-in-One)
+                v3.2.0 (Patched)
             </div>
         </div>
     </aside>
@@ -733,7 +733,7 @@
     let reports = [];
     let users = [];
     let requests = [];
-    let assets = []; // From Firestore
+    let assets = []; 
     let announcements = [];
     let isTrashMode = false;
     let editingId = null;
@@ -783,68 +783,87 @@
         };
         $('#mobileMenuBtn').onclick = () => $('#sidebar').classList.toggle('open');
 
-        // === LISTENERS ===
-        
-        // 1. Reports (Tiket)
+        // === LISTENERS & FILTERS (FIXED) ===
+        // 1. Dropdown Filters
+        $('#filterCat').onchange = () => renderTickets(1);
+        $('#userFilterDept').onchange = renderUsers;
+        $('#userFilterStatus').onchange = renderUsers;
+        $('#reqFilterDept').onchange = renderRequests;
+        $('#reqFilterStatus').onchange = renderRequests;
+
+        // 2. Search Listeners
+        $('#ticketSearch').oninput = () => renderTickets(1);
+        $('#globalSearch').oninput = () => { renderTickets(1); renderUsers(); renderRequests(); };
+        $('#userSearchInput').oninput = renderUsers;
+        $('#reqSearch').oninput = renderRequests;
+
+        // 3. Database Listeners
         db.ref('reports').on('value', snap => {
             const val = snap.val();
             reports = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
             renderTickets();
             renderStats();
             renderCharts();
-            if(editingUserId) showUserDetail(editingUserId); // Refresh popup if open
+            if(editingUserId) showUserDetail(editingUserId); 
         });
 
-        // 2. Announcements
         db.ref('announcements').on('value', snap => {
             const val = snap.val();
             announcements = val ? Object.keys(val).map(k => ({...val[k], key: k})) : [];
             renderAnnouncements();
         });
 
-        // 3. Users (Merged)
         db.ref('users').on('value', snap => {
             const val = snap.val();
             users = val ? Object.keys(val).map(k => ({...val[k], uid: k})) : [];
             renderUsers();
         });
 
-        // 4. Requests (Merged)
         db.ref('device_requests').on('value', snap => {
             const val = snap.val();
             requests = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
             renderRequests();
         });
 
-        // 5. Assets (Firestore) - For Assignment
         firestore.collection('users').doc(user.uid).collection('assets_v2').onSnapshot(snap => {
             assets = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
         });
 
-        // Chat Badge
         db.ref('chats/private_chats').on('value', snap => {
             $('#chatBadge').style.display = snap.exists() ? 'block' : 'none';
         });
-
-        // Search Listeners
-        $('#ticketSearch').oninput = () => renderTickets(1);
-        $('#globalSearch').oninput = () => { renderTickets(1); renderUsers(); renderRequests(); };
-        $('#userSearchInput').oninput = renderUsers;
-        $('#reqSearch').oninput = renderRequests;
     }
 
     // === TABS LOGIC ===
     window.switchTab = (tab) => {
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        // Find element that called this or manual override
+        const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(tab));
+        if(navItem) navItem.classList.add('active');
+
         ['dashboard', 'tickets', 'users', 'requests'].forEach(id => $(`#view-${id}`).classList.add('hidden'));
         $(`#view-${tab}`).classList.remove('hidden');
         if(window.innerWidth < 1024) $('#sidebar').classList.remove('open');
         
-        // Render specific tab content to ensure freshness
         if(tab === 'tickets') renderTickets();
         if(tab === 'users') renderUsers();
         if(tab === 'requests') renderRequests();
+    };
+
+    // === DASHBOARD FILTERS (FIXED) ===
+    window.filterByStat = (statType) => {
+        switchTab('tickets');
+        $('#filterCat').value = ""; // Reset category
+        const searchInput = $('#ticketSearch');
+        
+        if (statType === 'All') {
+            searchInput.value = "";
+        } else if (statType === 'Overdue') {
+            searchInput.value = "overdue"; // Magic word for search logic
+        } else {
+            searchInput.value = statType; // Open / Closed
+        }
+        renderTickets(1);
     };
 
     // === RENDER: DASHBOARD ===
@@ -874,7 +893,7 @@
         `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Belum ada pengumuman</div>';
     }
 
-    // === RENDER: TICKETS (With Fixed Kanban & Pagination) ===
+    // === RENDER: TICKETS (FIXED) ===
     window.toggleViewMode = (mode) => {
         if(mode === 'list') {
             $('#cont-list').classList.remove('hidden'); $('#cont-kanban').classList.add('hidden');
@@ -890,12 +909,28 @@
         currentTicketPage = page;
         const tbody = $('#reportTable tbody');
         tbody.innerHTML = '';
-        const search = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
         
+        const searchText = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
+        const catFilter = $('#filterCat').value;
+
         let filtered = reports.filter(r => {
             if(isTrashMode) return r.isDeleted;
             if(r.isDeleted) return false;
-            return JSON.stringify(r).toLowerCase().includes(search);
+            
+            // Search Logic
+            let matchesSearch = JSON.stringify(r).toLowerCase().includes(searchText);
+            
+            // Handle Overdue Shortcut
+            if (searchText === 'overdue') {
+                if (r.status === 'Closed') return false;
+                const limit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
+                matchesSearch = Date.now() > limit;
+            }
+
+            // Category Filter
+            const matchesCat = !catFilter || r.kategori === catFilter;
+
+            return matchesSearch && matchesCat;
         }).sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
 
         // Pagination
@@ -928,7 +963,6 @@
             </tr>`;
         });
 
-        // Render Pagination Controls
         $('#paginationInfo').textContent = `Menampilkan ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} dari ${total}`;
         $('#paginationBtns').innerHTML = '';
         if(totalPages > 1) {
@@ -941,7 +975,6 @@
             }
         }
         
-        // Also update Kanban if visible
         if(!$('#cont-kanban').classList.contains('hidden')) renderKanban();
     }
 
@@ -969,18 +1002,16 @@
         const deptFilter = $('#userFilterDept').value;
         const statusFilter = $('#userFilterStatus').value;
 
-        // Populate Dept Filter
+        // Auto-populate Dept
         const depts = [...new Set(users.map(u => u.departemen).filter(Boolean))];
         if($('#userFilterDept').children.length === 1) {
             depts.forEach(d => $('#userFilterDept').innerHTML += `<option value="${d}">${d}</option>`);
         }
 
-        // Statistics
         $('#userStatTotal').textContent = users.length;
         $('#userStatPending').textContent = users.filter(u=>u.status==='pending').length;
         $('#userStatApproved').textContent = users.filter(u=>u.status==='approved').length;
 
-        // Filter
         const filtered = users.filter(u => {
             if(u.uid === ADMIN_UID) return false;
             const matchesSearch = (u.nama||'').toLowerCase().includes(search) || (u.email||'').toLowerCase().includes(search);
@@ -1001,20 +1032,27 @@
         }).join('');
     }
 
-    // === RENDER: REQUESTS ===
+    // === RENDER: REQUESTS (FIXED) ===
     function renderRequests() {
         const search = ($('#reqSearch').value || $('#globalSearch').value).toLowerCase();
         const statusFilter = $('#reqFilterStatus').value;
+        const deptFilter = $('#reqFilterDept').value; // Added
 
-        // Stats
         $('#reqStatPending').textContent = requests.filter(r=>(r.status||'Pending')==='Pending').length;
         $('#reqStatApproved').textContent = requests.filter(r=>r.status==='Approved').length;
         $('#reqStatRejected').textContent = requests.filter(r=>r.status==='Rejected').length;
 
+        // Auto-populate Dept
+        const depts = [...new Set(requests.map(r => r.departemen).filter(Boolean))];
+        if($('#reqFilterDept').children.length === 1) {
+            depts.forEach(d => $('#reqFilterDept').innerHTML += `<option value="${d}">${d}</option>`);
+        }
+
         const filtered = requests.filter(r => {
             const matchesSearch = (r.nama||'').toLowerCase().includes(search) || (r.detail||'').toLowerCase().includes(search);
             const matchesStatus = !statusFilter || (r.status||'Pending') === statusFilter;
-            return matchesSearch && matchesStatus;
+            const matchesDept = !deptFilter || r.departemen === deptFilter; // Added
+            return matchesSearch && matchesStatus && matchesDept;
         }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
         $('#reqTableBody').innerHTML = filtered.map(r => `
@@ -1106,7 +1144,6 @@
         if(!email || !pass || !name) return alert("Lengkapi form");
         
         try {
-            // Use secondary app to avoid logging out admin
             const secApp = firebase.initializeApp(firebaseConfig, "Secondary");
             const uc = await secApp.auth().createUserWithEmailAndPassword(email, pass);
             await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: name, email, departemen: dept, status: 'approved' });
@@ -1123,7 +1160,6 @@
         $('#rd_user').textContent = r.nama; $('#rd_detail').textContent = `${r.kategori} - ${r.detail}`; $('#rd_reason').textContent = `"${r.alasan}"`;
         $('#rd_notes').value = r.admin_notes || '';
         
-        // Asset Assignment Logic
         const isHW = (r.detail||'').toLowerCase().match(/laptop|desktop|monitor/);
         const stock = assets.filter(a => ['Laptop','Desktop','Monitor'].includes(a.type) && !a.pic);
         
@@ -1147,7 +1183,6 @@
         }
 
         if(status === 'Approved' && assetId) {
-            // Update Asset in Firestore
             const r = requests.find(x => x.id === id);
             await firestore.collection('users').doc(auth.currentUser.uid).collection('assets_v2').doc(assetId).update({
                 pic: r.nama, location: r.departemen, lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
@@ -1182,4 +1217,3 @@
 </script>
 </body>
 </html>
-
