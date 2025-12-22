@@ -18,7 +18,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <style>
@@ -112,14 +112,12 @@
     /* HEADER */
     .topbar {
         grid-column: 2;
-        background: var(--bg-sidebar); /* Matches sidebar in dark mode */
+        background: var(--bg-sidebar);
         border-bottom: 1px solid var(--border-color);
         display: flex; align-items: center; justify-content: space-between;
         padding: 0 32px;
     }
-    .search-box {
-        position: relative; width: 400px;
-    }
+    .search-box { position: relative; width: 400px; }
     .search-box input {
         width: 100%; padding: 10px 16px 10px 40px;
         border-radius: 99px; border: 1px solid var(--border-color);
@@ -153,20 +151,20 @@
     }
 
     /* DASHBOARD WIDGETS */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px; }
     .stat-card {
-        background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+        background: var(--bg-card); padding: 20px; border-radius: var(--radius);
         border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
         display: flex; align-items: flex-start; justify-content: space-between;
         cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
     }
     .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .stat-info h4 { margin: 0; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
-    .stat-info h2 { margin: 8px 0 0; font-size: 28px; color: var(--text-primary); font-weight: 700; }
+    .stat-info h4 { margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .stat-info h2 { margin: 6px 0 0; font-size: 24px; color: var(--text-primary); font-weight: 700; }
     .stat-icon {
-        width: 48px; height: 48px; border-radius: 12px;
+        width: 42px; height: 42px; border-radius: 10px;
         background: var(--primary-light); color: var(--primary);
-        display: flex; align-items: center; justify-content: center; font-size: 24px;
+        display: flex; align-items: center; justify-content: center; font-size: 20px;
     }
     .stat-card.overdue .stat-icon { background: #fee2e2; color: var(--danger); }
 
@@ -182,9 +180,9 @@
     /* TABLE STYLES */
     .table-responsive {
         background: var(--bg-card); border-radius: var(--radius);
-        border: 1px solid var(--border-color); overflow: hidden;
+        border: 1px solid var(--border-color); overflow-x: auto;
     }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
     th {
         background: var(--bg-hover); color: var(--text-secondary);
         font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -194,26 +192,52 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg-hover); }
 
-    /* KANBAN BOARD STYLES */
+    /* PAGINATION STYLES */
+    .pagination-container {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 24px; border-top: 1px solid var(--border-color);
+        background: var(--bg-card);
+    }
+    .pagination-info { font-size: 13px; color: var(--text-secondary); }
+    .pagination-btns { display: flex; gap: 6px; }
+    .page-btn {
+        padding: 6px 12px; border: 1px solid var(--border-color);
+        background: var(--bg-card); color: var(--text-secondary);
+        border-radius: 6px; cursor: pointer; font-size: 13px;
+        transition: all 0.2s;
+    }
+    .page-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .page-btn.active {
+        background: var(--primary); color: white; border-color: var(--primary);
+    }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* KANBAN BOARD STYLES - FIXED */
     .kanban-board {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-        align-items: start; height: 100%; overflow-x: auto;
+        align-items: start; height: calc(100vh - 220px); overflow-x: auto;
     }
     .kanban-col {
         background: var(--bg-hover); border-radius: var(--radius);
-        padding: 16px; min-height: 200px;
+        padding: 16px; display: flex; flex-direction: column; 
+        max-height: 100%; /* Penting untuk scroll dalam kolom */
     }
     .kanban-header {
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 16px; padding: 0 4px;
+        margin-bottom: 16px; padding: 0 4px; flex-shrink: 0;
     }
     .kanban-header h3 { margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
     .kanban-count { background: var(--border-color); padding: 2px 8px; border-radius: 12px; font-size: 12px; }
     
+    .kanban-items-container {
+        flex: 1; overflow-y: auto; padding-right: 4px; /* Scrollable area */
+        display: flex; flex-direction: column; gap: 12px;
+    }
+
     .kanban-card {
         background: var(--bg-card); padding: 16px; border-radius: 8px;
-        margin-bottom: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
-        cursor: grab; transition: transform 0.2s;
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        cursor: pointer; transition: transform 0.2s;
     }
     .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
     .k-card-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-tertiary); }
@@ -222,25 +246,41 @@
 
     /* TAGS & BADGES */
     .badge { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
-    .status-Open { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-    .status-Progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-    .status-Closed { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
     
+    /* Status Colors */
+    .status-Open, .status-pending, .status-Pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    .status-Progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+    .status-Closed, .status-approved, .status-Approved { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .status-Rejected, .status-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+    
+    /* Category Colors */
     .cat-Low { color: var(--info); background: rgba(6, 182, 212, 0.1); }
     .cat-Normal { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
-    .cat-Critical { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+    .cat-Critical, .cat-High { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
     /* BUTTONS */
     .btn {
         display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px;
+        padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px;
         cursor: pointer; border: none; transition: all 0.2s;
-        background: var(--primary); color: white;
+        background: var(--primary); color: white; justify-content: center;
     }
     .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
     .btn-outline:hover { border-color: var(--text-primary); color: var(--text-primary); }
     .btn-danger { background: var(--danger); color: white; }
+    
+    .btn-create { background: var(--primary); color: #fff; }
+
+    /* FORM STYLES (Used in Filter & Modals) */
+    .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    select, input, textarea {
+        width: 100%; padding: 10px 12px; border-radius: 8px; 
+        border: 1px solid var(--border-color); background: var(--bg-card); 
+        color: var(--text-primary); font-family: inherit; font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px var(--primary-light); }
+    input:disabled { background: var(--bg-hover); cursor: not-allowed; }
 
     /* MODAL */
     .modal-overlay {
@@ -251,7 +291,7 @@
     .modal-content {
         background: var(--bg-card); width: 100%; max-width: 600px;
         padding: 32px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-        animation: slideUp 0.3s ease;
+        animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto;
     }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -279,6 +319,7 @@
         #mobileMenuBtn { display: block !important; }
         .search-box { display: none; }
         .kanban-board { grid-template-columns: 1fr; gap: 16px; }
+        .filter-bar { grid-template-columns: 1fr; }
     }
     #mobileMenuBtn { display: none; font-size: 24px; color: var(--text-primary); cursor: pointer; }
 
@@ -298,13 +339,13 @@
         
         <div style="text-align:left; margin-bottom:16px;">
             <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">USERNAME</label>
-            <input id="loginUser" type="text" placeholder="root" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-body); margin-top:4px; color:var(--text-primary);">
+            <input id="loginUser" type="text" placeholder="root" style="width:100%; margin-top:4px;">
         </div>
         <div style="text-align:left; margin-bottom:24px;">
             <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">PASSWORD</label>
-            <input id="loginPass" type="password" placeholder="••••••" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-body); margin-top:4px; color:var(--text-primary);">
+            <input id="loginPass" type="password" placeholder="••••••" style="width:100%; margin-top:4px;">
         </div>
-        <button id="loginBtn" class="btn" style="width:100%; justify-content:center; padding:14px;">Masuk Dashboard</button>
+        <button id="loginBtn" class="btn" style="width:100%; padding:14px;">Masuk Dashboard</button>
         <p id="authError" style="color:var(--danger); font-size:13px; margin-top:16px; display:none;"></p>
     </div>
 </div>
@@ -336,7 +377,7 @@
                 <i class="ri-logout-box-line"></i> Sign Out
             </div>
             <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">
-                v3.0.1 Stable
+                v3.1.0 (All-in-One)
             </div>
         </div>
     </aside>
@@ -351,20 +392,15 @@
         </div>
 
         <div class="header-actions">
-            <button class="icon-btn" id="themeToggle" title="Ganti Tema">
-                <i class="ri-moon-line"></i>
-            </button>
-            
+            <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
             <a href="chatadm.html" class="icon-btn" title="Pesan Masuk">
                 <i class="ri-message-3-line"></i>
                 <span class="badge-dot" id="chatBadge"></span>
             </a>
-
             <div style="height:24px; width:1px; background:var(--border-color);"></div>
             <button class="icon-btn" id="backupBtn" title="Backup Data"><i class="ri-download-cloud-2-line"></i></button>
             <input id="restoreFile" type="file" hidden accept=".json">
             <button class="icon-btn" id="restoreBtn" title="Restore Data"><i class="ri-upload-cloud-2-line"></i></button>
-            
             <div style="width:36px; height:36px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">A</div>
         </div>
     </header>
@@ -376,54 +412,40 @@
             
             <div class="stats-row">
                 <div class="stat-card" onclick="filterByStat('All')">
-                    <div class="stat-info">
-                        <h4>Total Tiket</h4>
-                        <h2 id="statTotal">0</h2>
-                    </div>
+                    <div class="stat-info"><h4>Total Tiket</h4><h2 id="statTotal">0</h2></div>
                     <div class="stat-icon"><i class="ri-folder-open-line"></i></div>
                 </div>
                 <div class="stat-card" onclick="filterByStat('Open')">
-                    <div class="stat-info">
-                        <h4>Open (Action Needed)</h4>
-                        <h2 id="statOpen" style="color:var(--warning)">0</h2>
-                    </div>
+                    <div class="stat-info"><h4>Open</h4><h2 id="statOpen" style="color:var(--warning)">0</h2></div>
                     <div class="stat-icon" style="background:#fffbeb; color:var(--warning)"><i class="ri-loader-2-line"></i></div>
                 </div>
                 <div class="stat-card" onclick="filterByStat('Closed')">
-                    <div class="stat-info">
-                        <h4>Selesai Bulan Ini</h4>
-                        <h2 id="statClosed" style="color:var(--success)">0</h2>
-                    </div>
+                    <div class="stat-info"><h4>Selesai</h4><h2 id="statClosed" style="color:var(--success)">0</h2></div>
                     <div class="stat-icon" style="background:#ecfdf5; color:var(--success)"><i class="ri-check-double-line"></i></div>
                 </div>
                 <div class="stat-card overdue" onclick="filterByStat('Overdue')">
-                    <div class="stat-info">
-                        <h4 style="color:var(--danger)">SLA Overdue</h4>
-                        <h2 id="statOverdue" style="color:var(--danger)">0</h2>
-                    </div>
+                    <div class="stat-info"><h4 style="color:var(--danger)">Overdue</h4><h2 id="statOverdue" style="color:var(--danger)">0</h2></div>
                     <div class="stat-icon"><i class="ri-alarm-warning-line"></i></div>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom: 24px;">
                 <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
                         <h3 style="font-size:16px; font-weight:600;">Analitik Kinerja</h3>
                         <select style="border:none; background:transparent; font-size:12px; color:var(--text-secondary);"><option>7 Hari Terakhir</option></select>
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                        <canvas id="chartCategory" height="150"></canvas>
-                        <canvas id="chartSLA" height="150"></canvas>
+                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartCategory"></canvas></div>
+                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartSLA"></canvas></div>
                     </div>
                 </div>
-
                 <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h3 style="font-size:16px; font-weight:600;">📢 Pengumuman</h3>
                         <button class="btn-toggle" onclick="openAnnModal(null)"><i class="ri-add-line"></i> Baru</button>
                     </div>
-                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:12px;">
-                        </div>
+                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:8px;"></div>
                 </div>
             </div>
         </div>
@@ -445,65 +467,117 @@
             </div>
             
             <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-                <select id="filterCat" class="btn-outline" style="padding:8px; border-radius:8px;">
+                <select id="filterCat" class="btn-outline" style="padding:8px; border-radius:8px; width:auto;">
                     <option value="">Semua Kategori</option>
                     <option value="Low">Low</option>
                     <option value="Normal">Normal</option>
                     <option value="Critical">Critical</option>
                 </select>
-                <input type="text" id="ticketSearch" placeholder="Filter..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary);">
+                <input type="text" id="ticketSearch" placeholder="Filter ID/Nama..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); width:200px;">
             </div>
 
             <div id="cont-list" class="table-responsive">
                 <table id="reportTable">
-                    <thead>
-                        <tr>
-                            <th>ID & User</th>
-                            <th>Subjek Masalah</th>
-                            <th>Status & SLA</th>
-                            <th>PIC</th>
-                            <th>Updated</th>
-                            <th style="text-align:right">Aksi</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID & User</th><th>Subjek Masalah</th><th>Status & SLA</th><th>PIC</th><th>Updated</th><th style="text-align:right">Aksi</th></tr></thead>
                     <tbody></tbody>
                 </table>
+                <div class="pagination-container">
+                    <div class="pagination-info" id="paginationInfo">Menampilkan 0-0 dari 0</div>
+                    <div class="pagination-btns" id="paginationBtns"></div>
+                </div>
             </div>
 
-            <div id="cont-kanban" class="hidden" style="height:calc(100vh - 200px);">
+            <div id="cont-kanban" class="hidden">
                 <div class="kanban-board">
                     <div class="kanban-col">
-                        <div class="kanban-header">
-                            <h3>Open / Baru</h3>
-                            <span class="kanban-count" id="countOpen">0</span>
-                        </div>
-                        <div id="kb-Open"></div>
+                        <div class="kanban-header"><h3>Open / Baru</h3><span class="kanban-count" id="countOpen">0</span></div>
+                        <div id="kb-Open" class="kanban-items-container"></div>
                     </div>
                     <div class="kanban-col">
-                        <div class="kanban-header">
-                            <h3>In Progress</h3>
-                            <span class="kanban-count" id="countProgress">0</span>
-                        </div>
-                        <div id="kb-Progress"></div>
+                        <div class="kanban-header"><h3>In Progress</h3><span class="kanban-count" id="countProgress">0</span></div>
+                        <div id="kb-Progress" class="kanban-items-container"></div>
                     </div>
                     <div class="kanban-col">
-                        <div class="kanban-header">
-                            <h3>Closed / Selesai</h3>
-                            <span class="kanban-count" id="countClosed">0</span>
-                        </div>
-                        <div id="kb-Closed"></div>
+                        <div class="kanban-header"><h3>Closed / Selesai</h3><span class="kanban-count" id="countClosed">0</span></div>
+                        <div id="kb-Closed" class="kanban-items-container"></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="view-users" class="hidden">
-            <h1>User Management</h1>
-            <p>Silakan akses modul lengkap di <a href="usermanagement.html" style="color:var(--primary)">Halaman User Management</a>.</p>
+            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Manajemen User</h1>
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Total User</h4><h2 id="userStatTotal">0</h2></div>
+                    <div class="stat-icon"><i class="ri-group-line"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Pending</h4><h2 id="userStatPending" style="color:var(--warning)">0</h2></div>
+                    <div class="stat-icon"><i class="ri-user-follow-line"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Approved</h4><h2 id="userStatApproved" style="color:var(--success)">0</h2></div>
+                    <div class="stat-icon"><i class="ri-user-smile-line"></i></div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
+                <select id="userFilterDept"><option value="">Semua Departemen</option></select>
+                <select id="userFilterStatus">
+                    <option value="">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <button id="showCreateUserPopupBtn" class="btn btn-create"><i class="ri-user-add-line"></i> User Baru</button>
+            </div>
+
+            <div class="table-responsive">
+                <table id="userTable">
+                    <thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Status</th><th style="text-align:center;">Tiket</th><th>Aksi</th></tr></thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
         </div>
+
         <div id="view-requests" class="hidden">
-            <h1>Permintaan Aset</h1>
-            <p>Silakan akses modul lengkap di <a href="permintaanadmin.html" style="color:var(--primary)">Halaman Permintaan</a>.</p>
+            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Permintaan Aset</h1>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Total Pending</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div>
+                    <div class="stat-icon"><i class="ri-time-line"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Approved</h4><h2 id="reqStatApproved" style="color:var(--success)">0</h2></div>
+                    <div class="stat-icon"><i class="ri-check-line"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info"><h4>Rejected</h4><h2 id="reqStatRejected" style="color:var(--danger)">0</h2></div>
+                    <div class="stat-icon"><i class="ri-close-line"></i></div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <input id="reqSearch" type="text" placeholder="Cari user, email, detail...">
+                <select id="reqFilterDept"><option value="">Semua Departemen</option></select>
+                <select id="reqFilterStatus">
+                    <option value="">Semua Status</option>
+                    <option value="Pending" selected>Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table id="reqTable">
+                    <thead><tr><th>Tanggal</th><th>User</th><th>Departemen</th><th>Kategori</th><th>Detail</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead>
+                    <tbody id="reqTableBody"></tbody>
+                </table>
+            </div>
         </div>
 
     </main>
@@ -514,46 +588,26 @@
         <h2 style="margin-top:0;">Detail Tiket</h2>
         <form id="formTicket" onsubmit="return false;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                <div>
-                    <label style="font-size:12px; font-weight:600;">Pelapor</label>
-                    <input id="t_nama" class="btn-outline" style="width:100%; padding:10px; border-radius:8px; margin-top:4px;" required placeholder="Nama User">
-                </div>
-                <div>
-                    <label style="font-size:12px; font-weight:600;">PIC Teknisi</label>
-                    <input id="t_pic" class="btn-outline" style="width:100%; padding:10px; border-radius:8px; margin-top:4px;" required placeholder="Nama Anda">
-                </div>
+                <div><label style="font-size:12px; font-weight:600;">Pelapor</label><input id="t_nama" required placeholder="Nama User" style="margin-top:4px;"></div>
+                <div><label style="font-size:12px; font-weight:600;">PIC Teknisi</label><input id="t_pic" required placeholder="Nama Anda" style="margin-top:4px;"></div>
             </div>
-            
             <div style="margin-bottom:16px;">
                 <label style="font-size:12px; font-weight:600;">Jenis & Kategori</label>
                 <div style="display:flex; gap:12px; margin-top:4px;">
-                    <select id="t_jenis" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-body); color:var(--text-primary);">
-                        <option>Jaringan</option><option>Hardware</option><option>Software</option><option>Akun</option>
-                    </select>
-                    <select id="t_kategori" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-body); color:var(--text-primary);">
-                        <option value="Low">Low (48h)</option>
-                        <option value="Normal">Normal (24h)</option>
-                        <option value="Critical">Critical (4h)</option>
-                    </select>
+                    <select id="t_jenis"><option>Jaringan</option><option>Hardware</option><option>Software</option><option>Akun</option></select>
+                    <select id="t_kategori"><option value="Low">Low (48h)</option><option value="Normal">Normal (24h)</option><option value="Critical">Critical (4h)</option></select>
                 </div>
             </div>
-
             <div style="margin-bottom:16px;">
-                <label style="font-size:12px; font-weight:600;">Catatan Publik (Dilihat User)</label>
-                <textarea id="t_note" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-body); margin-top:4px; color:var(--text-primary);"></textarea>
+                <label style="font-size:12px; font-weight:600;">Catatan Publik</label>
+                <textarea id="t_note" rows="3" style="margin-top:4px;"></textarea>
             </div>
-
             <div style="margin-bottom:24px;">
-                <label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal (Admin Only)</label>
-                <textarea id="t_internal" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-hover); margin-top:4px; color:var(--text-primary);"></textarea>
+                <label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal</label>
+                <textarea id="t_internal" rows="3" style="background:var(--bg-hover); margin-top:4px;"></textarea>
             </div>
-
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <select id="t_status" style="padding:10px; border-radius:8px; font-weight:600; border:2px solid var(--border-color);">
-                    <option value="Open">Status: Open</option>
-                    <option value="Progress">Status: Progress</option>
-                    <option value="Closed">Status: Closed</option>
-                </select>
+                <select id="t_status" style="width:auto;"><option value="Open">Open</option><option value="Progress">Progress</option><option value="Closed">Closed</option></select>
                 <div style="display:flex; gap:12px;">
                     <button class="btn btn-outline" onclick="closeModal('modalTicket')">Batal</button>
                     <button class="btn" onclick="saveTicket()">Simpan</button>
@@ -566,23 +620,85 @@
 <div class="modal-overlay" id="modalAnn">
     <div class="modal-content">
         <h2 style="margin-top:0;">Buat Pengumuman</h2>
-        <input id="a_title" placeholder="Judul Pengumuman" style="width:100%; padding:12px; font-weight:700; border:1px solid var(--border-color); border-radius:8px; margin-bottom:12px;">
-        <textarea id="a_content" rows="5" placeholder="Isi pengumuman..." style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:8px; margin-bottom:12px; font-family:inherit;"></textarea>
-        
-        <div style="display:flex; gap:12px; margin-bottom:24px;">
-            <select id="a_cat" style="padding:10px; border-radius:8px;">
-                <option value="Umum">Umum</option>
-                <option value="Penting">Penting</option>
-                <option value="Event">Event</option>
-            </select>
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input type="checkbox" id="a_pin"> Sematkan (Pin)
-            </label>
+        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Judul</label><input id="a_title" placeholder="Cth: Libur Nasional" style="margin-top:4px;"></div>
+        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Konten</label><textarea id="a_content" rows="6" placeholder="Isi..." style="margin-top:4px;"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div><label style="font-size:12px; font-weight:600;">Kategori</label><select id="a_cat" style="margin-top:4px;"><option value="Umum">Umum</option><option value="Penting">Penting</option><option value="Event">Event</option></select></div>
+            <div><label style="font-size:12px; font-weight:600;">Author</label><input id="a_author" value="Admin" style="margin-top:4px;"></div>
         </div>
-        
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:24px;"><input type="checkbox" id="a_pin"> <span>Sematkan (Pin)</span></label>
         <div style="display:flex; justify-content:flex-end; gap:12px;">
             <button class="btn btn-outline" onclick="closeModal('modalAnn')">Batal</button>
             <button class="btn" onclick="saveAnnouncement()">Publikasikan</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalUserDetail">
+    <div class="modal-content">
+        <h3>Detail User: <span id="ud_name" style="color:var(--primary)"></span></h3>
+        <input type="hidden" id="ud_id">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div><label class="small">Nama Lengkap</label><input type="text" id="ud_fullname"></div>
+            <div><label class="small">Departemen</label><input type="text" id="ud_dept"></div>
+        </div>
+        <div style="margin-bottom:16px;"><label class="small">Email</label><input type="email" id="ud_email" disabled></div>
+        
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;">
+            <button class="btn" style="background:var(--success)" onclick="updateUserStatus('approved')">Approve</button>
+            <button class="btn" style="background:var(--danger)" onclick="updateUserStatus('rejected')">Reject</button>
+            <button class="btn" style="background:var(--warning)" onclick="updateUserStatus('pending')">Pending</button>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border-color); padding-top:16px;">
+            <button class="btn btn-outline" onclick="closeModal('modalUserDetail')">Tutup</button>
+            <button class="btn" onclick="saveUserChanges()">Simpan Data</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalCreateUser">
+    <div class="modal-content">
+        <h3>Buat User Baru</h3>
+        <form id="formCreateUser" onsubmit="return false;">
+            <div style="margin-bottom:12px;"><label class="small">Nama Lengkap</label><input id="cu_name" required></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div><label class="small">Email</label><input id="cu_email" type="email" required></div>
+                <div><label class="small">Departemen</label><input id="cu_dept" required></div>
+            </div>
+            <div style="margin-bottom:16px;"><label class="small">Password (Min. 6 char)</label><input id="cu_pass" type="password" required minlength="6"></div>
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn btn-outline" onclick="closeModal('modalCreateUser')">Batal</button>
+                <button class="btn" onclick="submitNewUser()">Buat Akun</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalReqDetail">
+    <div class="modal-content">
+        <h3>Proses Permintaan</h3>
+        <input type="hidden" id="rd_id">
+        <div style="background:var(--bg-hover); padding:16px; border-radius:8px; margin-bottom:16px;">
+            <div style="font-weight:700; margin-bottom:4px;" id="rd_user">User Name</div>
+            <div style="font-size:13px; color:var(--text-secondary);" id="rd_detail">Request Details...</div>
+            <div style="margin-top:8px; font-style:italic;" id="rd_reason">"Reason..."</div>
+        </div>
+
+        <div id="assetAssignSection" style="margin-bottom:16px; display:none;">
+            <label class="small" style="color:var(--primary)"><i class="ri-box-3-line"></i> Tetapkan Aset dari Stok</label>
+            <select id="rd_asset_select" style="margin-top:4px;"><option value="">-- Pilih Aset --</option></select>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label class="small">Catatan Admin</label>
+            <textarea id="rd_notes" rows="3" placeholder="Respon untuk user..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn btn-outline" onclick="closeModal('modalReqDetail')">Batal</button>
+            <button class="btn" style="background:var(--danger)" onclick="processRequest('Rejected')">Tolak</button>
+            <button class="btn" style="background:var(--success)" onclick="processRequest('Approved')">Setujui</button>
         </div>
     </div>
 </div>
@@ -606,21 +722,35 @@
         measurementId: "G-33K6DDE1VR"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+    // Initialize Main App
+    const mainApp = firebase.initializeApp(firebaseConfig);
+    const db = mainApp.database();
+    const auth = mainApp.auth();
+    const firestore = mainApp.firestore();
     const SLA_HOURS = { Low: 48, Normal: 24, Critical: 4 };
 
     // === STATE ===
     let reports = [];
+    let users = [];
+    let requests = [];
+    let assets = []; // From Firestore
     let announcements = [];
     let isTrashMode = false;
     let editingId = null;
+    let editingAnnId = null;
+    let editingUserId = null;
+    
+    // Pagination
+    let currentTicketPage = 1;
+    const itemsPerPage = 10;
 
     // === UTILS ===
     const $ = (sel) => document.querySelector(sel);
-    const showToast = (msg) => {
-        const t = $('#toast'); t.textContent = msg; t.style.bottom = "32px";
+    const showToast = (msg, type='normal') => {
+        const t = $('#toast'); 
+        t.textContent = msg; 
+        t.style.background = type === 'error' ? 'var(--danger)' : 'var(--text-primary)';
+        t.style.bottom = "32px";
         setTimeout(() => t.style.bottom = "-100px", 3000);
     };
     const nowISO = () => new Date().toISOString();
@@ -630,7 +760,7 @@
         if (user && user.uid === ADMIN_UID) {
             $('#loginScreen').classList.add('hidden');
             $('#appInterface').classList.remove('hidden');
-            initApp();
+            initApp(user);
         } else {
             $('#loginScreen').classList.remove('hidden');
             $('#appInterface').classList.add('hidden');
@@ -639,322 +769,415 @@
 
     $('#loginBtn').onclick = async () => {
         const u = $('#loginUser').value; const p = $('#loginPass').value;
-        if (u !== 'root' || p !== 'adm123') return $('#authError').textContent = "Invalid Credentials";
+        if (u !== 'root' || p !== 'adm123') return $('#authError').textContent = "Invalid Credentials", $('#authError').style.display = 'block';
         try { await auth.signInWithEmailAndPassword(ADMIN_EMAIL, p); } 
         catch (e) { $('#authError').textContent = e.message; $('#authError').style.display = 'block'; }
     };
     $('#logoutBtn').onclick = () => auth.signOut();
 
-    function initApp() {
+    function initApp(user) {
         // Theme
-        const theme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', theme);
         $('#themeToggle').onclick = () => {
             const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
         };
-
-        // Mobile Menu
         $('#mobileMenuBtn').onclick = () => $('#sidebar').classList.toggle('open');
 
-        // Listeners
+        // === LISTENERS ===
+        
+        // 1. Reports (Tiket)
         db.ref('reports').on('value', snap => {
             const val = snap.val();
             reports = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
-            renderAll();
+            renderTickets();
+            renderStats();
+            renderCharts();
+            if(editingUserId) showUserDetail(editingUserId); // Refresh popup if open
         });
 
+        // 2. Announcements
         db.ref('announcements').on('value', snap => {
             const val = snap.val();
             announcements = val ? Object.keys(val).map(k => ({...val[k], key: k})) : [];
             renderAnnouncements();
         });
 
-        // Chat Badge (Simulated for this snippet)
-        db.ref('chats/private_chats').on('value', snap => {
-            let unread = 0; // Simplified logic
-            if(snap.exists()) unread = 1; // Dummy indicator logic if any chat exists
-            $('#chatBadge').style.display = unread ? 'block' : 'none';
+        // 3. Users (Merged)
+        db.ref('users').on('value', snap => {
+            const val = snap.val();
+            users = val ? Object.keys(val).map(k => ({...val[k], uid: k})) : [];
+            renderUsers();
         });
 
-        // Backup
-        $('#backupBtn').onclick = () => {
-            const blob = new Blob([JSON.stringify(reports)], {type:'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
-        };
-        $('#restoreBtn').onclick = () => $('#restoreFile').click();
-        $('#restoreFile').onchange = (e) => {
-            const r = new FileReader();
-            r.onload = async (ev) => {
-                const data = JSON.parse(ev.target.result);
-                const map = {}; data.forEach(x => map[x.id] = x);
-                await db.ref('reports').update(map);
-                showToast("Restore Successful");
-            };
-            r.readText(e.target.files[0]);
-        };
+        // 4. Requests (Merged)
+        db.ref('device_requests').on('value', snap => {
+            const val = snap.val();
+            requests = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
+            renderRequests();
+        });
+
+        // 5. Assets (Firestore) - For Assignment
+        firestore.collection('users').doc(user.uid).collection('assets_v2').onSnapshot(snap => {
+            assets = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        });
+
+        // Chat Badge
+        db.ref('chats/private_chats').on('value', snap => {
+            $('#chatBadge').style.display = snap.exists() ? 'block' : 'none';
+        });
+
+        // Search Listeners
+        $('#ticketSearch').oninput = () => renderTickets(1);
+        $('#globalSearch').oninput = () => { renderTickets(1); renderUsers(); renderRequests(); };
+        $('#userSearchInput').oninput = renderUsers;
+        $('#reqSearch').oninput = renderRequests;
     }
 
-    // === RENDERING CORE ===
-    function renderAll() {
-        renderStats();
-        renderTable();
-        renderKanban();
-        renderCharts();
-    }
+    // === TABS LOGIC ===
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        ['dashboard', 'tickets', 'users', 'requests'].forEach(id => $(`#view-${id}`).classList.add('hidden'));
+        $(`#view-${tab}`).classList.remove('hidden');
+        if(window.innerWidth < 1024) $('#sidebar').classList.remove('open');
+        
+        // Render specific tab content to ensure freshness
+        if(tab === 'tickets') renderTickets();
+        if(tab === 'users') renderUsers();
+        if(tab === 'requests') renderRequests();
+    };
 
+    // === RENDER: DASHBOARD ===
     function renderStats() {
         const active = reports.filter(r => !r.isDeleted);
         $('#statTotal').textContent = active.length;
         $('#statOpen').textContent = active.filter(r => r.status === 'Open').length;
         $('#statClosed').textContent = active.filter(r => r.status === 'Closed').length;
-        
-        const now = Date.now();
-        const overdue = active.filter(r => {
+        $('#statOverdue').textContent = active.filter(r => {
             if(r.status === 'Closed') return false;
-            const limit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
-            return now > limit;
+            return Date.now() > (new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000));
         }).length;
-        $('#statOverdue').textContent = overdue;
-    }
-
-    function renderTable() {
-        const tbody = $('#reportTable tbody');
-        tbody.innerHTML = '';
-        const search = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
-        
-        const filtered = reports.filter(r => {
-            if(isTrashMode) return r.isDeleted;
-            if(r.isDeleted) return false;
-            return JSON.stringify(r).toLowerCase().includes(search);
-        }).sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
-
-        filtered.forEach(r => {
-            const slaLimit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
-            const timeLeft = slaLimit - Date.now();
-            const percent = Math.max(0, Math.min(100, (timeLeft / (SLA_HOURS[r.kategori]*3600000)) * 100));
-            const isOverdue = timeLeft < 0 && r.status !== 'Closed';
-            
-            let slaColor = 'var(--success)';
-            if(percent < 50) slaColor = 'var(--warning)';
-            if(percent < 10 || isOverdue) slaColor = 'var(--danger)';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <div style="font-weight:700;">${r.id}</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">${r.nama}</div>
-                </td>
-                <td>
-                    <div style="font-weight:500;">${r.jenis}</div>
-                    <div style="font-size:12px; color:var(--text-tertiary); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:200px;">${r.catatan || '-'}</div>
-                </td>
-                <td>
-                    <span class="badge status-${r.status}">${r.status}</span>
-                    <span class="badge cat-${r.kategori}">${r.kategori}</span>
-                    ${r.status !== 'Closed' ? `
-                    <div class="sla-progress" title="${isOverdue ? 'Overdue' : 'SLA Time Left'}">
-                        <div class="sla-bar" style="width:${percent}%; background:${slaColor}"></div>
-                    </div>
-                    ` : ''}
-                </td>
-                <td>${r.pic || '-'}</td>
-                <td>${new Date(r.updated_iso || r.created_iso).toLocaleDateString()}</td>
-                <td style="text-align:right;">
-                    <button class="icon-btn" onclick="openReportModal('${r.id}')"><i class="ri-edit-line"></i></button>
-                    <button class="icon-btn" style="color:${isTrashMode ? 'var(--success)' : 'var(--danger)'}" onclick="${isTrashMode ? `restore('${r.id}')` : `softDelete('${r.id}')`}">
-                        <i class="ri-${isTrashMode ? 'refresh-line' : 'delete-bin-line'}"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderKanban() {
-        ['Open', 'Progress', 'Closed'].forEach(status => {
-            const container = $(`#kb-${status}`);
-            container.innerHTML = '';
-            const items = reports.filter(r => !r.isDeleted && r.status === status);
-            $(`#count${status}`).textContent = items.length;
-
-            items.forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'kanban-card';
-                div.onclick = () => openReportModal(r.id);
-                div.innerHTML = `
-                    <div class="k-card-top">
-                        <span>${r.id}</span>
-                        <span>${new Date(r.created_iso).toLocaleDateString()}</span>
-                    </div>
-                    <div class="k-card-title">${r.jenis} - ${r.nama}</div>
-                    <div class="badge cat-${r.kategori}">${r.kategori}</div>
-                    <div class="k-card-footer">
-                        <div style="font-size:12px; color:var(--text-secondary);"><i class="ri-user-smile-line"></i> ${r.pic || '?'}</div>
-                        ${r.note_internal ? '<i class="ri-lock-2-line" style="font-size:12px; color:var(--primary)"></i>' : ''}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        });
     }
 
     function renderAnnouncements() {
-        const feed = $('#announcementFeed');
-        feed.innerHTML = announcements.sort((a,b) => b.timestamp - a.timestamp).map(a => `
-            <div style="padding:12px; border:1px solid var(--border-color); border-radius:8px; position:relative; background:var(--bg-body);">
-                ${a.isPinned ? '<i class="ri-pushpin-fill" style="position:absolute; top:8px; right:8px; color:var(--warning)"></i>' : ''}
-                <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase;">${a.category}</div>
-                <div style="font-weight:600; margin-top:2px;">${a.title}</div>
-                <div style="font-size:12px; color:var(--text-secondary); margin-top:4px; line-height:1.4;">${a.content}</div>
-                <div style="font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:right;">
-                    ${new Date(a.timestamp).toLocaleDateString()} • <span onclick="deleteAnn('${a.key}')" style="cursor:pointer; color:var(--danger)">Hapus</span>
+        const sorted = announcements.sort((a,b) => (a.isPinned === b.isPinned) ? b.timestamp - a.timestamp : a.isPinned ? -1 : 1);
+        $('#announcementFeed').innerHTML = sorted.length ? sorted.map(a => `
+            <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openAnnModal('${a.key}')">
+                ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
+                <div style="flex:1;">
+                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase;">${a.category}</div>
+                    <div style="font-weight:600; font-size:13px;">${a.title}</div>
+                    <div style="font-size:11px; color:var(--text-tertiary);">${new Date(a.timestamp).toLocaleDateString()}</div>
                 </div>
+                <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer;"></i>
             </div>
-        `).join('');
+        `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Belum ada pengumuman</div>';
     }
 
-    // === ACTIONS & LOGIC ===
-    function switchTab(tab) {
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        
-        ['dashboard', 'tickets', 'users', 'requests'].forEach(id => {
-            $(`#view-${id}`).classList.add('hidden');
-        });
-        $(`#view-${tab}`).classList.remove('hidden');
-
-        // Mobile close
-        if(window.innerWidth < 1024) $('#sidebar').classList.remove('open');
-    }
-
-    function toggleViewMode(mode) {
+    // === RENDER: TICKETS (With Fixed Kanban & Pagination) ===
+    window.toggleViewMode = (mode) => {
         if(mode === 'list') {
             $('#cont-list').classList.remove('hidden'); $('#cont-kanban').classList.add('hidden');
             $('#btnList').classList.add('active'); $('#btnKanban').classList.remove('active');
         } else {
             $('#cont-list').classList.add('hidden'); $('#cont-kanban').classList.remove('hidden');
             $('#btnList').classList.remove('active'); $('#btnKanban').classList.add('active');
+            renderKanban();
         }
+    };
+
+    function renderTickets(page = 1) {
+        currentTicketPage = page;
+        const tbody = $('#reportTable tbody');
+        tbody.innerHTML = '';
+        const search = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
+        
+        let filtered = reports.filter(r => {
+            if(isTrashMode) return r.isDeleted;
+            if(r.isDeleted) return false;
+            return JSON.stringify(r).toLowerCase().includes(search);
+        }).sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
+
+        // Pagination
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / itemsPerPage) || 1;
+        if(currentTicketPage > totalPages) currentTicketPage = totalPages;
+        const start = (currentTicketPage - 1) * itemsPerPage;
+        const paginated = filtered.slice(start, start + itemsPerPage);
+
+        paginated.forEach(r => {
+            const slaLimit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
+            const timeLeft = slaLimit - Date.now();
+            const percent = Math.max(0, Math.min(100, (timeLeft / (SLA_HOURS[r.kategori]*3600000)) * 100));
+            const color = (timeLeft < 0 && r.status!=='Closed') ? 'var(--danger)' : (percent<50?'var(--warning)':'var(--success)');
+            
+            tbody.innerHTML += `<tr>
+                <td><div style="font-weight:700">${r.id}</div><div style="font-size:12px; color:var(--text-secondary)">${r.nama}</div></td>
+                <td><div style="font-weight:500">${r.jenis}</div><div style="font-size:11px; color:var(--text-tertiary)">${(r.catatan||'-').substring(0,30)}</div></td>
+                <td>
+                    <span class="badge status-${r.status}">${r.status}</span>
+                    <span class="badge cat-${r.kategori}">${r.kategori}</span>
+                    ${r.status!=='Closed' ? `<div class="sla-progress"><div class="sla-bar" style="width:${percent}%; background:${color}"></div></div>` : ''}
+                </td>
+                <td>${r.pic||'-'}</td>
+                <td>${new Date(r.updated_iso||r.created_iso).toLocaleDateString()}</td>
+                <td style="text-align:right">
+                    <button class="icon-btn" onclick="openReportModal('${r.id}')"><i class="ri-edit-line"></i></button>
+                    <button class="icon-btn" style="color:${isTrashMode?'var(--success)':'var(--danger)'}" onclick="${isTrashMode?`restore('${r.id}')`:`softDelete('${r.id}')`}"><i class="ri-${isTrashMode?'refresh-line':'delete-bin-line'}"></i></button>
+                </td>
+            </tr>`;
+        });
+
+        // Render Pagination Controls
+        $('#paginationInfo').textContent = `Menampilkan ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} dari ${total}`;
+        $('#paginationBtns').innerHTML = '';
+        if(totalPages > 1) {
+            for(let i=1; i<=totalPages; i++) {
+                if(i==1 || i==totalPages || (i>=currentTicketPage-1 && i<=currentTicketPage+1)) {
+                    $('#paginationBtns').innerHTML += `<button class="page-btn ${i===currentTicketPage?'active':''}" onclick="renderTickets(${i})">${i}</button>`;
+                } else if(i==currentTicketPage-2 || i==currentTicketPage+2) {
+                    $('#paginationBtns').innerHTML += `<span>...</span>`;
+                }
+            }
+        }
+        
+        // Also update Kanban if visible
+        if(!$('#cont-kanban').classList.contains('hidden')) renderKanban();
     }
 
-    // --- Ticket CRUD ---
+    function renderKanban() {
+        ['Open', 'Progress', 'Closed'].forEach(status => {
+            const container = $(`#kb-${status}`);
+            const items = reports.filter(r => !r.isDeleted && r.status === status);
+            $(`#count${status}`).textContent = items.length;
+            container.innerHTML = items.map(r => `
+                <div class="kanban-card" onclick="openReportModal('${r.id}')">
+                    <div class="k-card-top"><span>${r.id}</span><span>${new Date(r.created_iso).toLocaleDateString()}</span></div>
+                    <div class="k-card-title">${r.jenis} - ${r.nama}</div>
+                    <div class="badge cat-${r.kategori}">${r.kategori}</div>
+                    <div class="k-card-footer">
+                        <div style="font-size:12px; color:var(--text-secondary)"><i class="ri-user-smile-line"></i> ${r.pic||'?'}</div>
+                    </div>
+                </div>
+            `).join('');
+        });
+    }
+
+    // === RENDER: USERS ===
+    function renderUsers() {
+        const search = ($('#userSearchInput').value || $('#globalSearch').value).toLowerCase();
+        const deptFilter = $('#userFilterDept').value;
+        const statusFilter = $('#userFilterStatus').value;
+
+        // Populate Dept Filter
+        const depts = [...new Set(users.map(u => u.departemen).filter(Boolean))];
+        if($('#userFilterDept').children.length === 1) {
+            depts.forEach(d => $('#userFilterDept').innerHTML += `<option value="${d}">${d}</option>`);
+        }
+
+        // Statistics
+        $('#userStatTotal').textContent = users.length;
+        $('#userStatPending').textContent = users.filter(u=>u.status==='pending').length;
+        $('#userStatApproved').textContent = users.filter(u=>u.status==='approved').length;
+
+        // Filter
+        const filtered = users.filter(u => {
+            if(u.uid === ADMIN_UID) return false;
+            const matchesSearch = (u.nama||'').toLowerCase().includes(search) || (u.email||'').toLowerCase().includes(search);
+            const matchesDept = !deptFilter || u.departemen === deptFilter;
+            const matchesStatus = !statusFilter || (u.status||'pending') === statusFilter;
+            return matchesSearch && matchesDept && matchesStatus;
+        });
+
+        $('#userTableBody').innerHTML = filtered.map(u => {
+            const ticketCount = reports.filter(r => r.uid === u.uid).length;
+            const statusClass = u.status === 'approved' ? 'status-approved' : (u.status==='rejected'?'status-rejected':'status-pending');
+            return `<tr>
+                <td>${u.nama}</td><td>${u.email}</td><td>${u.departemen}</td>
+                <td><span class="badge ${statusClass}">${u.status||'pending'}</span></td>
+                <td style="text-align:center">${ticketCount}</td>
+                <td><button class="btn ghost" style="padding:4px 8px; font-size:12px;" onclick="showUserDetail('${u.uid}')">Edit</button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // === RENDER: REQUESTS ===
+    function renderRequests() {
+        const search = ($('#reqSearch').value || $('#globalSearch').value).toLowerCase();
+        const statusFilter = $('#reqFilterStatus').value;
+
+        // Stats
+        $('#reqStatPending').textContent = requests.filter(r=>(r.status||'Pending')==='Pending').length;
+        $('#reqStatApproved').textContent = requests.filter(r=>r.status==='Approved').length;
+        $('#reqStatRejected').textContent = requests.filter(r=>r.status==='Rejected').length;
+
+        const filtered = requests.filter(r => {
+            const matchesSearch = (r.nama||'').toLowerCase().includes(search) || (r.detail||'').toLowerCase().includes(search);
+            const matchesStatus = !statusFilter || (r.status||'Pending') === statusFilter;
+            return matchesSearch && matchesStatus;
+        }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+        $('#reqTableBody').innerHTML = filtered.map(r => `
+            <tr>
+                <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                <td>${r.nama}</td><td>${r.departemen}</td><td>${r.kategori}</td>
+                <td>${r.detail}</td>
+                <td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td>
+                <td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td>
+                <td><button class="btn ghost" style="padding:4px 8px;" onclick="openReqDetail('${r.id}')">Proses</button></td>
+            </tr>
+        `).join('');
+    }
+
+    // === MODAL FUNCTIONS ===
+    
+    // 1. Ticket
     window.openReportModal = (id) => {
-        editingId = id;
-        $('#modalTicket').style.display = 'flex';
-        $('#formTicket').reset();
-        
+        editingId = id; $('#modalTicket').style.display = 'flex'; $('#formTicket').reset();
         if(id) {
             const r = reports.find(x => x.id === id);
             $('#t_nama').value = r.nama; $('#t_nama').readOnly = true;
-            $('#t_pic').value = r.pic || '';
-            $('#t_jenis').value = r.jenis;
-            $('#t_kategori').value = r.kategori;
-            $('#t_status').value = r.status;
-            $('#t_note').value = r.catatan || '';
-            $('#t_internal').value = r.note_internal || '';
+            $('#t_pic').value = r.pic || ''; $('#t_jenis').value = r.jenis; $('#t_kategori').value = r.kategori;
+            $('#t_status').value = r.status; $('#t_note').value = r.catatan || ''; $('#t_internal').value = r.note_internal || '';
         } else {
-            $('#t_nama').readOnly = false;
-            $('#t_status').value = 'Open';
+            $('#t_nama').readOnly = false; $('#t_status').value = 'Open';
         }
     };
-
     window.saveTicket = async () => {
-        const nama = $('#t_nama').value;
-        const pic = $('#t_pic').value;
-        if(!nama || !pic) return alert("Nama & PIC Wajib diisi");
-
+        const nama = $('#t_nama').value, pic = $('#t_pic').value;
+        if(!nama || !pic) return alert("Wajib diisi");
         let id = editingId;
-        let oldData = {};
-
-        if(!id) {
-            const snap = await db.ref('counter').transaction(c => (c||0)+1);
-            id = 'ZP-' + String(snap.snapshot.val()).padStart(4, '0');
-        } else {
-            oldData = reports.find(r => r.id === id);
-        }
-
+        const oldData = id ? reports.find(r => r.id === id) : {};
+        if(!id) { const s = await db.ref('counter').transaction(c => (c||0)+1); id = 'ZP-'+String(s.snapshot.val()).padStart(4,'0'); }
+        
         const data = {
-            id, nama, pic,
-            jenis: $('#t_jenis').value,
-            kategori: $('#t_kategori').value,
-            status: $('#t_status').value,
-            catatan: $('#t_note').value,
-            note_internal: $('#t_internal').value,
-            updated_iso: nowISO(),
-            created_iso: oldData.created_iso || nowISO(),
-            uid: oldData.uid || auth.currentUser.uid
+            id, nama, pic, jenis: $('#t_jenis').value, kategori: $('#t_kategori').value, status: $('#t_status').value,
+            catatan: $('#t_note').value, note_internal: $('#t_internal').value,
+            updated_iso: nowISO(), created_iso: oldData.created_iso || nowISO(), uid: oldData.uid || auth.currentUser.uid
         };
+        await db.ref('reports/'+id).update(data);
+        closeModal('modalTicket'); showToast("Tiket Disimpan");
+    };
+    window.softDelete = (id) => { if(confirm("Hapus?")) db.ref(`reports/${id}`).update({isDeleted: true}); };
+    window.restore = (id) => db.ref(`reports/${id}`).update({isDeleted: null});
+    window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Mode Sampah" : "Mode Aktif"); };
 
-        // Duration calculation
-        if(data.status === 'Closed' && oldData.status !== 'Closed') {
-            data.durationMs = new Date().getTime() - new Date(data.created_iso).getTime();
+    // 2. Announcements
+    window.openAnnModal = (key) => {
+        editingAnnId = key; $('#modalAnn').style.display = 'flex';
+        if(key) {
+            const a = announcements.find(x => x.key === key);
+            $('#a_title').value = a.title; $('#a_content').value = a.content; $('#a_cat').value = a.category; $('#a_pin').checked = a.isPinned;
+        } else {
+            $('#a_title').value = ''; $('#a_content').value = ''; $('#a_pin').checked = false;
         }
-
-        await db.ref('reports/' + id).update(data);
-        closeModal('modalTicket');
-        showToast("Tiket Berhasil Disimpan");
     };
-
-    window.softDelete = (id) => {
-        if(confirm("Pindahkan ke sampah?")) {
-            db.ref(`reports/${id}`).update({isDeleted: true});
-            showToast("Moved to Trash");
-        }
-    };
-    window.restore = (id) => {
-        db.ref(`reports/${id}`).update({isDeleted: null});
-        showToast("Ticket Restored");
-    };
-    window.toggleTrash = () => {
-        isTrashMode = !isTrashMode;
-        renderTable();
-        showToast(isTrashMode ? "Mode: Trash Bin" : "Mode: Active Tickets");
-    };
-
-    // --- Announcement CRUD ---
-    window.openAnnModal = () => $('#modalAnn').style.display = 'flex';
     window.saveAnnouncement = async () => {
-        const title = $('#a_title').value;
-        const content = $('#a_content').value;
-        if(!title) return;
-
-        await db.ref('announcements').push({
-            title, content, 
-            category: $('#a_cat').value,
-            isPinned: $('#a_pin').checked,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-        closeModal('modalAnn');
-        showToast("Pengumuman Terbit");
+        const d = { title: $('#a_title').value, content: $('#a_content').value, category: $('#a_cat').value, author: $('#a_author').value, isPinned: $('#a_pin').checked, timestamp: firebase.database.ServerValue.TIMESTAMP };
+        if(editingAnnId) await db.ref(`announcements/${editingAnnId}`).update(d);
+        else await db.ref('announcements').push(d);
+        closeModal('modalAnn'); showToast("Pengumuman Terbit");
     };
-    window.deleteAnn = (key) => {
-        if(confirm("Hapus?")) db.ref(`announcements/${key}`).remove();
+    window.deleteAnn = (k) => { if(confirm("Hapus?")) db.ref(`announcements/${k}`).remove(); };
+
+    // 3. User Detail & Create
+    window.showUserDetail = (uid) => {
+        const u = users.find(x => x.uid === uid);
+        if(!u) return;
+        editingUserId = uid;
+        $('#modalUserDetail').style.display = 'flex';
+        $('#ud_name').textContent = u.nama; $('#ud_id').value = uid;
+        $('#ud_fullname').value = u.nama; $('#ud_email').value = u.email; $('#ud_dept').value = u.departemen;
+    };
+    window.updateUserStatus = (s) => {
+        const uid = $('#ud_id').value;
+        db.ref(`users/${uid}`).update({status: s});
+        showToast(`Status user diubah ke ${s}`);
+    };
+    window.saveUserChanges = () => {
+        const uid = $('#ud_id').value;
+        db.ref(`users/${uid}`).update({ nama: $('#ud_fullname').value, departemen: $('#ud_dept').value });
+        closeModal('modalUserDetail'); showToast("Data User Disimpan");
+    };
+    
+    $('#showCreateUserPopupBtn').onclick = () => $('#modalCreateUser').style.display = 'flex';
+    window.submitNewUser = async () => {
+        const email = $('#cu_email').value, pass = $('#cu_pass').value, name = $('#cu_name').value, dept = $('#cu_dept').value;
+        if(!email || !pass || !name) return alert("Lengkapi form");
+        
+        try {
+            // Use secondary app to avoid logging out admin
+            const secApp = firebase.initializeApp(firebaseConfig, "Secondary");
+            const uc = await secApp.auth().createUserWithEmailAndPassword(email, pass);
+            await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: name, email, departemen: dept, status: 'approved' });
+            await secApp.delete();
+            closeModal('modalCreateUser'); showToast("User Baru Dibuat");
+        } catch(e) { alert(e.message); }
+    };
+
+    // 4. Request Processing
+    window.openReqDetail = (id) => {
+        const r = requests.find(x => x.id === id);
+        if(!r) return;
+        editingId = id; $('#modalReqDetail').style.display = 'flex';
+        $('#rd_user').textContent = r.nama; $('#rd_detail').textContent = `${r.kategori} - ${r.detail}`; $('#rd_reason').textContent = `"${r.alasan}"`;
+        $('#rd_notes').value = r.admin_notes || '';
+        
+        // Asset Assignment Logic
+        const isHW = (r.detail||'').toLowerCase().match(/laptop|desktop|monitor/);
+        const stock = assets.filter(a => ['Laptop','Desktop','Monitor'].includes(a.type) && !a.pic);
+        
+        const sel = $('#rd_asset_select');
+        sel.innerHTML = '<option value="">-- Pilih Aset --</option>';
+        if(isHW) {
+            $('#assetAssignSection').style.display = 'block';
+            stock.forEach(a => sel.innerHTML += `<option value="${a.id}">${a.name} (${a.serial})</option>`);
+        } else {
+            $('#assetAssignSection').style.display = 'none';
+        }
+    };
+    
+    window.processRequest = async (status) => {
+        const id = editingId;
+        const notes = $('#rd_notes').value;
+        const assetId = $('#rd_asset_select').value;
+        
+        if(status === 'Approved' && $('#assetAssignSection').style.display !== 'none' && !assetId) {
+            return alert("Harap pilih aset untuk diserahkan ke user.");
+        }
+
+        if(status === 'Approved' && assetId) {
+            // Update Asset in Firestore
+            const r = requests.find(x => x.id === id);
+            await firestore.collection('users').doc(auth.currentUser.uid).collection('assets_v2').doc(assetId).update({
+                pic: r.nama, location: r.departemen, lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        await db.ref(`device_requests/${id}`).update({ status, admin_notes: notes, processed_at: nowISO() });
+        closeModal('modalReqDetail');
+        showToast(`Permintaan ${status}`);
     };
 
     window.closeModal = (id) => $(`#${id}`).style.display = 'none';
 
-    // === SEARCH LISTENER ===
-    $('#ticketSearch').oninput = renderTable;
-    $('#globalSearch').oninput = renderTable;
-
-    // === CHART.JS (Simple Implementation) ===
-    let chartCat = null;
+    // === CHART.JS ===
+    let chartCat, chartSLA;
     function renderCharts() {
         const cats = { Low:0, Normal:0, Critical:0 };
-        reports.filter(r=>!r.isDeleted).forEach(r => cats[r.kategori] = (cats[r.kategori]||0)+1);
-        
-        const ctx = $('#chartCategory').getContext('2d');
-        if(chartCat) chartCat.destroy();
-        chartCat = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(cats),
-                datasets: [{data: Object.values(cats), backgroundColor: ['#06b6d4', '#f59e0b', '#ef4444']}]
-            },
-            options: { plugins: { legend: {position:'right'} } }
+        const statusCounts = { Open:0, Progress:0, Closed:0 };
+        reports.filter(r=>!r.isDeleted).forEach(r => {
+            cats[r.kategori] = (cats[r.kategori]||0)+1;
+            statusCounts[r.status] = (statusCounts[r.status]||0)+1;
         });
+
+        const ctxC = $('#chartCategory').getContext('2d');
+        if(chartCat) chartCat.destroy();
+        chartCat = new Chart(ctxC, { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#06b6d4', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, plugins: { legend: {position:'right'} } } });
+
+        const ctxS = $('#chartSLA').getContext('2d');
+        if(chartSLA) chartSLA.destroy();
+        chartSLA = new Chart(ctxS, { type: 'bar', data: { labels: Object.keys(statusCounts), datasets: [{ label:'Tiket', data: Object.values(statusCounts), backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'], borderRadius: 4 }] }, options: { maintainAspectRatio: false, plugins: { legend: {display:false} } } });
     }
 </script>
 </body>
