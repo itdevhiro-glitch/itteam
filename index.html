@@ -2,16 +2,20 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>Zeppelin — Ultimate Console</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Zeppelin — Enterprise Command Center</title>
 <link rel="icon" type="image/png" href="icov2.png" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -19,710 +23,850 @@
 
 <style>
     :root {
-        /* --- COLOR SYSTEM (Modern Indigo) --- */
-        --primary: #6366f1; /* Indigo 500 */
-        --primary-dark: #4f46e5;
-        --primary-light: #e0e7ff;
-        --primary-glow: rgba(99, 102, 241, 0.4);
-        
         --bg-body: #f8fafc;
+        --bg-sidebar: #ffffff;
         --bg-card: #ffffff;
-        --bg-glass: rgba(255, 255, 255, 0.85);
-        
-        --text-main: #0f172a;
-        --text-muted: #64748b;
-        --text-light: #94a3b8;
-        
-        --border: #e2e8f0;
-        --border-hover: #cbd5e1;
-        
-        /* Semantics */
-        --success: #10b981; --success-bg: #ecfdf5;
-        --warning: #f59e0b; --warning-bg: #fffbeb;
-        --danger: #ef4444;  --danger-bg: #fef2f2;
-        --info: #06b6d4;    --info-bg: #ecfeff;
-
-        /* Effects */
-        --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-        --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-        --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        --radius: 16px;
-        
-        --font-head: 'Plus Jakarta Sans', sans-serif;
-        --font-body: 'Inter', sans-serif;
+        --bg-hover: #f1f5f9;
+        --border-color: #e2e8f0;
+        --text-primary: #0f172a;
+        --text-secondary: #64748b;
+        --text-tertiary: #94a3b8;
+        --primary: #2563eb;
+        --primary-light: #eff6ff;
+        --primary-dark: #1d4ed8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --radius: 12px;
+        --font-main: 'Inter', sans-serif;
     }
 
     [data-theme="dark"] {
-        --bg-body: #020617; /* Slate 950 */
-        --bg-card: #0f172a; /* Slate 900 */
-        --bg-glass: rgba(15, 23, 42, 0.8);
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --border: #1e293b;
-        --border-hover: #334155;
-        --primary: #818cf8;
-        --primary-light: rgba(99, 102, 241, 0.1);
+        --bg-body: #0f172a;
+        --bg-sidebar: #1e293b;
+        --bg-card: #1e293b;
+        --bg-hover: #334155;
+        --border-color: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-tertiary: #64748b;
+        --primary: #3b82f6;
+        --primary-light: rgba(59, 130, 246, 0.1);
     }
 
-    /* --- RESET & BASE --- */
-    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-    body {
-        margin: 0; font-family: var(--font-body); background: var(--bg-body); 
-        color: var(--text-main); height: 100vh; overflow: hidden; font-size: 14px;
-        background-image: radial-gradient(var(--border) 1px, transparent 1px);
-        background-size: 24px 24px; /* Subtle grid pattern */
-    }
+    * { box-sizing: border-box; outline: none; }
+    body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); transition: background 0.3s, color 0.3s; height: 100vh; overflow: hidden; }
+
+    .app-layout { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 64px 1fr; height: 100vh; width: 100vw; }
+    .sidebar { grid-row: 1 / -1; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 16px; z-index: 50; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 12px; }
+    .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+    .brand-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
     
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    .nav-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .nav-item:hover, .nav-item.active { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .nav-item i { font-size: 18px; }
 
-    /* --- LAYOUT --- */
-    .app-layout { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 70px 1fr; height: 100vh; }
+    .topbar { grid-column: 2; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+    .search-box { position: relative; width: 400px; }
+    .search-box input { width: 100%; padding: 10px 16px 10px 40px; border-radius: 99px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); font-size: 14px; transition: all 0.2s; }
+    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
 
-    /* --- SIDEBAR (Glassy & Modern) --- */
-    .sidebar {
-        grid-row: 1 / -1; background: var(--bg-glass); backdrop-filter: blur(20px);
-        border-right: 1px solid var(--border); display: flex; flex-direction: column;
-        padding: 24px; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 4px; }
-    .brand-logo {
-        width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), #8b5cf6);
-        color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 20px; box-shadow: 0 4px 12px var(--primary-glow);
-    }
-    .brand-text h1 { margin: 0; font-family: var(--font-head); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
-    .brand-text p { margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; position: relative; transition: background 0.2s; border: none; background: transparent; }
+    .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .badge-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-sidebar); display: none; }
 
-    .nav-label { font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 0.8px; margin: 24px 12px 10px; }
-    .nav-item {
-        display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px;
-        color: var(--text-muted); font-weight: 500; cursor: pointer; transition: all 0.2s ease;
-        margin-bottom: 4px; border: 1px solid transparent;
-    }
-    .nav-item:hover { background: var(--bg-body); color: var(--text-main); }
-    .nav-item.active {
-        background: var(--primary-light); color: var(--primary); font-weight: 600;
-        border-color: rgba(99, 102, 241, 0.1);
-    }
-    .nav-item i { font-size: 18px; transition: transform 0.2s; }
-    .nav-item:hover i { transform: scale(1.1); }
-
-    /* --- TOPBAR --- */
-    .topbar {
-        grid-column: 2; background: var(--bg-glass); backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border); display: flex; align-items: center;
-        justify-content: space-between; padding: 0 32px; z-index: 40;
-    }
-    .search-wrap { position: relative; width: 320px; }
-    .search-input {
-        width: 100%; padding: 10px 16px 10px 42px; border: 1px solid var(--border);
-        border-radius: 12px; background: var(--bg-body); color: var(--text-main);
-        font-family: var(--font-body); font-size: 13px; transition: all 0.2s;
-    }
-    .search-input:focus {
-        background: var(--bg-card); border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-light);
-    }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-
-    /* --- MAIN CONTENT & CARDS --- */
-    .main-content { grid-column: 2; padding: 32px; overflow-y: auto; scroll-behavior: smooth; }
+    .main-content { grid-column: 2; background: var(--bg-body); padding: 32px; overflow-y: auto; }
     
-    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
-    .page-title h2 { margin: 0; font-family: var(--font-head); font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
-    .page-title p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .stat-card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    .stat-info h4 { margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .stat-info h2 { margin: 6px 0 0; font-size: 24px; color: var(--text-primary); font-weight: 700; }
+    .stat-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .stat-card.overdue .stat-icon { background: #fee2e2; color: var(--danger); }
 
-    .card {
-        background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border);
-        padding: 24px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative; overflow: hidden;
-    }
-    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--border-hover); }
+    .view-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .btn-group { display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
+    .btn-toggle { padding: 8px 12px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 13px; display: flex; gap: 6px; align-items: center; }
+    .btn-toggle.active { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; shadow: var(--shadow-sm); }
+
+    .table-responsive { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th { background: var(--bg-hover); color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; padding: 16px 24px; text-align: left; font-weight: 600; }
+    td { padding: 16px 24px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-hover); }
+
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-top: 1px solid var(--border-color); background: var(--bg-card); }
+    .pagination-info { font-size: 13px; color: var(--text-secondary); }
+    .pagination-btns { display: flex; gap: 6px; }
+    .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .page-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
     
-    .stat-card { cursor: pointer; }
-    .stat-card::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-        background: linear-gradient(90deg, var(--primary), transparent); opacity: 0; transition: opacity 0.3s;
-    }
-    .stat-card:hover::before { opacity: 1; }
-    
-    .stat-icon {
-        width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-        font-size: 22px; margin-bottom: 16px; transition: transform 0.3s;
-    }
-    .stat-card:hover .stat-icon { transform: scale(1.1) rotate(5deg); }
-    .stat-val { font-family: var(--font-head); font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; height: calc(100vh - 220px); overflow-x: auto; }
+    .kanban-col { background: var(--bg-hover); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; max-height: 100%; }
+    .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; flex-shrink: 0; }
+    .kanban-header h3 { margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
+    .kanban-count { background: var(--border-color); padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    .kanban-items-container { flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
+    .kanban-card { background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
+    .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    .k-card-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-tertiary); }
+    .k-card-title { font-weight: 600; margin-bottom: 8px; font-size: 14px; line-height: 1.4; }
+    .k-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 
-    /* --- BUTTONS & PILLS --- */
-    .btn {
-        display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-        border-radius: 10px; font-weight: 600; font-size: 13px; border: 1px solid transparent;
-        cursor: pointer; transition: all 0.2s; font-family: var(--font-head);
-    }
-    .btn-primary {
-        background: var(--primary); color: white;
-        box-shadow: 0 4px 12px var(--primary-glow);
-    }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn-secondary { background: var(--bg-card); border-color: var(--border); color: var(--text-main); }
-    .btn-secondary:hover { background: var(--bg-body); border-color: var(--text-muted); }
-    .btn-icon { width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: 50%; color: var(--text-muted); background: transparent; }
-    .btn-icon:hover { background: var(--bg-body); color: var(--text-main); }
+    .badge { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+    .status-Open, .status-pending, .status-Pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    .status-Progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+    .status-Closed, .status-approved, .status-Approved { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .status-Rejected, .status-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+    .cat-Low { color: var(--info); background: rgba(6, 182, 212, 0.1); }
+    .cat-Normal { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
+    .cat-Critical, .cat-High { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
-    .pill { padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 6px; }
-    .pill::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.6; }
-    .st-Open { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.1); }
-    .st-Progress { background: var(--info-bg); color: var(--info); border: 1px solid rgba(6, 182, 212, 0.1); }
-    .st-Closed { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.1); }
-    .cat-pill { font-weight: 600; color: var(--text-muted); background: var(--bg-body); border: 1px solid var(--border); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: all 0.2s; background: var(--primary); color: white; justify-content: center; }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+    .btn-outline:hover { border-color: var(--text-primary); color: var(--text-primary); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-create { background: var(--primary); color: #fff; }
 
-    /* --- TABLES --- */
-    .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); }
-    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-    th {
-        background: var(--bg-body); color: var(--text-muted); font-size: 11px; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.5px; padding: 16px 24px; text-align: left;
-    }
-    td { padding: 16px 24px; border-top: 1px solid var(--border); vertical-align: middle; }
-    tr:hover td { background: var(--bg-body); }
-    
-    .avatar {
-        width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #a5b4fc, #6366f1);
-        color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+    .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 14px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px var(--primary-light); }
+    input:disabled { background: var(--bg-hover); cursor: not-allowed; }
 
-    /* --- MODALS & UTILS --- */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal-content { background: var(--bg-card); width: 100%; max-width: 600px; padding: 32px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    #loginScreen { position: fixed; inset: 0; background: var(--bg-body); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .login-card { background: var(--bg-card); padding: 48px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); width: 400px; border: 1px solid var(--border-color); text-align: center; }
+
     .hidden { display: none !important; }
-    .loader { position: fixed; inset: 0; background: var(--bg-body); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .spinner {
-        width: 50px; height: 50px; border: 4px solid var(--primary-light); border-top-color: var(--primary);
-        border-radius: 50%; animation: spin 0.8s ease-in-out infinite; box-shadow: 0 0 20px var(--primary-glow);
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-        z-index: 2000; display: none; align-items: center; justify-content: center;
-    }
-    .modal-box {
-        background: var(--bg-card); width: 100%; max-width: 550px; padding: 32px; border-radius: 20px;
-        box-shadow: var(--shadow-lg); animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        border: 1px solid var(--border);
-    }
-    @keyframes slideUp { from { transform: translateY(40px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-
-    #toast {
-        position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
-        background: var(--text-main); color: var(--bg-body); padding: 12px 24px;
-        border-radius: 99px; font-weight: 600; box-shadow: var(--shadow-lg);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999;
-        display: flex; align-items: center; gap: 8px;
-    }
-
-    /* --- RESPONSIVE --- */
+    .flex-col { display: flex; flex-direction: column; gap: 4px; }
     @media (max-width: 1024px) {
-        .app-layout { grid-template-columns: 1fr; }
-        .sidebar { position: fixed; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: var(--shadow-lg); }
-        .sidebar.open { transform: translateX(0); }
-        .topbar, .main-content { grid-column: 1; padding: 16px; }
-        .search-wrap { display: none; }
+        .app-layout { grid-template-columns: 1fr; grid-template-rows: 64px 1fr; }
+        .sidebar { display: none; position: fixed; height: 100%; width: 260px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .sidebar.open { display: flex; }
+        .topbar { grid-column: 1; padding: 0 16px; }
+        .main-content { grid-column: 1; padding: 16px; }
+        #mobileMenuBtn { display: block !important; }
+        .search-box { display: none; }
+        .kanban-board { grid-template-columns: 1fr; gap: 16px; }
+        .filter-bar { grid-template-columns: 1fr; }
     }
+    #mobileMenuBtn { display: none; font-size: 24px; color: var(--text-primary); cursor: pointer; }
+    .sla-progress { height: 4px; background: var(--border-color); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .sla-bar { height: 100%; background: var(--success); transition: width 0.3s; }
+    .overdue .sla-bar { background: var(--danger); }
+
+    /* LOADING SPINNER - FIXED Z-INDEX & DISPLAY */
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loader-overlay { 
+        position: fixed; inset: 0; background: var(--bg-body); z-index: 100000; 
+        display: flex; /* ACTIVE BY DEFAULT (PENTING!) */
+        justify-content: center; align-items: center; flex-direction: column; 
+    }
+    .loader { width: 48px; height: 48px; border: 5px solid var(--border-color); border-bottom-color: var(--primary); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body data-theme="light">
 
-<div id="appLoader" class="loader">
-    <div class="spinner"></div>
-    <h3 style="margin-top:24px; font-family:var(--font-head); font-weight:700;">Zeppelin<span style="color:var(--primary)">.io</span></h3>
+<div id="appLoader" class="loader-overlay">
+    <div class="brand-icon" style="margin-bottom:20px; font-size:24px;">Z</div>
+    <span class="loader"></span>
+    <p style="margin-top:16px; font-weight:600; color:var(--text-secondary); font-size:14px;">Memuat Sistem...</p>
 </div>
 
-<div id="loginScreen" class="hidden" style="position:fixed; inset:0; z-index:9000; background:var(--bg-body); display:flex; align-items:center; justify-content:center;">
-    <div class="card" style="width:400px; text-align:center; padding: 48px;">
-        <div class="brand-logo" style="width:64px; height:64px; margin:0 auto 24px; font-size:28px;">Z</div>
-        <h2 style="margin-bottom:8px; font-family:var(--font-head);">Welcome Back</h2>
-        <p style="color:var(--text-muted); margin-bottom:32px;">Enter your workspace credentials</p>
-        <div style="text-align:left; margin-bottom:16px;">
-            <label style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:6px; display:block;">EMAIL</label>
-            <input id="loginUser" class="search-input" placeholder="admin@zeppelin.com">
-        </div>
-        <div style="text-align:left; margin-bottom:24px;">
-            <label style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:6px; display:block;">PASSWORD</label>
-            <input id="loginPass" class="search-input" type="password" placeholder="••••••">
-        </div>
-        <button id="loginBtn" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Sign In to Dashboard</button>
+<div id="loginScreen" class="hidden"> <div class="login-card">
+        <div class="brand-icon" style="width:56px; height:56px; font-size:24px; margin:0 auto 24px;">Z</div>
+        <h2 style="margin-bottom:8px;">Zeppelin Enterprise</h2>
+        <p style="color:var(--text-secondary); font-size:14px; margin-bottom:32px;">Secure Admin Access Point</p>
+        <div style="text-align:left; margin-bottom:16px;"><label style="font-size:12px; font-weight:600; color:var(--text-secondary);">USERNAME</label><input id="loginUser" type="text" placeholder="root" style="width:100%; margin-top:4px;"></div>
+        <div style="text-align:left; margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--text-secondary);">PASSWORD</label><input id="loginPass" type="password" placeholder="••••••" style="width:100%; margin-top:4px;"></div>
+        <button id="loginBtn" class="btn" style="width:100%; padding:14px;">Masuk Dashboard</button>
         <p id="authError" style="color:var(--danger); font-size:13px; margin-top:16px; display:none;"></p>
     </div>
 </div>
 
 <div class="app-layout hidden" id="appInterface">
     <aside class="sidebar" id="sidebar">
-        <div class="brand">
-            <div class="brand-logo">Z</div>
-            <div class="brand-text" style="margin-left:12px;">
-                <h1>Zeppelin</h1>
-                <p>Enterprise Console</p>
-            </div>
-        </div>
-        
-        <div style="flex:1; overflow-y:auto; padding-right:4px;">
-            <div class="nav-label">Overview</div>
-            <div class="nav-item active" onclick="Nav.to('dashboard')"><i class="ri-dashboard-3-line"></i> <span>Dashboard</span></div>
-            <div class="nav-item" onclick="Nav.to('tickets')"><i class="ri-ticket-2-line"></i> <span>Tickets</span></div>
-            
-            <div class="nav-label">Management</div>
-            <div class="nav-item" onclick="Nav.to('users')"><i class="ri-team-line"></i> <span>Team Members</span></div>
-            <div class="nav-item" onclick="Nav.to('requests')"><i class="ri-macbook-line"></i> <span>Asset Requests</span></div>
-
-            <div class="nav-label">System</div>
-            <div class="nav-item" onclick="Nav.to('billing')"><i class="ri-bank-card-line"></i> <span>Billing</span></div>
-            <div class="nav-item" onclick="Nav.to('settings')"><i class="ri-settings-4-line"></i> <span>Settings</span></div>
-        </div>
-
-        <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:10px;">
-            <div class="nav-item" onclick="Auth.logout()" style="color:var(--danger);">
-                <i class="ri-logout-box-r-line"></i> <span>Sign Out</span>
-            </div>
+        <div class="brand"><div class="brand-icon">Z</div><div class="brand-text">Zeppelin<span style="color:var(--primary);">.support</span></div></div>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchTab('dashboard')"><i class="ri-dashboard-line"></i> Dashboard</li>
+            <li class="nav-item" onclick="switchTab('tickets')"><i class="ri-ticket-line"></i> Tiket & Insiden</li>
+            <li class="nav-item" onclick="switchTab('users')"><i class="ri-group-line"></i> User Management</li>
+            <li class="nav-item" onclick="switchTab('requests')"><i class="ri-macbook-line"></i> Permintaan Aset</li>
+        </ul>
+        <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">
+            <div class="nav-item text-danger" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</div>
+            <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">v3.4.0 (Smooth Load)</div>
         </div>
     </aside>
 
     <header class="topbar">
-        <div style="display:flex; align-items:center; gap:20px;">
-            <button class="btn-icon" id="mobileTrigger" onclick="$('#sidebar').classList.toggle('open')" style="display:none;"><i class="ri-menu-2-line"></i></button>
-            <div class="search-wrap">
-                <i class="ri-search-line search-icon"></i>
-                <input id="globalSearch" class="search-input" placeholder="Search tickets, assets, or users (Cmd+K)...">
-            </div>
-        </div>
         <div style="display:flex; align-items:center; gap:16px;">
-            <button class="btn-icon" onclick="UI.toggleTheme()"><i class="ri-moon-line"></i></button>
-            <div style="height:24px; width:1px; background:var(--border);"></div>
-            <div style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px; border-radius:99px; transition:0.2s;" class="hover-bg" onclick="Nav.to('settings')">
-                <div class="avatar" style="background:var(--primary);">A</div>
-                <div style="font-size:13px; font-weight:600; padding-right:8px;">Admin Root</div>
-            </div>
+            <i class="ri-menu-2-line" id="mobileMenuBtn"></i>
+            <div class="search-box"><i class="ri-search-line"></i><input type="text" id="globalSearch" placeholder="Cari tiket, user, atau aset (Cmd + K)..."></div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
+            <a href="chatadm.html" class="icon-btn" title="Pesan Masuk"><i class="ri-message-3-line"></i><span class="badge-dot" id="chatBadge"></span></a>
+            <div style="height:24px; width:1px; background:var(--border-color);"></div>
+            <button class="icon-btn" id="backupBtn" title="Download Backup"><i class="ri-download-cloud-2-line"></i></button>
+            <input id="restoreFile" type="file" hidden accept=".json">
+            <button class="icon-btn" id="restoreBtn" title="Restore Data (Upload)"><i class="ri-upload-cloud-2-line"></i></button>
+            <div style="width:36px; height:36px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">A</div>
         </div>
     </header>
 
     <main class="main-content">
-        <div id="view-dashboard" class="view-section">
-            <div class="page-header">
-                <div class="page-title"><h2>Command Center</h2><p>Real-time system overview & statistics.</p></div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-secondary" onclick="Data.backup()"><i class="ri-download-cloud-line"></i> Backup</button>
-                    <input id="restoreInput" type="file" hidden accept=".json">
-                    <button class="btn btn-secondary" onclick="$('#restoreInput').click()"><i class="ri-upload-cloud-line"></i> Restore</button>
-                </div>
+        <div id="view-dashboard">
+            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Command Center</h1>
+            <div class="stats-row">
+                <div class="stat-card" onclick="filterByStat('All')"><div class="stat-info"><h4>Total Tiket</h4><h2 id="statTotal">0</h2></div><div class="stat-icon"><i class="ri-folder-open-line"></i></div></div>
+                <div class="stat-card" onclick="filterByStat('Open')"><div class="stat-info"><h4>Open</h4><h2 id="statOpen" style="color:var(--warning)">0</h2></div><div class="stat-icon" style="background:#fffbeb; color:var(--warning)"><i class="ri-loader-2-line"></i></div></div>
+                <div class="stat-card" onclick="filterByStat('Closed')"><div class="stat-info"><h4>Selesai</h4><h2 id="statClosed" style="color:var(--success)">0</h2></div><div class="stat-icon" style="background:#ecfdf5; color:var(--success)"><i class="ri-check-double-line"></i></div></div>
+                <div class="stat-card overdue" onclick="filterByStat('Overdue')"><div class="stat-info"><h4 style="color:var(--danger)">Overdue</h4><h2 id="statOverdue" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-alarm-warning-line"></i></div></div>
             </div>
-
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px; margin-bottom:32px;">
-                <div class="card stat-card" onclick="Nav.to('tickets')">
-                    <div class="stat-icon" style="background:#eff6ff; color:#4f46e5;"><i class="ri-ticket-2-fill"></i></div>
-                    <div class="stat-val" id="d_total">0</div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:500;">Total Tickets</div>
-                </div>
-                <div class="card stat-card" onclick="Nav.to('tickets')">
-                    <div class="stat-icon" style="background:#fffbeb; color:#f59e0b;"><i class="ri-loader-2-fill"></i></div>
-                    <div class="stat-val" id="d_open">0</div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:500;">Pending / Open</div>
-                </div>
-                <div class="card stat-card" onclick="Nav.to('tickets')">
-                    <div class="stat-icon" style="background:#ecfdf5; color:#10b981;"><i class="ri-check-double-fill"></i></div>
-                    <div class="stat-val" id="d_closed">0</div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:500;">Resolved</div>
-                </div>
-                <div class="card stat-card" onclick="Nav.to('requests')">
-                    <div class="stat-icon" style="background:#ecfeff; color:#06b6d4;"><i class="ri-macbook-fill"></i></div>
-                    <div class="stat-val" id="d_req">0</div>
-                    <div style="color:var(--text-muted); font-size:13px; font-weight:500;">Asset Requests</div>
-                </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
-                <div class="card">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
-                        <h3 style="margin:0;">Weekly Volume</h3>
-                        <div class="pill cat-pill">Last 7 Days</div>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom: 24px;">
+                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:16px;"><h3 style="font-size:16px; font-weight:600;">Analitik Kinerja</h3><select style="border:none; background:transparent; font-size:12px; color:var(--text-secondary);"><option>7 Hari Terakhir</option></select></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartCategory"></canvas></div>
+                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartSLA"></canvas></div>
                     </div>
-                    <div style="height:280px;"><canvas id="chartVolume"></canvas></div>
                 </div>
-                <div class="card" style="display:flex; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h3 style="margin:0;">Announcements</h3>
-                        <button class="btn-icon" onclick="Modal.open('ann')"><i class="ri-add-line"></i></button>
-                    </div>
-                    <div id="dashAnnouncements" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
+                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:16px; font-weight:600;">📢 Pengumuman</h3><button class="btn-toggle" onclick="openAnnModal(null)"><i class="ri-add-line"></i> Baru</button></div>
+                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:8px;"></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-tickets" class="view-section hidden">
-            <div class="page-header">
-                <div class="page-title"><h2>Ticket Management</h2><p>Track and resolve user issues.</p></div>
-                <button class="btn btn-primary" onclick="Modal.open('ticket')"><i class="ri-add-line"></i> New Ticket</button>
-            </div>
-            
-            <div class="card" style="padding:0;">
-                <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; gap:16px;">
-                    <input id="ticketSearch" class="search-input" style="width:300px;" placeholder="Search by ID, User, or Subject...">
-                    <select id="ticketFilter" class="search-input" style="width:160px;"><option value="">All Status</option><option value="Open">Open</option><option value="Closed">Closed</option></select>
-                </div>
-                <div class="table-responsive" style="border:none; border-radius:0;">
-                    <table id="ticketTable">
-                        <thead><tr><th>Ticket Details</th><th>Category</th><th>Status</th><th>Assignee</th><th>Updated</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+        <div id="view-tickets" class="hidden">
+            <div class="view-controls">
+                <div><h1 style="font-size:24px; font-weight:700;">Manajemen Tiket</h1><p style="color:var(--text-secondary); font-size:14px;">Pantau dan selesaikan laporan user.</p></div>
+                <div style="display:flex; gap:12px;">
+                    <div class="btn-group"><button class="btn-toggle active" id="btnList" onclick="toggleViewMode('list')"><i class="ri-list-check"></i> List</button><button class="btn-toggle" id="btnKanban" onclick="toggleViewMode('kanban')"><i class="ri-kanban-view"></i> Board</button></div>
+                    <button class="btn" onclick="openReportModal(null)"><i class="ri-add-line"></i> Tiket Baru</button>
+                    <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i></button>
                 </div>
             </div>
-        </div>
-
-        <div id="view-users" class="view-section hidden">
-            <div class="page-header">
-                <div class="page-title"><h2>Team Directory</h2><p>Manage access and user roles.</p></div>
-                <button class="btn btn-primary" onclick="Modal.open('userCreate')">Invite User</button>
+            <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                <select id="filterCat" class="btn-outline" style="padding:8px; border-radius:8px; width:auto;"><option value="">Semua Kategori</option><option value="Low">Low</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select>
+                <input type="text" id="ticketSearch" placeholder="Filter ID/Nama..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); width:200px;">
             </div>
-            <div class="card" style="padding:0;">
-                <div style="padding:20px; border-bottom:1px solid var(--border);">
-                    <input id="userSearch" class="search-input" style="width:100%;" placeholder="Find member by name or email...">
-                </div>
-                <div class="table-responsive" style="border:none; border-radius:0;">
-                    <table id="userTable">
-                        <thead><tr><th>User Profile</th><th>Department</th><th>Status</th><th>Workload</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+            <div id="cont-list" class="table-responsive">
+                <table id="reportTable"><thead><tr><th>ID & User</th><th>Subjek Masalah</th><th>Status & SLA</th><th>PIC</th><th>Updated</th><th style="text-align:right">Aksi</th></tr></thead><tbody></tbody></table>
+                <div class="pagination-container"><div class="pagination-info" id="paginationInfo">Menampilkan 0-0 dari 0</div><div class="pagination-btns" id="paginationBtns"></div></div>
+            </div>
+            <div id="cont-kanban" class="hidden">
+                <div class="kanban-board">
+                    <div class="kanban-col"><div class="kanban-header"><h3>Open / Baru</h3><span class="kanban-count" id="countOpen">0</span></div><div id="kb-Open" class="kanban-items-container"></div></div>
+                    <div class="kanban-col"><div class="kanban-header"><h3>In Progress</h3><span class="kanban-count" id="countProgress">0</span></div><div id="kb-Progress" class="kanban-items-container"></div></div>
+                    <div class="kanban-col"><div class="kanban-header"><h3>Closed / Selesai</h3><span class="kanban-count" id="countClosed">0</span></div><div id="kb-Closed" class="kanban-items-container"></div></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-requests" class="view-section hidden">
-             <div class="page-header">
-                <div class="page-title"><h2>Asset Procurement</h2><p>Hardware & software requests.</p></div>
+        <div id="view-users" class="hidden">
+            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Manajemen User</h1>
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-info"><h4>Total User</h4><h2 id="userStatTotal">0</h2></div><div class="stat-icon"><i class="ri-group-line"></i></div></div>
+                <div class="stat-card"><div class="stat-info"><h4>Pending</h4><h2 id="userStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-user-follow-line"></i></div></div>
+                <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="userStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-user-smile-line"></i></div></div>
             </div>
-            <div class="card" style="padding:0;">
-                <div class="table-responsive" style="border:none; border-radius:0;">
-                    <table id="reqTable">
-                        <thead><tr><th>Date</th><th>User</th><th>Item Details</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <div class="filter-bar">
+                <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
+                <select id="userFilterDept"><option value="">Semua Departemen</option></select>
+                <select id="userFilterStatus"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                <button id="showCreateUserPopupBtn" class="btn btn-create"><i class="ri-user-add-line"></i> User Baru</button>
             </div>
+            <div class="table-responsive"><table id="userTable"><thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Status</th><th style="text-align:center;">Tiket</th><th>Aksi</th></tr></thead><tbody id="userTableBody"></tbody></table></div>
         </div>
 
-        <div id="view-billing" class="view-section hidden">
-            <div class="page-header"><div class="page-title"><h2>Billing & Usage</h2><p>Workspace consumption stats.</p></div></div>
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
-                <div class="card">
-                    <h3 style="margin-top:0; font-size:18px;">Current Plan: <span style="color:var(--primary)">Enterprise</span></h3>
-                    <p style="color:var(--text-muted); margin-bottom:32px; font-size:13px;">Renewal on <strong>Jan 1, 2026</strong> via Credit Card (**** 4242)</p>
-                    
-                    <div style="margin-bottom:24px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:600; font-size:13px;">
-                            <span>Seats Used</span><span id="bill_users">0 / 50</span>
-                        </div>
-                        <div style="height:8px; background:var(--bg-body); border-radius:4px; overflow:hidden;">
-                            <div id="bar_users" style="width:0%; height:100%; background:var(--primary); transition:1s;"></div>
-                        </div>
-                    </div>
-                    <div style="margin-bottom:24px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:600; font-size:13px;">
-                            <span>Data Records</span><span id="bill_tickets">0 / 1000</span>
-                        </div>
-                        <div style="height:8px; background:var(--bg-body); border-radius:4px; overflow:hidden;">
-                            <div id="bar_tickets" style="width:0%; height:100%; background:var(--info); transition:1s;"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card" style="background: linear-gradient(135deg, var(--primary), #4338ca); color:white; border:none; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-                    <div style="width:60px; height:60px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:16px;">🚀</div>
-                    <h3 style="color:white; margin:0;">Upgrade Plan</h3>
-                    <p style="opacity:0.9; font-size:13px; margin-bottom:20px;">Unlock unlimited seats and AI analytics.</p>
-                    <button class="btn" style="background:white; color:var(--primary); width:100%; justify-content:center;">Contact Sales</button>
-                </div>
+        <div id="view-requests" class="hidden">
+            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Permintaan Aset</h1>
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-info"><h4>Total Pending</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-time-line"></i></div></div>
+                <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="reqStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-check-line"></i></div></div>
+                <div class="stat-card"><div class="stat-info"><h4>Rejected</h4><h2 id="reqStatRejected" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-close-line"></i></div></div>
             </div>
-        </div>
-
-        <div id="view-settings" class="view-section hidden">
-            <div class="page-header"><div class="page-title"><h2>Settings</h2><p>Configure workspace preferences.</p></div></div>
-            <div class="card" style="max-width:600px;">
-                <h4 style="margin-top:0;">General Information</h4>
-                <div style="margin-bottom:24px;">
-                    <label style="font-weight:700; font-size:12px; color:var(--text-muted);">WORKSPACE NAME</label>
-                    <input class="search-input" value="Zeppelin Enterprise" style="margin-top:8px;">
-                </div>
-                <hr style="border:0; border-top:1px solid var(--border); margin:24px 0;">
-                <h4 style="color:var(--danger);">Danger Zone</h4>
-                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--danger-bg); padding:16px; border-radius:12px; border:1px solid rgba(239,68,68,0.2);">
-                    <div>
-                        <div style="font-weight:600; color:var(--danger);">Trash Mode (Archive)</div>
-                        <div style="font-size:12px; color:var(--danger); opacity:0.8;">View soft-deleted items in lists.</div>
-                    </div>
-                    <button class="btn" style="background:white; color:var(--danger); border:1px solid rgba(239,68,68,0.2);" onclick="App.toggleTrash()">Toggle</button>
-                </div>
+            <div class="filter-bar">
+                <input id="reqSearch" type="text" placeholder="Cari user, email, detail...">
+                <select id="reqFilterDept"><option value="">Semua Departemen</option></select>
+                <select id="reqFilterStatus"><option value="">Semua Status</option><option value="Pending" selected>Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
             </div>
+            <div class="table-responsive"><table id="reqTable"><thead><tr><th>Tanggal</th><th>User</th><th>Departemen</th><th>Kategori</th><th>Detail</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="reqTableBody"></tbody></table></div>
         </div>
     </main>
 </div>
 
-<div class="modal-overlay" id="mod_ticket">
-    <div class="modal-box">
-        <h3 style="margin-top:0;">Ticket Details</h3>
-        <input type="hidden" id="t_id">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
-            <div><label style="font-size:11px; font-weight:700; color:var(--text-muted);">REPORTER</label><input id="t_nama" class="search-input" style="margin-top:6px;"></div>
-            <div><label style="font-size:11px; font-weight:700; color:var(--text-muted);">ASSIGNEE</label><input id="t_pic" class="search-input" style="margin-top:6px;"></div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-            <div><label style="font-size:11px; font-weight:700; color:var(--text-muted);">CATEGORY</label><select id="t_cat" class="search-input" style="margin-top:6px;"><option value="Network">Network</option><option value="Hardware">Hardware</option><option value="Software">Software</option></select></div>
-            <div><label style="font-size:11px; font-weight:700; color:var(--text-muted);">PRIORITY</label><select id="t_prio" class="search-input" style="margin-top:6px;"><option value="Normal">Normal</option><option value="Critical">Critical</option><option value="Low">Low</option></select></div>
-        </div>
-        <div style="margin-bottom:20px;">
-            <label style="font-size:11px; font-weight:700; color:var(--text-muted);">DESCRIPTION</label>
-            <textarea id="t_desc" class="search-input" rows="3" style="margin-top:6px;"></textarea>
-        </div>
-        <div style="margin-bottom:24px; padding:16px; background:var(--bg-body); border-radius:12px; border:1px dashed var(--border);">
-            <label style="font-size:11px; font-weight:700; color:var(--primary);">🔒 INTERNAL NOTE</label>
-            <textarea id="t_int" class="search-input" rows="2" style="background:white; margin-top:6px;"></textarea>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:20px;">
-            <select id="t_status" class="search-input" style="width:auto;"><option value="Open">Status: Open</option><option value="Progress">Status: In Progress</option><option value="Closed">Status: Closed</option></select>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-secondary" onclick="Modal.close('ticket')">Cancel</button>
-                <button class="btn btn-primary" onclick="Data.saveTicket()">Save Changes</button>
+<div class="modal-overlay" id="modalTicket">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Detail Tiket</h2>
+        <form id="formTicket" onsubmit="return false;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div><label style="font-size:12px; font-weight:600;">Pelapor</label><input id="t_nama" required placeholder="Nama User" style="margin-top:4px;"></div>
+                <div><label style="font-size:12px; font-weight:600;">PIC Teknisi</label><input id="t_pic" required placeholder="Nama Anda" style="margin-top:4px;"></div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="mod_req">
-    <div class="modal-box" style="max-width:480px;">
-        <h3 style="margin-top:0;">Request Approval</h3>
-        <input type="hidden" id="r_id">
-        <div style="background:var(--bg-body); padding:16px; border-radius:12px; margin:20px 0; border:1px solid var(--border);">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                <div class="avatar" style="background:var(--info);">U</div>
-                <strong id="r_user">User</strong>
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px; font-weight:600;">Jenis & Kategori</label>
+                <div style="display:flex; gap:12px; margin-top:4px;">
+                    <select id="t_jenis"><option>Jaringan</option><option>Hardware</option><option>Software</option><option>Akun</option></select>
+                    <select id="t_kategori"><option value="Low">Low (48h)</option><option value="Normal">Normal (24h)</option><option value="Critical">Critical (4h)</option></select>
+                </div>
             </div>
-            <div style="color:var(--text-muted); font-size:13px; line-height:1.5;">Requested item: <strong id="r_item" style="color:var(--text-main);">Item</strong></div>
-        </div>
-        <textarea id="r_note" class="search-input" rows="2" placeholder="Add approval/rejection note..."></textarea>
-        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-            <button class="btn btn-secondary" onclick="Modal.close('req')">Close</button>
-            <button class="btn btn-danger" onclick="Data.procReq('Rejected')">Reject</button>
-            <button class="btn btn-primary" onclick="Data.procReq('Approved')">Approve</button>
-        </div>
+            <div style="margin-bottom:16px;"><label style="font-size:12px; font-weight:600;">Catatan Publik</label><textarea id="t_note" rows="3" style="margin-top:4px;"></textarea></div>
+            <div style="margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal</label><textarea id="t_internal" rows="3" style="background:var(--bg-hover); margin-top:4px;"></textarea></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <select id="t_status" style="width:auto;"><option value="Open">Open</option><option value="Progress">Progress</option><option value="Closed">Closed</option></select>
+                <div style="display:flex; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalTicket')">Batal</button><button class="btn" onclick="saveTicket()">Simpan</button></div>
+            </div>
+        </form>
     </div>
 </div>
 
-<div class="modal-overlay" id="mod_userCreate">
-    <div class="modal-box" style="max-width:450px;">
-        <h3 style="margin-top:0;">Invite Team Member</h3>
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">They will receive an email to join the workspace.</p>
-        <div style="display:grid; gap:12px; margin-bottom:24px;">
-            <input id="cu_name" class="search-input" placeholder="Full Name">
-            <input id="cu_email" class="search-input" placeholder="Email Address">
-            <input id="cu_dept" class="search-input" placeholder="Department">
-            <input id="cu_pass" type="password" class="search-input" placeholder="Temporary Password">
+<div class="modal-overlay" id="modalAnn">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Buat Pengumuman</h2>
+        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Judul</label><input id="a_title" placeholder="Cth: Libur Nasional" style="margin-top:4px;"></div>
+        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Konten</label><textarea id="a_content" rows="6" placeholder="Isi..." style="margin-top:4px;"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div><label style="font-size:12px; font-weight:600;">Kategori</label><select id="a_cat" style="margin-top:4px;"><option value="Umum">Umum</option><option value="Penting">Penting</option><option value="Event">Event</option></select></div>
+            <div><label style="font-size:12px; font-weight:600;">Author</label><input id="a_author" value="Admin" style="margin-top:4px;"></div>
         </div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button class="btn btn-secondary" onclick="Modal.close('userCreate')">Cancel</button>
-            <button class="btn btn-primary" onclick="Data.createUser()">Send Invitation</button>
-        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:24px;"><input type="checkbox" id="a_pin"> <span>Sematkan (Pin)</span></label>
+        <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalAnn')">Batal</button><button class="btn" onclick="saveAnnouncement()">Publikasikan</button></div>
     </div>
 </div>
 
-<div class="modal-overlay" id="mod_ann">
-    <div class="modal-box">
-        <h3 style="margin-top:0;">New Announcement</h3>
-        <div style="margin:20px 0;">
-            <input id="a_title" class="search-input" placeholder="Announcement Title" style="margin-bottom:12px; font-weight:600;">
-            <textarea id="a_body" class="search-input" rows="4" placeholder="Write your update here..."></textarea>
-        </div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button class="btn btn-secondary" onclick="Modal.close('ann')">Discard</button>
-            <button class="btn btn-primary" onclick="Data.saveAnn()">Post Update</button>
-        </div>
+<div class="modal-overlay" id="modalUserDetail">
+    <div class="modal-content">
+        <h3>Detail User: <span id="ud_name" style="color:var(--primary)"></span></h3><input type="hidden" id="ud_id">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;"><div><label class="small">Nama Lengkap</label><input type="text" id="ud_fullname"></div><div><label class="small">Departemen</label><input type="text" id="ud_dept"></div></div>
+        <div style="margin-bottom:16px;"><label class="small">Email</label><input type="email" id="ud_email" disabled></div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;"><button class="btn" style="background:var(--success)" onclick="updateUserStatus('approved')">Approve</button><button class="btn" style="background:var(--danger)" onclick="updateUserStatus('rejected')">Reject</button><button class="btn" style="background:var(--warning)" onclick="updateUserStatus('pending')">Pending</button></div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border-color); padding-top:16px;"><button class="btn btn-outline" onclick="closeModal('modalUserDetail')">Tutup</button><button class="btn" onclick="saveUserChanges()">Simpan Data</button></div>
     </div>
 </div>
 
-<div id="toast"><i class="ri-checkbox-circle-fill" style="color:var(--success);"></i> <span id="toastMsg">Action Successful</span></div>
+<div class="modal-overlay" id="modalCreateUser">
+    <div class="modal-content">
+        <h3>Buat User Baru</h3>
+        <form id="formCreateUser" onsubmit="return false;">
+            <div style="margin-bottom:12px;"><label class="small">Nama Lengkap</label><input id="cu_name" required></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;"><div><label class="small">Email</label><input id="cu_email" type="email" required></div><div><label class="small">Departemen</label><input id="cu_dept" required></div></div>
+            <div style="margin-bottom:16px;"><label class="small">Password (Min. 6 char)</label><input id="cu_pass" type="password" required minlength="6"></div>
+            <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalCreateUser')">Batal</button><button class="btn" onclick="submitNewUser()">Buat Akun</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalReqDetail">
+    <div class="modal-content">
+        <h3>Proses Permintaan</h3><input type="hidden" id="rd_id">
+        <div style="background:var(--bg-hover); padding:16px; border-radius:8px; margin-bottom:16px;"><div style="font-weight:700; margin-bottom:4px;" id="rd_user">User Name</div><div style="font-size:13px; color:var(--text-secondary);" id="rd_detail">Request Details...</div><div style="margin-top:8px; font-style:italic;" id="rd_reason">"Reason..."</div></div>
+        <div id="assetAssignSection" style="margin-bottom:16px; display:none;"><label class="small" style="color:var(--primary)"><i class="ri-box-3-line"></i> Tetapkan Aset dari Stok</label><select id="rd_asset_select" style="margin-top:4px;"><option value="">-- Pilih Aset --</option></select></div>
+        <div style="margin-bottom:16px;"><label class="small">Catatan Admin</label><textarea id="rd_notes" rows="3" placeholder="Respon untuk user..."></textarea></div>
+        <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalReqDetail')">Batal</button><button class="btn" style="background:var(--danger)" onclick="processRequest('Rejected')">Tolak</button><button class="btn" style="background:var(--success)" onclick="processRequest('Approved')">Setujui</button></div>
+    </div>
+</div>
+
+<div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:var(--bg-body); padding:12px 24px; border-radius:50px; font-weight:600; transition:all 0.3s; z-index:99999; box-shadow:var(--shadow-md);">Notification</div>
 
 <script>
-    // --- A. CONFIG ---
-    const CFG = {
-        adminUID: "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2", adminEmail: "root@zeppelin.center",
-        firebase: {
-            apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
-            authDomain: "it-support-53eeb.firebaseapp.com",
-            databaseURL: "https://it-support-53eeb-default-rtdb.firebaseio.com",
-            projectId: "it-support-53eeb",
-            storageBucket: "it-support-53eeb.firebasestorage.app",
-            messagingSenderId: "573924501146",
-            appId: "1:573924501146:web:12f34306ed675472322123"
+    // === CONFIGURATION ===
+    const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
+    const ADMIN_EMAIL = "root@zeppelin.center";
+    const firebaseConfig = {
+        apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
+        authDomain: "it-support-53eeb.firebaseapp.com",
+        databaseURL: "https://it-support-53eeb-default-rtdb.firebaseio.com",
+        projectId: "it-support-53eeb",
+        storageBucket: "it-support-53eeb.firebasestorage.app",
+        messagingSenderId: "573924501146",
+        appId: "1:573924501146:web:12f34306ed675472322123",
+        measurementId: "G-33K6DDE1VR"
+    };
+
+    const mainApp = firebase.initializeApp(firebaseConfig);
+    const db = mainApp.database();
+    const auth = mainApp.auth();
+    const firestore = mainApp.firestore();
+    const SLA_HOURS = { Low: 48, Normal: 24, Critical: 4 };
+
+    // === STATE ===
+    let reports = [];
+    let users = [];
+    let requests = [];
+    let assets = []; 
+    let announcements = [];
+    let isTrashMode = false;
+    let editingId = null;
+    let editingAnnId = null;
+    let editingUserId = null;
+    let currentTicketPage = 1;
+    const itemsPerPage = 10;
+
+    // === UTILS ===
+    const $ = (sel) => document.querySelector(sel);
+    const showToast = (msg, type='normal') => {
+        const t = $('#toast'); 
+        t.textContent = msg; 
+        t.style.background = type === 'error' ? 'var(--danger)' : 'var(--text-primary)';
+        t.style.bottom = "32px";
+        setTimeout(() => t.style.bottom = "-100px", 3000);
+    };
+    const nowISO = () => new Date().toISOString();
+    
+    // === LOADING EFFECT HELPER ===
+    const showLoading = () => $('#appLoader').style.display = 'flex';
+    const hideLoading = () => {
+        // Fade out animation
+        $('#appLoader').style.opacity = '0';
+        setTimeout(() => {
+            $('#appLoader').style.display = 'none';
+            $('#appLoader').style.opacity = '1';
+        }, 300);
+    };
+
+    // === AUTH & INIT (FIXED REFRESH FLASHING) ===
+    auth.onAuthStateChanged(user => {
+        if (user && user.uid === ADMIN_UID) {
+            // Logged In: Show Dashboard
+            $('#loginScreen').classList.add('hidden');
+            $('#appInterface').classList.remove('hidden');
+            initApp(user);
+        } else {
+            // Not Logged In: Show Login
+            $('#loginScreen').classList.remove('hidden');
+            $('#appInterface').classList.add('hidden');
+        }
+        
+        // Sembunyikan Loading Screen HANYA SETELAH status auth dicek
+        // Delay dikit biar transisi smooth
+        setTimeout(() => hideLoading(), 500);
+    });
+
+    $('#loginBtn').onclick = async () => {
+        const u = $('#loginUser').value; const p = $('#loginPass').value;
+        if (u !== 'root' || p !== 'adm123') return $('#authError').textContent = "Invalid Credentials", $('#authError').style.display = 'block';
+        try { 
+            showLoading(); // Show Spinner immediately
+            await auth.signInWithEmailAndPassword(ADMIN_EMAIL, p); 
+            // onAuthStateChanged will handle the hideLoading()
+        } 
+        catch (e) { 
+            hideLoading();
+            $('#authError').textContent = e.message; 
+            $('#authError').style.display = 'block'; 
         }
     };
-    
-    const app = firebase.initializeApp(CFG.firebase);
-    const db = app.database(); const auth = app.auth();
-
-    // --- B. STATE ---
-    const State = { reports: [], users: [], requests: [], announcements: [], trashMode: false, editingId: null };
-
-    // --- C. UTILITIES ---
-    const $ = (s) => document.querySelector(s);
-    const UI = {
-        showLoader: () => $('#appLoader').classList.remove('hidden'),
-        hideLoader: () => { $('#appLoader').style.opacity = '0'; setTimeout(()=>$('#appLoader').classList.add('hidden'), 500); },
-        toast: (msg) => { const t=$('#toast'); $('#toastMsg').innerText=msg; t.style.bottom="40px"; setTimeout(()=>t.style.bottom="-100px",3000); },
-        toggleTheme: () => { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='light'?'dark':'light'); }
+    $('#logoutBtn').onclick = () => {
+        showLoading();
+        auth.signOut();
     };
 
-    // --- D. AUTH & DATA ---
-    const Auth = {
-        init: () => {
-            auth.onAuthStateChanged(u => {
-                if(u && u.uid===CFG.adminUID) { $('#loginScreen').classList.add('hidden'); $('#appInterface').classList.remove('hidden'); Data.listen(); }
-                else { $('#loginScreen').classList.remove('hidden'); $('#appInterface').classList.add('hidden'); UI.hideLoader(); }
-            });
-        },
-        login: async () => {
-            UI.showLoader();
-            try { await auth.signInWithEmailAndPassword($('#loginUser').value, $('#loginPass').value); }
-            catch(e) { UI.hideLoader(); $('#authError').innerText=e.message; $('#authError').style.display='block'; }
-        },
-        logout: () => auth.signOut()
-    };
-    $('#loginBtn').onclick = Auth.login;
+    function initApp(user) {
+        $('#themeToggle').onclick = () => {
+            const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+        };
+        $('#mobileMenuBtn').onclick = () => $('#sidebar').classList.toggle('open');
 
-    const Data = {
-        listen: () => {
-            db.ref('reports').on('value', s => { State.reports = s.val() ? Object.keys(s.val()).map(k=>({...s.val()[k], id:k})) : []; Render.all(); UI.hideLoader(); });
-            db.ref('users').on('value', s => { State.users = s.val() ? Object.keys(s.val()).map(k=>({...s.val()[k], uid:k})) : []; Render.users(); Render.billing(); });
-            db.ref('device_requests').on('value', s => { State.requests = s.val() ? Object.keys(s.val()).map(k=>({...s.val()[k], id:k})) : []; Render.requests(); Render.dashboard(); });
-            db.ref('announcements').on('value', s => { State.announcements = s.val() ? Object.keys(s.val()).map(k=>({...s.val()[k], key:k})) : []; Render.announcements(); });
-        },
-        saveTicket: async () => {
-            const id = State.editingId || 'ZP-'+Date.now().toString().slice(-4);
-            const d = { id, nama:$('#t_nama').value, pic:$('#t_pic').value, jenis:$('#t_cat').value, kategori:$('#t_prio').value, status:$('#t_status').value, catatan:$('#t_desc').value, note_internal:$('#t_int').value, updated_iso:new Date().toISOString(), created_iso:State.editingId?State.reports.find(r=>r.id===id).created_iso:new Date().toISOString() };
-            await db.ref('reports/'+id).update(d); Modal.close('ticket'); UI.toast('Ticket Saved');
-        },
-        createUser: async () => {
+        // === FILTER LISTENERS ===
+        $('#filterCat').onchange = () => renderTickets(1);
+        $('#userFilterDept').onchange = renderUsers;
+        $('#userFilterStatus').onchange = renderUsers;
+        $('#reqFilterDept').onchange = renderRequests;
+        $('#reqFilterStatus').onchange = renderRequests;
+
+        // === SEARCH LISTENERS ===
+        $('#ticketSearch').oninput = () => renderTickets(1);
+        $('#globalSearch').oninput = () => { renderTickets(1); renderUsers(); renderRequests(); };
+        $('#userSearchInput').oninput = renderUsers;
+        $('#reqSearch').oninput = renderRequests;
+
+        // === BACKUP & RESTORE LOGIC ===
+        $('#backupBtn').onclick = async () => {
+            showLoading();
             try {
-                const sApp = firebase.initializeApp(CFG.firebase, "Sec");
-                const uc = await sApp.auth().createUserWithEmailAndPassword($('#cu_email').value, $('#cu_pass').value);
-                await db.ref('users/'+uc.user.uid).set({ uid:uc.user.uid, nama:$('#cu_name').value, email:$('#cu_email').value, departemen:$('#cu_dept').value, status:'approved' });
-                await sApp.delete(); Modal.close('userCreate'); UI.toast('User Invited');
-            } catch(e){ alert(e.message); }
-        },
-        procReq: (s) => { db.ref('device_requests/'+$('#r_id').value).update({status:s, admin_notes:$('#r_note').value}); Modal.close('req'); UI.toast('Request '+s); },
-        saveAnn: () => { db.ref('announcements').push({title:$('#a_title').value, content:$('#a_body').value, timestamp:firebase.database.ServerValue.TIMESTAMP}); Modal.close('ann'); UI.toast('Posted'); },
-        backup: () => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(State)], {type:"application/json"}));
-            a.download="backup.json"; a.click();
-        },
-        restore: (f) => {
-            const r = new FileReader(); r.onload=e=>{ const d=JSON.parse(e.target.result); if(d.reports) db.ref('reports').update(d.reports.reduce((a,c)=>{a[c.id]=c;return a},{})); UI.toast('Restored'); };
-            r.readAsText(f);
+                const backupData = {
+                    reports: reports, users: users, requests: requests, announcements: announcements, timestamp: Date.now()
+                };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "zeppelin_backup_" + new Date().toISOString().slice(0,10) + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                showToast("Backup Berhasil Diunduh");
+            } catch (err) { console.error(err); showToast("Gagal Backup", 'error'); }
+            finally { hideLoading(); }
+        };
+
+        $('#restoreBtn').onclick = () => $('#restoreFile').click();
+        $('#restoreFile').onchange = (event) => {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                showLoading();
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.reports && Array.isArray(data.reports)) {
+                        const reportObj = {}; data.reports.forEach(r => reportObj[r.id] = r);
+                        await db.ref('reports').update(reportObj);
+                    }
+                    if(data.requests && Array.isArray(data.requests)) {
+                        const reqObj = {}; data.requests.forEach(r => reqObj[r.id] = r);
+                        await db.ref('device_requests').update(reqObj);
+                    }
+                    if(data.announcements && Array.isArray(data.announcements)) {
+                        const annObj = {}; data.announcements.forEach(r => annObj[r.key] = r);
+                        await db.ref('announcements').update(annObj);
+                    }
+                    showToast("Restore Data Berhasil!");
+                } catch (err) { alert("File Backup Corrupt!"); } 
+                finally { hideLoading(); $('#restoreFile').value = ''; }
+            };
+            reader.readAsText(file);
+        };
+
+        // === REALTIME LISTENERS ===
+        db.ref('reports').on('value', snap => {
+            const val = snap.val();
+            reports = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
+            renderTickets(); renderStats(); renderCharts();
+            if(editingUserId) showUserDetail(editingUserId); 
+        });
+
+        db.ref('announcements').on('value', snap => {
+            const val = snap.val();
+            announcements = val ? Object.keys(val).map(k => ({...val[k], key: k})) : [];
+            renderAnnouncements();
+        });
+
+        db.ref('users').on('value', snap => {
+            const val = snap.val();
+            users = val ? Object.keys(val).map(k => ({...val[k], uid: k})) : [];
+            renderUsers();
+        });
+
+        db.ref('device_requests').on('value', snap => {
+            const val = snap.val();
+            requests = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
+            renderRequests();
+        });
+
+        firestore.collection('users').doc(user.uid).collection('assets_v2').onSnapshot(snap => {
+            assets = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        });
+
+        db.ref('chats/private_chats').on('value', snap => {
+            $('#chatBadge').style.display = snap.exists() ? 'block' : 'none';
+        });
+    }
+
+    // === TABS & FILTER LOGIC ===
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(tab));
+        if(navItem) navItem.classList.add('active');
+        ['dashboard', 'tickets', 'users', 'requests'].forEach(id => $(`#view-${id}`).classList.add('hidden'));
+        $(`#view-${tab}`).classList.remove('hidden');
+        if(window.innerWidth < 1024) $('#sidebar').classList.remove('open');
+        if(tab === 'tickets') renderTickets();
+        if(tab === 'users') renderUsers();
+        if(tab === 'requests') renderRequests();
+    };
+
+    window.filterByStat = (statType) => {
+        switchTab('tickets');
+        $('#filterCat').value = ""; 
+        const searchInput = $('#ticketSearch');
+        if (statType === 'All') searchInput.value = "";
+        else if (statType === 'Overdue') searchInput.value = "overdue";
+        else searchInput.value = statType;
+        renderTickets(1);
+    };
+
+    // === RENDERING FUNCTIONS ===
+    function renderStats() {
+        const active = reports.filter(r => !r.isDeleted);
+        $('#statTotal').textContent = active.length;
+        $('#statOpen').textContent = active.filter(r => r.status === 'Open').length;
+        $('#statClosed').textContent = active.filter(r => r.status === 'Closed').length;
+        $('#statOverdue').textContent = active.filter(r => {
+            if(r.status === 'Closed') return false;
+            return Date.now() > (new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000));
+        }).length;
+    }
+
+    function renderAnnouncements() {
+        const sorted = announcements.sort((a,b) => (a.isPinned === b.isPinned) ? b.timestamp - a.timestamp : a.isPinned ? -1 : 1);
+        $('#announcementFeed').innerHTML = sorted.length ? sorted.map(a => `
+            <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openAnnModal('${a.key}')">
+                ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
+                <div style="flex:1;">
+                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase;">${a.category}</div>
+                    <div style="font-weight:600; font-size:13px;">${a.title}</div>
+                    <div style="font-size:11px; color:var(--text-tertiary);">${new Date(a.timestamp).toLocaleDateString()}</div>
+                </div>
+                <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer;"></i>
+            </div>
+        `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Belum ada pengumuman</div>';
+    }
+
+    window.toggleViewMode = (mode) => {
+        if(mode === 'list') {
+            $('#cont-list').classList.remove('hidden'); $('#cont-kanban').classList.add('hidden');
+            $('#btnList').classList.add('active'); $('#btnKanban').classList.remove('active');
+        } else {
+            $('#cont-list').classList.add('hidden'); $('#cont-kanban').classList.remove('hidden');
+            $('#btnList').classList.remove('active'); $('#btnKanban').classList.add('active');
+            renderKanban();
         }
     };
-    $('#restoreInput').onchange = (e) => Data.restore(e.target.files[0]);
 
-    // --- E. RENDERERS ---
-    const Render = {
-        all: () => { Render.dashboard(); Render.tickets(); Render.billing(); },
-        dashboard: () => {
-            const act = State.reports.filter(r=>!r.isDeleted);
-            $('#d_total').innerText = act.length;
-            $('#d_open').innerText = act.filter(r=>r.status==='Open').length;
-            $('#d_closed').innerText = act.filter(r=>r.status==='Closed').length;
-            $('#d_req').innerText = State.requests.filter(r=>r.status==='Pending').length;
-            
-            // Chart
-            const days={}; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days[d.toLocaleDateString('en',{weekday:'short'})]=0; }
-            act.forEach(r=>{ const d=new Date(r.created_iso).toLocaleDateString('en',{weekday:'short'}); if(days[d]!==undefined)days[d]++; });
-            
-            const ctx=$('#chartVolume').getContext('2d');
-            const grad=ctx.createLinearGradient(0,0,0,400); grad.addColorStop(0,'rgba(99, 102, 241, 0.5)'); grad.addColorStop(1,'rgba(99, 102, 241, 0)');
-            if(window.myChart)window.myChart.destroy();
-            window.myChart=new Chart(ctx,{ type:'line', data:{ labels:Object.keys(days), datasets:[{ label:'Tickets', data:Object.values(days), borderColor:'#6366f1', backgroundColor:grad, fill:true, tension:0.4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{borderDash:[4,4]}}} } });
-        },
-        tickets: () => {
-            const tb=$('#ticketTable tbody'); tb.innerHTML='';
-            const s=$('#ticketSearch').value.toLowerCase(), f=$('#ticketFilter').value;
-            State.reports.filter(r => (State.trashMode===!!r.isDeleted) && (r.nama.toLowerCase().includes(s)||r.id.toLowerCase().includes(s)) && (!f||r.status===f))
-            .forEach(r => {
-                const st = r.status==='Open'?'st-Open':(r.status==='Closed'?'st-Closed':'st-Progress');
-                tb.innerHTML += `<tr onclick="Modal.editTicket('${r.id}')" style="cursor:pointer">
-                    <td><div style="font-weight:700; color:var(--text-main);">${r.id}</div><div style="font-size:12px; color:var(--text-muted);">${r.nama}</div></td>
-                    <td><span class="pill cat-pill">${r.kategori}</span></td>
-                    <td><span class="pill ${st}">${r.status}</span></td>
-                    <td><div style="display:flex; align-items:center; gap:8px;"><div class="avatar" style="width:24px; height:24px; font-size:10px;">${(r.pic||'U').charAt(0)}</div><span>${r.pic||'-'}</span></div></td>
-                    <td>${new Date(r.updated_iso).toLocaleDateString()}</td>
-                    <td><button class="btn-icon"><i class="ri-more-2-fill"></i></button></td>
-                </tr>`;
-            });
-        },
-        users: () => {
-            const tb=$('#userTable tbody'); tb.innerHTML='';
-            State.users.filter(u=>u.nama.toLowerCase().includes($('#userSearch').value.toLowerCase())).forEach(u => {
-                tb.innerHTML += `<tr>
-                    <td><div style="display:flex; align-items:center; gap:12px;"><div class="avatar">${u.nama.charAt(0)}</div><div><div style="font-weight:600;">${u.nama}</div><div style="font-size:11px; color:var(--text-muted);">${u.email}</div></div></div></td>
-                    <td><span class="pill cat-pill">${u.departemen}</span></td>
-                    <td><span style="color:${u.status==='approved'?'var(--success)':'var(--warning)'}; font-weight:600; text-transform:capitalize;">● ${u.status}</span></td>
-                    <td>${State.reports.filter(r=>r.uid===u.uid).length} tickets</td>
-                    <td><button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;">Edit</button></td>
-                </tr>`;
-            });
-        },
-        requests: () => {
-            const tb=$('#reqTable tbody'); tb.innerHTML='';
-            State.requests.forEach(r => {
-                tb.innerHTML += `<tr>
-                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                    <td><div style="font-weight:600;">${r.nama}</div></td>
-                    <td>${r.detail}</td>
-                    <td>${r.prioritas}</td>
-                    <td><span class="pill ${r.status==='Approved'?'st-Closed':(r.status==='Rejected'?'st-Open':'st-Progress')}">${r.status}</span></td>
-                    <td><button class="btn btn-primary" style="padding:6px 12px;" onclick="Modal.req('${r.id}')">Review</button></td>
-                </tr>`;
-            });
-        },
-        announcements: () => {
-            const d=$('#dashAnnouncements'); d.innerHTML='';
-            State.announcements.forEach(a => {
-                d.innerHTML += `<div style="padding:12px; border-radius:12px; background:var(--bg-body); border-left:4px solid var(--primary);">
-                    <div style="font-weight:700; font-size:13px;">${a.title}</div>
-                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${a.content}</div>
-                </div>`;
-            });
-        },
-        billing: () => {
-            const uc=State.users.length, tc=State.reports.length;
-            $('#bill_users').innerText=`${uc} / 50`; $('#bar_users').style.width=`${(uc/50)*100}%`;
-            $('#bill_tickets').innerText=`${tc} / 1000`; $('#bar_tickets').style.width=`${(tc/1000)*100}%`;
+    function renderTickets(page = 1) {
+        currentTicketPage = page;
+        const tbody = $('#reportTable tbody');
+        tbody.innerHTML = '';
+        const searchText = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
+        const catFilter = $('#filterCat').value;
+        let filtered = reports.filter(r => {
+            if(isTrashMode) return r.isDeleted;
+            if(r.isDeleted) return false;
+            let matchesSearch = JSON.stringify(r).toLowerCase().includes(searchText);
+            if (searchText === 'overdue') {
+                if (r.status === 'Closed') return false;
+                const limit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
+                matchesSearch = Date.now() > limit;
+            }
+            const matchesCat = !catFilter || r.kategori === catFilter;
+            return matchesSearch && matchesCat;
+        }).sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / itemsPerPage) || 1;
+        if(currentTicketPage > totalPages) currentTicketPage = totalPages;
+        const start = (currentTicketPage - 1) * itemsPerPage;
+        const paginated = filtered.slice(start, start + itemsPerPage);
+        paginated.forEach(r => {
+            const slaLimit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
+            const timeLeft = slaLimit - Date.now();
+            const percent = Math.max(0, Math.min(100, (timeLeft / (SLA_HOURS[r.kategori]*3600000)) * 100));
+            const color = (timeLeft < 0 && r.status!=='Closed') ? 'var(--danger)' : (percent<50?'var(--warning)':'var(--success)');
+            tbody.innerHTML += `<tr><td><div style="font-weight:700">${r.id}</div><div style="font-size:12px; color:var(--text-secondary)">${r.nama}</div></td><td><div style="font-weight:500">${r.jenis}</div><div style="font-size:11px; color:var(--text-tertiary)">${(r.catatan||'-').substring(0,30)}</div></td><td><span class="badge status-${r.status}">${r.status}</span> <span class="badge cat-${r.kategori}">${r.kategori}</span>${r.status!=='Closed' ? `<div class="sla-progress"><div class="sla-bar" style="width:${percent}%; background:${color}"></div></div>` : ''}</td><td>${r.pic||'-'}</td><td>${new Date(r.updated_iso||r.created_iso).toLocaleDateString()}</td><td style="text-align:right"><button class="icon-btn" onclick="openReportModal('${r.id}')"><i class="ri-edit-line"></i></button><button class="icon-btn" style="color:${isTrashMode?'var(--success)':'var(--danger)'}" onclick="${isTrashMode?`restore('${r.id}')`:`softDelete('${r.id}')`}"><i class="ri-${isTrashMode?'refresh-line':'delete-bin-line'}"></i></button></td></tr>`;
+        });
+        $('#paginationInfo').textContent = `Menampilkan ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} dari ${total}`;
+        $('#paginationBtns').innerHTML = '';
+        if(totalPages > 1) {
+            for(let i=1; i<=totalPages; i++) {
+                if(i==1 || i==totalPages || (i>=currentTicketPage-1 && i<=currentTicketPage+1)) {
+                    $('#paginationBtns').innerHTML += `<button class="page-btn ${i===currentTicketPage?'active':''}" onclick="renderTickets(${i})">${i}</button>`;
+                } else if(i==currentTicketPage-2 || i==currentTicketPage+2) {
+                    $('#paginationBtns').innerHTML += `<span>...</span>`;
+                }
+            }
         }
+        if(!$('#cont-kanban').classList.contains('hidden')) renderKanban();
+    }
+
+    function renderKanban() {
+        ['Open', 'Progress', 'Closed'].forEach(status => {
+            const container = $(`#kb-${status}`);
+            const items = reports.filter(r => !r.isDeleted && r.status === status);
+            $(`#count${status}`).textContent = items.length;
+            container.innerHTML = items.map(r => `<div class="kanban-card" onclick="openReportModal('${r.id}')"><div class="k-card-top"><span>${r.id}</span><span>${new Date(r.created_iso).toLocaleDateString()}</span></div><div class="k-card-title">${r.jenis} - ${r.nama}</div><div class="badge cat-${r.kategori}">${r.kategori}</div><div class="k-card-footer"><div style="font-size:12px; color:var(--text-secondary)"><i class="ri-user-smile-line"></i> ${r.pic||'?'}</div></div></div>`).join('');
+        });
+    }
+
+    function renderUsers() {
+        const search = ($('#userSearchInput').value || $('#globalSearch').value).toLowerCase();
+        const deptFilter = $('#userFilterDept').value;
+        const statusFilter = $('#userFilterStatus').value;
+        const depts = [...new Set(users.map(u => u.departemen).filter(Boolean))];
+        if($('#userFilterDept').children.length === 1) depts.forEach(d => $('#userFilterDept').innerHTML += `<option value="${d}">${d}</option>`);
+        $('#userStatTotal').textContent = users.length;
+        $('#userStatPending').textContent = users.filter(u=>u.status==='pending').length;
+        $('#userStatApproved').textContent = users.filter(u=>u.status==='approved').length;
+        const filtered = users.filter(u => {
+            if(u.uid === ADMIN_UID) return false;
+            const matchesSearch = (u.nama||'').toLowerCase().includes(search) || (u.email||'').toLowerCase().includes(search);
+            const matchesDept = !deptFilter || u.departemen === deptFilter;
+            const matchesStatus = !statusFilter || (u.status||'pending') === statusFilter;
+            return matchesSearch && matchesDept && matchesStatus;
+        });
+        $('#userTableBody').innerHTML = filtered.map(u => {
+            const ticketCount = reports.filter(r => r.uid === u.uid).length;
+            const statusClass = u.status === 'approved' ? 'status-approved' : (u.status==='rejected'?'status-rejected':'status-pending');
+            return `<tr><td>${u.nama}</td><td>${u.email}</td><td>${u.departemen}</td><td><span class="badge ${statusClass}">${u.status||'pending'}</span></td><td style="text-align:center">${ticketCount}</td><td><button class="btn ghost" style="padding:4px 8px; font-size:12px;" onclick="showUserDetail('${u.uid}')">Edit</button></td></tr>`;
+        }).join('');
+    }
+
+    function renderRequests() {
+        const search = ($('#reqSearch').value || $('#globalSearch').value).toLowerCase();
+        const statusFilter = $('#reqFilterStatus').value;
+        const deptFilter = $('#reqFilterDept').value;
+        $('#reqStatPending').textContent = requests.filter(r=>(r.status||'Pending')==='Pending').length;
+        $('#reqStatApproved').textContent = requests.filter(r=>r.status==='Approved').length;
+        $('#reqStatRejected').textContent = requests.filter(r=>r.status==='Rejected').length;
+        const depts = [...new Set(requests.map(r => r.departemen).filter(Boolean))];
+        if($('#reqFilterDept').children.length === 1) depts.forEach(d => $('#reqFilterDept').innerHTML += `<option value="${d}">${d}</option>`);
+        const filtered = requests.filter(r => {
+            const matchesSearch = (r.nama||'').toLowerCase().includes(search) || (r.detail||'').toLowerCase().includes(search);
+            const matchesStatus = !statusFilter || (r.status||'Pending') === statusFilter;
+            const matchesDept = !deptFilter || r.departemen === deptFilter;
+            return matchesSearch && matchesStatus && matchesDept;
+        }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        $('#reqTableBody').innerHTML = filtered.map(r => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.nama}</td><td>${r.departemen}</td><td>${r.kategori}</td><td>${r.detail}</td><td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td><td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td><td><button class="btn ghost" style="padding:4px 8px;" onclick="openReqDetail('${r.id}')">Proses</button></td></tr>`).join('');
+    }
+
+    // === OPERATIONS (WITH LOADING EFFECT) ===
+    window.openReportModal = (id) => {
+        editingId = id; $('#modalTicket').style.display = 'flex'; $('#formTicket').reset();
+        if(id) {
+            const r = reports.find(x => x.id === id);
+            $('#t_nama').value = r.nama; $('#t_nama').readOnly = true;
+            $('#t_pic').value = r.pic || ''; $('#t_jenis').value = r.jenis; $('#t_kategori').value = r.kategori;
+            $('#t_status').value = r.status; $('#t_note').value = r.catatan || ''; $('#t_internal').value = r.note_internal || '';
+        } else { $('#t_nama').readOnly = false; $('#t_status').value = 'Open'; }
+    };
+    window.saveTicket = async () => {
+        const nama = $('#t_nama').value, pic = $('#t_pic').value;
+        if(!nama || !pic) return alert("Wajib diisi");
+        showLoading(); // START LOADING
+        try {
+            let id = editingId;
+            const oldData = id ? reports.find(r => r.id === id) : {};
+            if(!id) { const s = await db.ref('counter').transaction(c => (c||0)+1); id = 'ZP-'+String(s.snapshot.val()).padStart(4,'0'); }
+            const data = { id, nama, pic, jenis: $('#t_jenis').value, kategori: $('#t_kategori').value, status: $('#t_status').value, catatan: $('#t_note').value, note_internal: $('#t_internal').value, updated_iso: nowISO(), created_iso: oldData.created_iso || nowISO(), uid: oldData.uid || auth.currentUser.uid };
+            await db.ref('reports/'+id).update(data);
+            closeModal('modalTicket'); showToast("Tiket Disimpan");
+        } catch(e) { alert(e.message); }
+        finally { hideLoading(); } // END LOADING
+    };
+    window.softDelete = (id) => { if(confirm("Hapus?")) db.ref(`reports/${id}`).update({isDeleted: true}); };
+    window.restore = (id) => db.ref(`reports/${id}`).update({isDeleted: null});
+    window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Mode Sampah" : "Mode Aktif"); };
+
+    window.openAnnModal = (key) => {
+        editingAnnId = key; $('#modalAnn').style.display = 'flex';
+        if(key) {
+            const a = announcements.find(x => x.key === key);
+            $('#a_title').value = a.title; $('#a_content').value = a.content; $('#a_cat').value = a.category; $('#a_pin').checked = a.isPinned;
+        } else { $('#a_title').value = ''; $('#a_content').value = ''; $('#a_pin').checked = false; }
+    };
+    window.saveAnnouncement = async () => {
+        showLoading();
+        try {
+            const d = { title: $('#a_title').value, content: $('#a_content').value, category: $('#a_cat').value, author: $('#a_author').value, isPinned: $('#a_pin').checked, timestamp: firebase.database.ServerValue.TIMESTAMP };
+            if(editingAnnId) await db.ref(`announcements/${editingAnnId}`).update(d);
+            else await db.ref('announcements').push(d);
+            closeModal('modalAnn'); showToast("Pengumuman Terbit");
+        } finally { hideLoading(); }
+    };
+    window.deleteAnn = (k) => { if(confirm("Hapus?")) db.ref(`announcements/${k}`).remove(); };
+
+    window.showUserDetail = (uid) => {
+        const u = users.find(x => x.uid === uid);
+        if(!u) return;
+        editingUserId = uid;
+        $('#modalUserDetail').style.display = 'flex';
+        $('#ud_name').textContent = u.nama; $('#ud_id').value = uid;
+        $('#ud_fullname').value = u.nama; $('#ud_email').value = u.email; $('#ud_dept').value = u.departemen;
+    };
+    window.updateUserStatus = (s) => {
+        const uid = $('#ud_id').value;
+        db.ref(`users/${uid}`).update({status: s});
+        showToast(`Status user diubah ke ${s}`);
+    };
+    window.saveUserChanges = () => {
+        const uid = $('#ud_id').value;
+        db.ref(`users/${uid}`).update({ nama: $('#ud_fullname').value, departemen: $('#ud_dept').value });
+        closeModal('modalUserDetail'); showToast("Data User Disimpan");
+    };
+    
+    $('#showCreateUserPopupBtn').onclick = () => $('#modalCreateUser').style.display = 'flex';
+    window.submitNewUser = async () => {
+        const email = $('#cu_email').value, pass = $('#cu_pass').value, name = $('#cu_name').value, dept = $('#cu_dept').value;
+        if(!email || !pass || !name) return alert("Lengkapi form");
+        showLoading();
+        try {
+            const secApp = firebase.initializeApp(firebaseConfig, "Secondary");
+            const uc = await secApp.auth().createUserWithEmailAndPassword(email, pass);
+            await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: name, email, departemen: dept, status: 'approved' });
+            await secApp.delete();
+            closeModal('modalCreateUser'); showToast("User Baru Dibuat");
+        } catch(e) { alert(e.message); }
+        finally { hideLoading(); }
     };
 
-    // --- F. NAVIGATION & INTERACTION ---
-    const Nav = { to: (id) => { document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); $('#view-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); if(id==='tickets')Render.tickets(); if(id==='users')Render.users(); if(window.innerWidth<1024)$('#sidebar').classList.remove('open'); } };
-    
-    const Modal = {
-        open: (id) => { $('#mod_'+id).style.display='flex'; if(id==='ticket'){State.editingId=null; $('#t_nama').value=''; $('#t_desc').value='';} },
-        close: (id) => $('#mod_'+id).style.display='none',
-        editTicket: (id) => { const r=State.reports.find(x=>x.id===id); State.editingId=id; $('#t_nama').value=r.nama; $('#t_pic').value=r.pic; $('#t_cat').value=r.jenis; $('#t_prio').value=r.kategori; $('#t_desc').value=r.catatan; $('#t_status').value=r.status; $('#t_int').value=r.note_internal||''; $('#mod_ticket').style.display='flex'; },
-        req: (id) => { const r=State.requests.find(x=>x.id===id); $('#r_id').value=id; $('#r_user').innerText=r.nama; $('#r_item').innerText=r.detail; $('#mod_req').style.display='flex'; }
+    window.openReqDetail = (id) => {
+        const r = requests.find(x => x.id === id);
+        if(!r) return;
+        editingId = id; $('#modalReqDetail').style.display = 'flex';
+        $('#rd_user').textContent = r.nama; $('#rd_detail').textContent = `${r.kategori} - ${r.detail}`; $('#rd_reason').textContent = `"${r.alasan}"`;
+        $('#rd_notes').value = r.admin_notes || '';
+        const isHW = (r.detail||'').toLowerCase().match(/laptop|desktop|monitor/);
+        const stock = assets.filter(a => ['Laptop','Desktop','Monitor'].includes(a.type) && !a.pic);
+        const sel = $('#rd_asset_select');
+        sel.innerHTML = '<option value="">-- Pilih Aset --</option>';
+        if(isHW) {
+            $('#assetAssignSection').style.display = 'block';
+            stock.forEach(a => sel.innerHTML += `<option value="${a.id}">${a.name} (${a.serial})</option>`);
+        } else { $('#assetAssignSection').style.display = 'none'; }
     };
-    
-    const App = { toggleTrash: () => { State.trashMode=!State.trashMode; Render.tickets(); UI.toast(State.trashMode?'Trash View':'Active View'); } };
+    window.processRequest = async (status) => {
+        const id = editingId;
+        const notes = $('#rd_notes').value;
+        const assetId = $('#rd_asset_select').value;
+        if(status === 'Approved' && $('#assetAssignSection').style.display !== 'none' && !assetId) return alert("Harap pilih aset untuk diserahkan ke user.");
+        showLoading();
+        try {
+            if(status === 'Approved' && assetId) {
+                const r = requests.find(x => x.id === id);
+                await firestore.collection('users').doc(auth.currentUser.uid).collection('assets_v2').doc(assetId).update({
+                    pic: r.nama, location: r.departemen, lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            await db.ref(`device_requests/${id}`).update({ status, admin_notes: notes, processed_at: nowISO() });
+            closeModal('modalReqDetail');
+            showToast(`Permintaan ${status}`);
+        } finally { hideLoading(); }
+    };
 
-    // Events
-    $('#ticketSearch').oninput=Render.tickets; $('#ticketFilter').onchange=Render.tickets; $('#userSearch').oninput=Render.users;
-    if(window.innerWidth<1024)$('#mobileTrigger').style.display='flex';
-    
-    Auth.init();
+    window.closeModal = (id) => $(`#${id}`).style.display = 'none';
+
+    let chartCat, chartSLA;
+    function renderCharts() {
+        const cats = { Low:0, Normal:0, Critical:0 };
+        const statusCounts = { Open:0, Progress:0, Closed:0 };
+        reports.filter(r=>!r.isDeleted).forEach(r => {
+            cats[r.kategori] = (cats[r.kategori]||0)+1;
+            statusCounts[r.status] = (statusCounts[r.status]||0)+1;
+        });
+        const ctxC = $('#chartCategory').getContext('2d');
+        if(chartCat) chartCat.destroy();
+        chartCat = new Chart(ctxC, { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#06b6d4', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, plugins: { legend: {position:'right'} } } });
+        const ctxS = $('#chartSLA').getContext('2d');
+        if(chartSLA) chartSLA.destroy();
+        chartSLA = new Chart(ctxS, { type: 'bar', data: { labels: Object.keys(statusCounts), datasets: [{ label:'Tiket', data: Object.values(statusCounts), backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'], borderRadius: 4 }] }, options: { maintainAspectRatio: false, plugins: { legend: {display:false} } } });
+    }
 </script>
 </body>
 </html>
