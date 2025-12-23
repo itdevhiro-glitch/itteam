@@ -788,7 +788,8 @@
             const val = snap.val();
             reports = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
             renderTickets(); renderStats(); renderCharts();
-            if(editingUserId) showUserDetail(editingUserId); 
+            const um = document.getElementById('modalUserDetail');
+            if(editingUserId && um && um.style.display === 'flex') showUserDetail(editingUserId); 
         });
         db.ref('announcements').on('value', snap => {
             const val = snap.val();
@@ -1098,6 +1099,7 @@
         if(!u) return;
         editingUserId = uid;
         const m = $('#modalUserDetail');
+        if (!m.classList.contains('active')) switchUserTab('profile');
         m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
         $('#ud_avatar').textContent = u.nama.charAt(0);
         $('#ud_name').textContent = u.nama;
@@ -1124,7 +1126,6 @@
             btnSusp.className = 'btn btn-danger';
         }
         updateActivityFeed(uid);
-        switchUserTab('profile');
     };
     window.switchUserTab = (tabName) => {
         document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
@@ -1144,8 +1145,8 @@
                 <div class="activity-line"><div class="activity-dot"></div></div>
                 <div class="activity-content">
                     <div>Reported an issue: <strong>${r.jenis}</strong></div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Ticket ID: ${r.id}</div>
-                    <span class="activity-time">${new Date(r.created_iso).toLocaleString()}</span>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:2px;">Ticket ID: ${r.id}</div>
+                    <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">${new Date(r.created_iso).toLocaleString()}</div>
                 </div>
             </div>
         `).join('');
@@ -1247,7 +1248,11 @@
     window.closeModal = (id) => {
         const m = $(`#${id}`);
         m.classList.remove('active');
-        setTimeout(() => m.style.display = 'none', 300); 
+        setTimeout(() => m.style.display = 'none', 300);
+        if (id === 'modalUserDetail') editingUserId = null;
+        if (id === 'modalTicket') editingId = null;
+        if (id === 'modalAnn') editingAnnId = null;
+        if (id === 'modalReqDetail') editingId = null;
     };
     let chartCat, chartSLA;
     function renderCharts() {
