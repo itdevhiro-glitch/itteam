@@ -686,29 +686,22 @@
         if(!$('#cont-kanban').classList.contains('hidden')) renderKanban();
     }
 
-    // === FIX: FUNGSI RENDER KANBAN DIPERBAIKI ===
     function renderKanban() {
         const searchText = ($('#ticketSearch').value || $('#globalSearch').value).toLowerCase();
         const catFilter = $('#filterCat').value;
-
-        // Filter data terlebih dahulu
         const filtered = reports.filter(r => {
             if(isTrashMode) return r.isDeleted;
             if(r.isDeleted) return false;
-            
             let matchesSearch = JSON.stringify(r).toLowerCase().includes(searchText);
-            // Handle filter overdue
             if (searchText === 'overdue') {
                 if (r.status === 'Closed') return false;
                 const limit = new Date(r.created_iso).getTime() + (SLA_HOURS[r.kategori]*3600000);
                 matchesSearch = Date.now() > limit;
             }
-
             const matchesCat = !catFilter || r.kategori === catFilter;
             return matchesSearch && matchesCat;
         });
 
-        // Render kolom berdasarkan data yang sudah difilter
         ['Open', 'Progress', 'Closed'].forEach(status => {
             const container = $(`#kb-${status}`);
             const items = filtered.filter(r => r.status === status);
@@ -768,6 +761,7 @@
             $('#t_status').value = r.status; $('#t_note').value = r.catatan || ''; $('#t_internal').value = r.note_internal || '';
         } else { $('#t_nama').readOnly = false; $('#t_status').value = 'Open'; }
     };
+
     window.saveTicket = async () => {
         const nama = $('#t_nama').value, pic = $('#t_pic').value;
         if(!nama || !pic) return alert("Wajib diisi");
@@ -776,12 +770,30 @@
             let id = editingId;
             const oldData = id ? reports.find(r => r.id === id) : {};
             if(!id) { const s = await db.ref('counter').transaction(c => (c||0)+1); id = 'ZP-'+String(s.snapshot.val()).padStart(4,'0'); }
-            const data = { id, nama, pic, jenis: $('#t_jenis').value, kategori: $('#t_kategori').value, status: $('#t_status').value, catatan: $('#t_note').value, note_internal: $('#t_internal').value, updated_iso: nowISO(), created_iso: oldData.created_iso || nowISO(), uid: oldData.uid || auth.currentUser.uid };
+            
+            // === BAGIAN YANG DIPERBAIKI ===
+            const data = { 
+                id, 
+                nama, 
+                pic, 
+                jenis: $('#t_jenis').value, 
+                kategori: $('#t_kategori').value, 
+                status: $('#t_status').value, 
+                catatan: $('#t_note').value, 
+                note_internal: $('#t_internal').value, 
+                updated_iso: nowISO(), 
+                created_iso: oldData.created_iso || nowISO(), 
+                uid: oldData.uid || auth.currentUser.uid,
+                urgent: $('#t_kategori').value === 'Critical' // SUDAH DITAMBAHKAN
+            };
+            // ==============================
+
             await db.ref('reports/'+id).update(data);
             closeModal('modalTicket'); showToast("Tiket Disimpan");
         } catch(e) { alert(e.message); }
         finally { hideLoading(); } // END LOADING
     };
+
     window.softDelete = (id) => { if(confirm("Hapus?")) db.ref(`reports/${id}`).update({isDeleted: true}); };
     window.restore = (id) => db.ref(`reports/${id}`).update({isDeleted: null});
     window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Mode Sampah" : "Mode Aktif"); };
