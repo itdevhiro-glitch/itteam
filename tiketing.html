@@ -79,14 +79,30 @@
     .chat-text { font-size: 14px; line-height: 1.6; }
     textarea { width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-family: var(--font-main); font-size: 14px; resize: none; margin-bottom: 12px; }
     textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-    .dash-container { padding: 32px 48px; overflow-y: auto; height: 100%; }
-    .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
-    .stat-box { background: var(--bg-surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); }
-    .stat-val { font-size: 32px; font-weight: 800; color: var(--text-primary); margin: 8px 0; }
-    .stat-label { font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
-    table { width: 100%; border-collapse: collapse; background: var(--bg-surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-subtle); }
-    th { background: var(--bg-body); padding: 16px 24px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); }
-    td { padding: 16px 24px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; color: var(--text-primary); }
+    
+    /* DASHBOARD STYLES */
+    .dash-container { padding: 32px 48px; overflow-y: auto; height: 100%; background: #f8fafc; }
+    .dash-header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 32px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+    .kpi-card { background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .kpi-card::after { content:''; position: absolute; top:0; left:0; width:4px; height:100%; background: var(--primary); }
+    .kpi-card.warn::after { background: var(--warning); }
+    .kpi-card.dang::after { background: var(--danger); }
+    .kpi-card.succ::after { background: var(--success); }
+    .kpi-val { font-size: 36px; font-weight: 800; color: var(--text-primary); margin: 4px 0; letter-spacing: -1px; }
+    .kpi-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; height: 320px; }
+    .chart-box { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+    .chart-header { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); display: flex; justify-content: space-between; }
+    
+    .table-card { background: white; border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden; box-shadow: var(--shadow-sm); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8fafc; padding: 14px 20px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); }
+    td { padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; color: var(--text-primary); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fdfdfd; }
+    
     .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
     .btn:hover { background: #4338ca; transform: translateY(-1px); }
     .btn-outline { background: white; color: var(--text-primary); border: 1px solid var(--border-subtle); }
@@ -120,7 +136,7 @@
     <nav class="sidebar">
         <div class="brand-icon">Z</div>
         <div class="nav-item active" onclick="switchView('workspace')" title="Workspace"><i class="ri-computer-line"></i></div>
-        <div class="nav-item" onclick="switchView('dashboard')" title="My Dashboard"><i class="ri-dashboard-line"></i></div>
+        <div class="nav-item" onclick="switchView('dashboard')" title="My Dashboard"><i class="ri-dashboard-3-line"></i></div>
         <div style="margin-top:auto;">
             <div class="nav-item" style="color:var(--danger);" onclick="auth.signOut()"><i class="ri-logout-box-line"></i></div>
         </div>
@@ -202,32 +218,77 @@
     </div>
 
     <div id="view-dashboard" class="dash-container hidden">
-        <div style="margin-bottom:32px;">
-            <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:700;">My Performance</h1>
-            <p style="color:var(--text-secondary);">Real-time metrics for <span id="dashName">Technician</span></p>
-        </div>
-        <div class="dash-grid">
-            <div class="stat-box">
-                <div class="stat-label">Tickets Handled</div>
-                <div class="stat-val" id="dTotal">0</div>
-                <div style="font-size:12px; color:var(--success);">Lifetime</div>
+        <div class="dash-header">
+            <div>
+                <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:700; color:var(--text-primary);">Command Center</h1>
+                <p style="color:var(--text-secondary); margin-top:4px;">Real-time ticketing analytics & overview.</p>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Active Tasks</div>
-                <div class="stat-val" id="dActive" style="color:var(--primary);">0</div>
-                <div style="font-size:12px; color:var(--text-secondary);">In Progress</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Pending Queue</div>
-                <div class="stat-val" id="dQueue" style="color:var(--warning);">0</div>
-                <div style="font-size:12px; color:var(--text-secondary);">Unassigned Tickets</div>
+            <div style="text-align:right;">
+                 <div style="font-size:12px; font-weight:700; color:var(--primary);" id="dashDate">...</div>
             </div>
         </div>
-        <h3 style="margin-bottom:16px; font-size:16px; font-weight:700;">Recent Resolutions</h3>
-        <table>
-            <thead><tr><th>ID</th><th>Subject</th><th>Requester</th><th>Closed Date</th></tr></thead>
-            <tbody id="historyTable"></tbody>
-        </table>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Tickets</div>
+                <div class="kpi-val" id="kpiTotal">0</div>
+                <div style="font-size:12px; color:var(--text-secondary);">All time records</div>
+            </div>
+            <div class="kpi-card warn">
+                <div class="kpi-label">Active / Open</div>
+                <div class="kpi-val" id="kpiOpen" style="color:var(--warning)">0</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Needs attention</div>
+            </div>
+            <div class="kpi-card dang">
+                <div class="kpi-label">Critical Issues</div>
+                <div class="kpi-val" id="kpiCrit" style="color:var(--danger)">0</div>
+                <div style="font-size:12px; color:var(--text-secondary);">High priority</div>
+            </div>
+            <div class="kpi-card succ">
+                <div class="kpi-label">Resolution Rate</div>
+                <div class="kpi-val" id="kpiRate" style="color:var(--success)">0%</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Success metric</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-box">
+                <div class="chart-header">Ticket Category Distribution</div>
+                <div style="position: relative; height: 100%; width: 100%;">
+                    <canvas id="chartCategory"></canvas>
+                </div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-header">Status Breakdown</div>
+                <div style="position: relative; height: 100%; width: 100%;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div style="padding:20px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;">Global Ticket Registry</h3>
+                <span style="font-size:12px; color:var(--text-secondary);">Showing all tickets</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Requester</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>PIC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -252,6 +313,8 @@
     let activeTicketId = null;
     let currentTab = 'all';
     let isInternalMode = false;
+    let chartCatInstance = null;
+    let chartStatInstance = null;
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -297,9 +360,9 @@
     function initApp() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appLayout').classList.remove('hidden');
+        document.getElementById('dashDate').textContent = dayjs().format('DD MMMM YYYY');
         
         document.getElementById('myName').textContent = currentUser.nama;
-        document.getElementById('dashName').textContent = currentUser.nama;
         document.getElementById('myAvatar').textContent = currentUser.nama.charAt(0);
 
         db.ref('reports').on('value', snap => {
@@ -307,7 +370,7 @@
             reports = data ? Object.keys(data).map(k => ({...data[k], id: k})) : [];
             reports.sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
             renderTickets(currentTab);
-            updateDashboard();
+            updateDashboard(); // Call Dashboard update immediately
             if(activeTicketId) loadDetail(reports.find(r => r.id === activeTicketId));
         });
     }
@@ -317,6 +380,11 @@
         event.currentTarget.classList.add('active');
         document.getElementById('view-workspace').style.display = view === 'workspace' ? 'grid' : 'none';
         document.getElementById('view-dashboard').style.display = view === 'dashboard' ? 'block' : 'none';
+        
+        if(view === 'dashboard') {
+            updateDashboard();
+            setTimeout(renderCharts, 100); // Delay slightly to ensure canvas is visible
+        }
     }
 
     function renderTickets(tab) {
@@ -444,20 +512,91 @@
         document.getElementById('replyInput').value = '';
     }
 
+    /* --- DASHBOARD LOGIC (FIXED) --- */
     function updateDashboard() {
-        const mine = reports.filter(r => r.pic === currentUser.nama);
-        document.getElementById('dTotal').textContent = mine.length;
-        document.getElementById('dActive').textContent = mine.filter(r => r.status !== 'Closed').length;
-        document.getElementById('dQueue').textContent = reports.filter(r => r.status === 'Open').length;
+        const validReports = reports.filter(r => !r.isDeleted);
+        const total = validReports.length;
+        const open = validReports.filter(r => r.status === 'Open' || r.status === 'Progress').length;
+        const critical = validReports.filter(r => r.kategori === 'Critical' && r.status !== 'Closed').length;
+        const closed = validReports.filter(r => r.status === 'Closed').length;
+        
+        document.getElementById('kpiTotal').textContent = total;
+        document.getElementById('kpiOpen').textContent = open;
+        document.getElementById('kpiCrit').textContent = critical;
+        document.getElementById('kpiRate').textContent = total > 0 ? Math.round((closed/total)*100) + '%' : '0%';
 
-        const tbody = document.getElementById('historyTable'); tbody.innerHTML = '';
-        mine.filter(r => r.status === 'Closed').slice(0, 10).forEach(r => {
-            tbody.innerHTML += `<tr>
-                <td style="font-family:monospace; color:var(--primary);">${r.id}</td>
-                <td>${r.jenis}</td>
-                <td>${r.nama}</td>
-                <td>${dayjs(r.updated_iso).format('DD MMM YYYY')}</td>
-            </tr>`;
+        const tbody = document.getElementById('masterTableBody');
+        tbody.innerHTML = '';
+        validReports.slice(0, 50).forEach(r => {
+            const bg = r.status === 'Closed' ? 'bg-Closed' : (r.status === 'Progress' ? 'bg-Progress' : 'bg-Open');
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-family:monospace; color:var(--primary); font-weight:600;">${r.id}</td>
+                    <td>${dayjs(r.created_iso).format('DD/MM/YY HH:mm')}</td>
+                    <td>${r.jenis}</td>
+                    <td>${r.nama}</td>
+                    <td><span style="color:${r.kategori==='Critical'?'var(--danger)':'inherit'}">${r.kategori}</span></td>
+                    <td><span class="badge ${bg}">${r.status}</span></td>
+                    <td>${r.pic || '<span style="color:#cbd5e1; font-style:italic;">Unassigned</span>'}</td>
+                </tr>
+            `;
+        });
+        
+        if(document.getElementById('view-dashboard').style.display === 'block') {
+            renderCharts();
+        }
+    }
+
+    function renderCharts() {
+        if(!reports.length) return;
+
+        // 1. Category Chart
+        const cats = {};
+        reports.forEach(r => { cats[r.jenis] = (cats[r.jenis] || 0) + 1; });
+        
+        const ctxCat = document.getElementById('chartCategory').getContext('2d');
+        if(chartCatInstance) chartCatInstance.destroy();
+        chartCatInstance = new Chart(ctxCat, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(cats).slice(0, 8), // Top 8 categories
+                datasets: [{
+                    label: 'Tickets by Type',
+                    data: Object.values(cats).slice(0, 8),
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: {display: false} },
+                scales: { y: {beginAtZero: true} }
+            }
+        });
+
+        // 2. Status Chart
+        const stats = { Open:0, Progress:0, Closed:0 };
+        reports.forEach(r => { if(stats[r.status] !== undefined) stats[r.status]++; });
+        
+        const ctxStat = document.getElementById('chartStatus').getContext('2d');
+        if(chartStatInstance) chartStatInstance.destroy();
+        chartStatInstance = new Chart(ctxStat, {
+            type: 'doughnut',
+            data: {
+                labels: ['Open', 'In Progress', 'Resolved'],
+                datasets: [{
+                    data: [stats.Open, stats.Progress, stats.Closed],
+                    backgroundColor: ['#f59e0b', '#0ea5e9', '#10b981'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: {position:'bottom'} }
+            }
         });
     }
 </script>
