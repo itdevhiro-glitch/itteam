@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>Zeppelin — Tech Workspace</title>
+<title>Zeppelin — Enterprise Workspace</title>
 <link rel="icon" type="image/png" href="icov2.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -19,243 +19,372 @@
 
 <style>
     :root {
-        --font-main: 'Inter', sans-serif;
+        /* Enterprise Palette */
+        --font-main: 'Inter', -apple-system, sans-serif;
         --font-heading: 'Plus Jakarta Sans', sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
-        --bg-body: #f8fafc;
+        
+        --bg-body: #f1f5f9;
         --bg-surface: #ffffff;
         --bg-sidebar: #0f172a; 
-        --border-subtle: #e2e8f0;
+        
+        --border-subtle: #cbd5e1;
+        --border-focus: #6366f1;
+        
         --text-primary: #1e293b;
         --text-secondary: #64748b;
-        --text-on-dark: #f1f5f9;
+        --text-tertiary: #94a3b8;
+        
         --primary: #4f46e5; 
+        --primary-hover: #4338ca;
         --primary-light: #e0e7ff;
-        --success: #10b981; --success-bg: #d1fae5;
-        --warning: #f59e0b; --warning-bg: #fef3c7;
-        --danger: #ef4444; --danger-bg: #fee2e2;
-        --info: #0ea5e9; --info-bg: #e0f2fe;
-        --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        
+        --success: #059669; --success-bg: #ecfdf5; --success-border: #a7f3d0;
+        --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fde68a;
+        --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+        --info: #0284c7; --info-bg: #f0f9ff;
+        
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
     }
 
-    * { box-sizing: border-box; outline: none; }
+    /* Reset & Base */
+    * { box-sizing: border-box; outline: none; -webkit-font-smoothing: antialiased; }
     body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); height: 100vh; overflow: hidden; }
-
-    /* LAYOUT UTAMA */
-    .app-layout { display: grid; grid-template-columns: 80px 1fr; height: 100vh; width: 100vw; }
     
-    /* 1. SIDEBAR NAVIGASI */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* LAYOUT */
+    .app-layout { display: grid; grid-template-columns: 72px 1fr; height: 100vh; width: 100vw; transition: opacity 0.3s; }
+    
+    /* 1. SIDEBAR (Slim) */
     .mini-sidebar { 
-        background: var(--bg-sidebar); display: flex; flex-direction: column; align-items: center; padding: 24px 0; z-index: 50; 
-        border-right: 1px solid rgba(255,255,255,0.05);
+        background: var(--bg-sidebar); display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 50; 
+        box-shadow: 4px 0 24px rgba(0,0,0,0.1);
     }
     .brand-icon { 
-        width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), #8b5cf6); 
-        border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; 
-        font-weight: 800; font-size: 24px; margin-bottom: 40px; box-shadow: 0 0 15px rgba(79,70,229,0.3);
+        width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), #8b5cf6); 
+        border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; 
+        font-weight: 800; font-size: 20px; margin-bottom: 32px; box-shadow: 0 0 15px rgba(79,70,229,0.4);
     }
     .nav-item { 
-        width: 48px; height: 48px; border-radius: 12px; color: #94a3b8; 
-        display: flex; align-items: center; justify-content: center; font-size: 24px; 
-        cursor: pointer; transition: all 0.2s; margin-bottom: 12px; position: relative;
+        width: 42px; height: 42px; border-radius: 10px; color: #64748b; 
+        display: flex; align-items: center; justify-content: center; font-size: 20px; 
+        cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; position: relative;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #f8fafc; }
     .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.4); }
     .nav-tooltip {
-        position: absolute; left: 60px; background: #1e293b; color: white; padding: 4px 8px; 
-        border-radius: 4px; font-size: 12px; opacity: 0; pointer-events: none; transition: 0.2s; white-space: nowrap;
+        position: absolute; left: 56px; background: #1e293b; color: white; padding: 6px 10px; 
+        border-radius: 6px; font-size: 11px; font-weight: 500; opacity: 0; pointer-events: none; 
+        transition: 0.2s; white-space: nowrap; transform: translateX(-5px); box-shadow: var(--shadow-md);
     }
-    .nav-item:hover .nav-tooltip { opacity: 1; left: 64px; }
+    .nav-item:hover .nav-tooltip { opacity: 1; transform: translateX(0); }
 
     /* VIEW CONTAINER */
-    .main-view { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .main-view { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-body); }
     
-    /* --- VIEW 1: WORKSPACE (Handling Ticket) --- */
-    .workspace-grid { display: grid; grid-template-columns: 350px 1fr; height: 100%; }
+    /* --- WORKSPACE VIEW --- */
+    .workspace-grid { display: grid; grid-template-columns: 360px 1fr; height: 100%; }
     
     /* List Sidebar */
-    .list-sidebar { background: var(--bg-surface); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; }
-    .list-header { padding: 24px; border-bottom: 1px solid var(--border-subtle); }
-    .list-title { font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-primary); margin: 0; }
-    .filter-tabs { display: flex; gap: 8px; margin-top: 16px; }
-    .filter-tab { 
-        padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; 
-        background: var(--bg-body); color: var(--text-secondary); cursor: pointer; border: 1px solid var(--border-subtle);
+    .list-sidebar { background: var(--bg-surface); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; height: 100%; }
+    .list-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); }
+    .search-box {
+        position: relative; margin-top: 12px;
     }
-    .filter-tab.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+    .search-box i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
+    .search-input {
+        width: 100%; padding: 10px 10px 10px 36px; border-radius: 8px; border: 1px solid var(--border-subtle);
+        background: var(--bg-body); font-size: 13px; transition: 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px var(--primary-light); }
+
+    .filter-tabs { display: flex; gap: 4px; background: var(--bg-body); padding: 4px; border-radius: 8px; margin-top: 16px; }
+    .filter-tab { 
+        flex: 1; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600; text-align: center;
+        color: var(--text-secondary); cursor: pointer; transition: 0.2s;
+    }
+    .filter-tab:hover { color: var(--text-primary); }
+    .filter-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
+
     .ticket-scroller { flex: 1; overflow-y: auto; padding: 12px; }
     
     .ticket-card { 
-        padding: 16px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); 
+        padding: 16px; border-radius: 10px; background: white; border: 1px solid transparent; 
         margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative;
+        box-shadow: var(--shadow-sm);
     }
-    .ticket-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .ticket-card.active { background: #f0fdfa; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
-    .t-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
-    .t-subject { font-weight: 600; font-size: 13px; color: var(--text-primary); margin-bottom: 4px; line-height: 1.4; }
-    .t-user { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
-    .avatar-xs { width: 20px; height: 20px; border-radius: 50%; background: #e2e8f0; display: grid; place-items: center; font-size: 10px; font-weight: 700; }
-    .badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-    .bg-open { background: var(--warning-bg); color: var(--warning); }
-    .bg-progress { background: var(--info-bg); color: var(--info); }
-    .bg-closed { background: var(--success-bg); color: var(--success); }
-    .bg-critical { background: var(--danger-bg); color: var(--danger); }
+    .ticket-card:hover { transform: translateY(-1px); border-color: var(--border-subtle); box-shadow: var(--shadow-md); }
+    .ticket-card.active { background: #f8fafc; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+    .ticket-card.active::before { content:''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; background: var(--primary); border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
 
-    /* Chat Area */
-    .chat-container { background: var(--bg-body); display: flex; flex-direction: column; height: 100%; position: relative; }
-    .chat-header { 
-        height: 72px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle); 
-        padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
-    }
-    .chat-body { flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
-    .chat-footer { background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 20px 32px; }
+    .t-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .t-id { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-tertiary); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+    .t-date { font-size: 11px; color: var(--text-tertiary); }
+    .t-subject { font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .t-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .t-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+    .avatar-xs { width: 22px; height: 22px; border-radius: 50%; background: #e2e8f0; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: #475569; }
     
-    .chat-bubble { max-width: 80%; padding: 20px; border-radius: 16px; position: relative; box-shadow: var(--shadow-sm); }
-    .chat-user { align-self: flex-start; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-top-left-radius: 4px; }
-    .chat-tech { align-self: flex-end; background: linear-gradient(135deg, var(--primary), #4338ca); color: white; border-top-right-radius: 4px; }
-    .chat-note { align-self: center; width: 100%; background: #fffbeb; border: 1px dashed #f59e0b; color: #92400e; font-size: 13px; padding: 12px 16px; border-radius: 8px; }
-    .chat-info { font-size: 11px; margin-bottom: 8px; font-weight: 600; opacity: 0.8; display: flex; justify-content: space-between; }
-    .chat-text { font-size: 14px; line-height: 1.6; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+    .status-badge::before { content:''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .st-open { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+    .st-progress { background: var(--info-bg); color: var(--info); border: 1px solid #bae6fd; }
+    .st-closed { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+    .st-critical { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+    /* DETAIL AREA */
+    .detail-container { background: var(--bg-body); display: flex; flex-direction: column; height: 100%; position: relative; }
+    .detail-header { 
+        height: 72px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle); 
+        padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+        box-shadow: var(--shadow-sm); z-index: 10;
+    }
+    
+    /* Timeline Chat Style */
+    .timeline-area { flex: 1; overflow-y: auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: flex; gap: 16px; margin-bottom: 24px; animation: fadeIn 0.3s ease; }
+    .tl-icon { 
+        width: 32px; height: 32px; border-radius: 50%; background: white; border: 1px solid var(--border-subtle);
+        display: grid; place-items: center; font-size: 14px; flex-shrink: 0; z-index: 2; position: relative;
+    }
+    .tl-content { flex: 1; max-width: 800px; }
+    .tl-meta { font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+    .tl-bubble { 
+        background: white; border: 1px solid var(--border-subtle); padding: 16px; border-radius: 12px; border-top-left-radius: 2px;
+        box-shadow: var(--shadow-sm); font-size: 14px; line-height: 1.6; color: var(--text-primary);
+    }
+    
+    .tl-item.internal .tl-bubble { background: #fffbeb; border-color: var(--warning-border); border-style: dashed; }
+    .tl-item.internal .tl-icon { background: #fffbeb; color: var(--warning); border-color: var(--warning-border); }
+    
+    .tl-item.system { align-items: center; margin-bottom: 16px; }
+    .tl-item.system .tl-icon { width: 24px; height: 24px; font-size: 12px; background: #f1f5f9; }
+    .tl-item.system .tl-content { font-size: 12px; color: var(--text-secondary); font-style: italic; }
+
+    /* Action Footer */
+    .detail-footer { background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 20px 24px; z-index: 20; }
+    .reply-box-wrapper { 
+        border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; 
+        background: white; transition: 0.2s; box-shadow: var(--shadow-sm);
+    }
+    .reply-box-wrapper:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    .reply-header { 
+        background: #f8fafc; padding: 8px 12px; border-bottom: 1px solid var(--border-subtle); 
+        display: flex; align-items: center; gap: 16px; font-size: 12px; font-weight: 600;
+    }
+    .mode-switch { cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-secondary); opacity: 0.6; transition: 0.2s; }
+    .mode-switch:hover { opacity: 1; }
+    .mode-switch.active { color: var(--primary); opacity: 1; }
+    .mode-switch.active-internal { color: var(--warning); opacity: 1; }
 
     textarea { 
-        width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px;
-        font-family: var(--font-main); font-size: 14px; resize: none; margin-bottom: 12px;
+        width: 100%; height: 80px; padding: 12px; border: none;
+        font-family: var(--font-main); font-size: 14px; resize: none; display: block;
     }
-    textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    /* UTILS & BUTTONS */
+    .btn { 
+        padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; 
+        background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; 
+    }
+    .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-outline { background: white; color: var(--text-primary); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); }
+    .btn-outline:hover { border-color: var(--text-secondary); background: #f8fafc; }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border: none; box-shadow: none; }
+    .btn-ghost:hover { background: #f1f5f9; color: var(--text-primary); }
 
-    /* --- VIEW 2: MY DASHBOARD --- */
-    .dash-container { padding: 32px 48px; overflow-y: auto; height: 100%; }
-    .dash-header { margin-bottom: 32px; }
+    /* DASHBOARD ENHANCED */
+    .dash-container { padding: 32px; overflow-y: auto; height: 100%; max-width: 1200px; margin: 0 auto; width: 100%; }
     .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
+    .stat-card { 
+        background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-subtle); 
+        box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+    }
+    .stat-icon { position: absolute; right: 20px; top: 20px; font-size: 24px; opacity: 0.2; transform: scale(1.5); }
+    .stat-val { font-size: 36px; font-weight: 700; letter-spacing: -1px; color: var(--text-primary); margin: 8px 0; }
     
-    .stat-box { background: var(--bg-surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); }
-    .stat-val { font-size: 32px; font-weight: 800; color: var(--text-primary); margin: 8px 0; }
-    .stat-label { font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+    .chart-container { background: white; padding: 24px; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); margin-bottom: 32px; }
     
-    .table-card { background: var(--bg-surface); border-radius: 16px; border: 1px solid var(--border-subtle); overflow: hidden; box-shadow: var(--shadow-sm); }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: var(--bg-body); padding: 16px 24px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); }
-    td { padding: 16px 24px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; color: var(--text-primary); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    th { background: #f8fafc; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; color: var(--text-primary); }
+    tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f8fafc; }
 
-    /* UTILS */
-    .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
-    .btn:hover { background: #4338ca; transform: translateY(-1px); }
-    .btn-outline { background: white; color: var(--text-primary); border: 1px solid var(--border-subtle); }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    /* TOAST */
+    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; flex-direction: column; gap: 8px; }
+    .toast { 
+        background: var(--bg-sidebar); color: white; padding: 12px 20px; border-radius: 8px; 
+        font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 12px;
+        box-shadow: var(--shadow-lg); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     
-    #loginScreen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #eef2ff, #f8fafc); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .login-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 48px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 420px; border: 1px solid white; }
-    
+    /* LOGIN */
+    .login-overlay { 
+        position: fixed; inset: 0; z-index: 999; 
+        background: radial-gradient(circle at top right, #e0e7ff, #f8fafc); 
+        display: flex; align-items: center; justify-content: center;
+    }
+    .login-glass {
+        background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        padding: 48px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.8);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     .hidden { display: none !important; }
-    .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
-    .modal-box { background: white; padding: 32px; border-radius: 16px; width: 400px; max-width: 90%; }
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-    <div class="login-card">
-        <div class="brand-icon" style="width:64px; height:64px; font-size:28px; margin:0 auto 24px;">Z</div>
-        <h2 style="text-align:center; font-family:var(--font-heading); color:var(--text-primary); margin-bottom:8px;">Technician Portal</h2>
-        <p style="text-align:center; color:var(--text-secondary); font-size:14px; margin-bottom:32px;">Masuk menggunakan Email atau NIK.</p>
+<div id="toast-container"></div>
+
+<div id="loginScreen" class="login-overlay">
+    <div class="login-glass">
+        <div style="text-align:center; margin-bottom:32px;">
+            <div class="brand-icon" style="width:56px; height:56px; font-size:26px; margin:0 auto 16px; box-shadow:0 8px 20px rgba(79,70,229,0.3);">Z</div>
+            <h2 style="font-family:var(--font-heading); color:var(--text-primary); margin:0; font-size:24px;">Technician Portal</h2>
+            <p style="color:var(--text-secondary); font-size:14px; margin-top:8px;">Sign in to access your workspace</p>
+        </div>
+        
         <div style="margin-bottom:20px;">
-            <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">ID PENGGUNA</label>
-            <input type="text" id="loginId" placeholder="Email / NIK" style="width:100%; padding:12px; border:1px solid var(--border-subtle); border-radius:8px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; letter-spacing:0.05em;">ACCESS ID</label>
+            <input type="text" id="loginId" placeholder="Email address or NIK" style="width:100%; padding:12px; border:1px solid var(--border-subtle); border-radius:8px; font-family:var(--font-main);">
         </div>
         <div style="margin-bottom:32px;">
-            <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">PASSWORD</label>
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; letter-spacing:0.05em;">SECURE PASSWORD</label>
             <input type="password" id="loginPass" placeholder="••••••••" style="width:100%; padding:12px; border:1px solid var(--border-subtle); border-radius:8px;">
         </div>
-        <button id="btnLogin" class="btn" style="width:100%; justify-content:center;" onclick="processLogin()">Masuk ke Workspace</button>
-        <p id="loginError" style="text-align:center; color:var(--danger); font-size:13px; margin-top:16px; display:none;"></p>
+        <button id="btnLogin" class="btn" style="width:100%; justify-content:center; height:44px; font-size:14px;" onclick="processLogin()">Authenticate</button>
+        <div id="loginError" style="text-align:center; color:var(--danger); font-size:12px; margin-top:16px; display:none; background:var(--danger-bg); padding:8px; border-radius:6px;"></div>
     </div>
 </div>
 
 <div id="appLayout" class="app-layout hidden">
     <nav class="mini-sidebar">
         <div class="brand-icon">Z</div>
-        <div class="nav-item active" onclick="switchView('workspace')" title="Workspace"><i class="ri-computer-line"></i><span class="nav-tooltip">Workspace</span></div>
-        <div class="nav-item" onclick="switchView('dashboard')" title="My Dashboard"><i class="ri-dashboard-line"></i><span class="nav-tooltip">My Stats</span></div>
+        <div class="nav-item active" onclick="switchView('workspace')" title="Workspace"><i class="ri-macbook-line"></i><span class="nav-tooltip">Ticket Workspace</span></div>
+        <div class="nav-item" onclick="switchView('dashboard')" title="Analytics"><i class="ri-bar-chart-box-line"></i><span class="nav-tooltip">Performance Analytics</span></div>
         <div style="margin-top:auto;">
-            <div class="nav-item" style="color:var(--danger);" onclick="auth.signOut()"><i class="ri-logout-box-line"></i></div>
+            <div class="nav-item" style="color:#ef4444;" onclick="handleLogout()"><i class="ri-logout-box-line"></i><span class="nav-tooltip">Sign Out</span></div>
         </div>
     </nav>
 
     <div class="main-view">
+        
         <div id="view-workspace" class="workspace-grid">
             <aside class="list-sidebar">
                 <div class="list-header">
-                    <h2 class="list-title">Incident Queue</h2>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2 style="font-family:var(--font-heading); font-size:18px; font-weight:700; margin:0;">Incident Queue</h2>
+                        <span class="badge" style="background:var(--primary); color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:700;" id="queueCount">0</span>
+                    </div>
+                    <div class="search-box">
+                        <i class="ri-search-line"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search ID or Name..." onkeyup="filterListLocal()">
+                    </div>
                     <div class="filter-tabs">
-                        <div class="filter-tab active" id="tabAll" onclick="renderTickets('all')">Open</div>
+                        <div class="filter-tab active" id="tabAll" onclick="renderTickets('all')">Open Queue</div>
                         <div class="filter-tab" id="tabMine" onclick="renderTickets('mine')">My Tasks</div>
                         <div class="filter-tab" id="tabCrit" onclick="renderTickets('critical')" style="color:var(--danger);">Urgent</div>
                     </div>
                 </div>
-                <div class="ticket-scroller" id="ticketList"></div>
-                <div style="padding:16px; border-top:1px solid var(--border-subtle); background:var(--bg-surface); display:flex; gap:10px; align-items:center;">
-                    <div class="avatar-xs" id="myAvatar" style="background:var(--primary); color:white; width:32px; height:32px; font-size:14px;">T</div>
-                    <div>
-                        <div style="font-weight:700; font-size:13px;" id="myName">Technician</div>
-                        <div style="font-size:11px; color:var(--success);">● Online</div>
+                
+                <div class="ticket-scroller" id="ticketList">
+                    <div style="padding:16px; opacity:0.5;">
+                        <div style="height:80px; background:#f1f5f9; border-radius:8px; margin-bottom:12px;"></div>
+                        <div style="height:80px; background:#f1f5f9; border-radius:8px; margin-bottom:12px;"></div>
+                        <div style="height:80px; background:#f1f5f9; border-radius:8px;"></div>
                     </div>
+                </div>
+                
+                <div style="padding:16px; border-top:1px solid var(--border-subtle); background:white; display:flex; gap:12px; align-items:center;">
+                    <div class="avatar-xs" id="myAvatar" style="background:var(--primary); color:white; width:36px; height:36px; font-size:14px;">T</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:13px; color:var(--text-primary);" id="myName">Technician</div>
+                        <div style="font-size:11px; color:var(--success); display:flex; align-items:center; gap:4px;">
+                            <span style="width:6px; height:6px; background:var(--success); border-radius:50%;"></span> Online
+                        </div>
+                    </div>
+                    <i class="ri-settings-4-line" style="color:var(--text-secondary); cursor:pointer;"></i>
                 </div>
             </aside>
 
-            <main class="chat-container">
-                <div id="emptyState" class="empty-state">
-                    <i class="ri-customer-service-2-line" style="font-size:64px; color:#cbd5e1; margin-bottom:16px;"></i>
-                    <h3>Ready to work?</h3>
-                    <p>Pilih tiket dari antrian untuk mulai menangani.</p>
+            <main class="detail-container">
+                <div id="emptyState" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-tertiary);">
+                    <div style="width:80px; height:80px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:24px;">
+                        <i class="ri-inbox-archive-line" style="font-size:32px;"></i>
+                    </div>
+                    <h3 style="margin:0 0 8px 0; color:var(--text-primary);">No Ticket Selected</h3>
+                    <p style="font-size:14px; max-width:300px; text-align:center;">Select a ticket from the queue to view details, asset info, and timeline.</p>
                 </div>
 
                 <div id="activeTicket" class="hidden" style="display:flex; flex-direction:column; height:100%;">
-                    <div class="chat-header">
-                        <div>
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <span id="headId" style="font-family:var(--font-mono); background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px;">#ID</span>
-                                <h2 id="headSubject" style="font-size:16px; font-weight:700;">Subject</h2>
-                            </div>
-                            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
-                                <span id="headUser"><i class="ri-user-line"></i> User</span> &bull; 
-                                <span id="headDept">Dept</span>
+                    <div class="detail-header">
+                        <div style="display:flex; gap:16px; align-items:center;">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <span id="headId" style="font-family:var(--font-mono); background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:13px; font-weight:600; color:var(--text-secondary);">#ID</span>
+                                    <h2 id="headSubject" style="font-size:16px; font-weight:700; margin:0; font-family:var(--font-heading);">Subject</h2>
+                                    <span id="headPrio" class="status-badge st-critical" style="display:none;">CRITICAL</span>
+                                </div>
+                                <div style="font-size:12px; color:var(--text-secondary); margin-top:6px; display:flex; gap:12px; align-items:center;">
+                                    <span id="headUser" style="display:flex; align-items:center; gap:6px;"><i class="ri-user-3-line"></i> User</span>
+                                    <span style="color:#cbd5e1;">|</span>
+                                    <span id="headDept"><i class="ri-building-line"></i> Dept</span>
+                                </div>
                             </div>
                         </div>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn btn-outline" onclick="openAssetModal()"><i class="ri-macbook-line"></i> Check Asset</button>
-                            <button class="btn btn-outline" onclick="startRemote()"><i class="ri-remote-control-line"></i> Remote</button>
+                            <button class="btn btn-outline" onclick="openAssetModal()" title="View Device Info"><i class="ri-macbook-line"></i> Asset</button>
+                            <button class="btn btn-outline" onclick="startRemote()" title="Start Remote Session"><i class="ri-remote-control-line"></i> Remote</button>
+                            <div style="position:relative;">
+                                <button class="btn btn-ghost" onclick="toggleOpts()"><i class="ri-more-2-fill"></i></button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="chat-body" id="chatArea"></div>
-
-                    <div class="chat-footer">
-                        <div style="margin-bottom:8px; display:flex; gap:12px; font-size:12px; font-weight:600;">
-                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                                <input type="radio" name="replyMode" value="public" checked onchange="setMode()"> Balas User (Public)
-                            </label>
-                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                                <input type="radio" name="replyMode" value="internal" onchange="setMode()"> Catatan Internal (Rahasia)
-                            </label>
+                    <div class="timeline-area" id="chatArea">
                         </div>
-                        <textarea id="replyInput" placeholder="Tulis balasan solusi..."></textarea>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; gap:8px;">
-                                <select id="statusSelect" style="padding:8px; border-radius:6px; border:1px solid var(--border-subtle);">
-                                    <option value="Open">Status: Open</option>
-                                    <option value="Progress">Status: In Progress</option>
-                                    <option value="Closed">Status: Resolved</option>
-                                </select>
-                                <select id="prioSelect" style="padding:8px; border-radius:6px; border:1px solid var(--border-subtle);">
-                                    <option value="Low">Low</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Critical">Critical</option>
-                                </select>
+
+                    <div class="detail-footer">
+                        <div class="reply-box-wrapper">
+                            <div class="reply-header">
+                                <div class="mode-switch active" id="modePublic" onclick="setMode('public')">
+                                    <i class="ri-reply-line"></i> Reply to User
+                                </div>
+                                <div class="mode-switch" id="modeInternal" onclick="setMode('internal')">
+                                    <i class="ri-eye-off-line"></i> Internal Note
+                                </div>
                             </div>
-                            <button class="btn" onclick="submitResponse()">Kirim & Update <i class="ri-send-plane-fill"></i></button>
+                            <textarea id="replyInput" placeholder="Type your response or solution here..."></textarea>
+                            <div style="padding:10px 12px; background:white; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9;">
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <select id="statusSelect" style="padding:6px; border-radius:6px; border:1px solid var(--border-subtle); font-size:12px; background:#f8fafc;">
+                                        <option value="Open">Status: Open</option>
+                                        <option value="Progress">Status: In Progress</option>
+                                        <option value="Closed">Status: Resolved</option>
+                                    </select>
+                                    <select id="prioSelect" style="padding:6px; border-radius:6px; border:1px solid var(--border-subtle); font-size:12px; background:#f8fafc;">
+                                        <option value="Low">Priority: Low</option>
+                                        <option value="Normal">Priority: Normal</option>
+                                        <option value="Critical">Priority: Critical</option>
+                                    </select>
+                                </div>
+                                <button class="btn" onclick="submitResponse()" id="btnSend">
+                                    <span>Send Update</span> <i class="ri-send-plane-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -263,50 +392,85 @@
         </div>
 
         <div id="view-dashboard" class="dash-container hidden">
-            <div class="dash-header">
-                <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:700;">My Performance</h1>
-                <p style="color:var(--text-secondary);">Statistik kinerja tiket yang Anda tangani.</p>
-            </div>
+            <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:700; margin-bottom:8px;">Performance Overview</h1>
+            <p style="color:var(--text-secondary); margin-bottom:32px;">Real-time metrics for <span id="dashName" style="font-weight:600;">Technician</span></p>
             
             <div class="dash-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Total Handled</div>
+                <div class="stat-card">
+                    <div class="stat-label" style="font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase;">Tickets Handled</div>
                     <div class="stat-val" id="dTotal">0</div>
-                    <div style="font-size:12px; color:var(--success);"><i class="ri-arrow-up-line"></i> All Time</div>
+                    <div style="font-size:12px; color:var(--success); font-weight:600;">Total Assigned</div>
+                    <i class="ri-ticket-line stat-icon" style="color:var(--primary);"></i>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Resolved This Month</div>
-                    <div class="stat-val" id="dMonth">0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">Tickets closed</div>
+                <div class="stat-card">
+                    <div class="stat-label" style="font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase;">Resolved (All Time)</div>
+                    <div class="stat-val" id="dClosed">0</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">Tickets closed successfully</div>
+                    <i class="ri-checkbox-circle-line stat-icon" style="color:var(--success);"></i>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Active Now</div>
+                <div class="stat-card">
+                    <div class="stat-label" style="font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase;">Active Queue</div>
                     <div class="stat-val" id="dActive" style="color:var(--primary);">0</div>
-                    <div style="font-size:12px; color:var(--text-secondary);">In Progress Queue</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">Currently pending/progress</div>
+                    <i class="ri-loader-4-line stat-icon" style="color:var(--info);"></i>
                 </div>
             </div>
 
-            <h3 style="margin-bottom:16px; font-size:16px; font-weight:700;">Riwayat Penyelesaian Saya</h3>
-            <div class="table-card">
-                <table>
-                    <thead><tr><th>ID</th><th>Subject</th><th>User</th><th>Date Closed</th><th>Category</th></tr></thead>
-                    <tbody id="historyTable"></tbody>
-                </table>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+                <div class="chart-container">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                        <h3 style="font-size:15px; font-weight:700; margin:0;">Ticket Trend</h3>
+                        <select style="border:none; font-size:12px; color:var(--text-secondary);"><option>This Week</option></select>
+                    </div>
+                    <canvas id="perfChart" height="120"></canvas>
+                </div>
+                
+                <div class="chart-container" style="overflow:hidden;">
+                     <h3 style="font-size:15px; font-weight:700; margin:0 0 16px 0;">Resolution History</h3>
+                     <div style="overflow-y:auto; max-height:200px;">
+                        <table style="width:100%;">
+                            <tbody id="historyTable">
+                                </tbody>
+                        </table>
+                     </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="modalAsset" class="modal-overlay">
-    <div class="modal-box">
-        <h3 style="margin-top:0;">Asset Information</h3>
-        <p style="color:var(--text-secondary); font-size:13px; margin-bottom:16px;">Perangkat yang terdaftar pada user ini.</p>
-        <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px;">
-            <div style="font-weight:700;">MacBook Pro M1 (LPT-001)</div>
-            <div style="font-size:12px; color:#64748b;">Serial: C02XXXXXXX</div>
+<div id="modalAsset" class="login-overlay hidden" style="background:rgba(0,0,0,0.5); z-index:200;">
+    <div style="background:white; width:450px; border-radius:12px; padding:24px; box-shadow:var(--shadow-lg);">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+            <div>
+                <h3 style="margin:0; font-family:var(--font-heading);">Asset Specification</h3>
+                <p style="margin:4px 0 0; color:var(--text-secondary); font-size:13px;">Assigned to user</p>
+            </div>
+            <button class="btn-ghost" style="padding:4px;" onclick="document.getElementById('modalAsset').classList.add('hidden')"><i class="ri-close-line" style="font-size:20px;"></i></button>
         </div>
-        <div style="text-align:right; margin-top:20px;">
-            <button class="btn btn-outline" onclick="document.getElementById('modalAsset').style.display='none'">Close</button>
+        
+        <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid var(--border-subtle); display:flex; gap:16px;">
+            <div style="width:64px; height:64px; background:white; border:1px solid var(--border-subtle); border-radius:8px; display:grid; place-items:center;">
+                <i class="ri-macbook-line" style="font-size:32px; color:var(--text-secondary);"></i>
+            </div>
+            <div>
+                <div style="font-weight:700; font-size:14px; margin-bottom:4px;">MacBook Pro 14" M1 Pro</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Tag: <span style="font-family:monospace; color:var(--text-primary);">LPT-IT-092</span></div>
+                <div style="font-size:12px; color:var(--text-secondary);">Serial: <span style="font-family:monospace; color:var(--text-primary);">C02DK92...</span></div>
+                <div style="margin-top:6px; font-size:11px; color:var(--success); font-weight:600;">● Warranty Active</div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+                <span style="color:var(--text-secondary);">RAM</span> <span>16 GB Unified</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+                <span style="color:var(--text-secondary);">Storage</span> <span>512 GB SSD</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:8px 0;">
+                <span style="color:var(--text-secondary);">OS Version</span> <span>Sonoma 14.1</span>
+            </div>
         </div>
     </div>
 </div>
@@ -331,7 +495,9 @@
     let activeTicketId = null;
     let reports = [];
     let isInternalMode = false;
+    let chartInstance = null;
 
+    // --- AUTHENTICATION ---
     auth.onAuthStateChanged(user => {
         if (user) {
             db.ref('users/' + user.uid).once('value').then(snap => {
@@ -340,12 +506,12 @@
                     currentUser = { uid: user.uid, ...profile };
                     initApp();
                 } else {
-                    alert("Akses ditolak. Akun tidak valid.");
+                    showToast("Access Denied: Invalid Account", "error");
                     auth.signOut();
                 }
             });
         } else {
-            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('appLayout').classList.add('hidden');
         }
     });
@@ -356,8 +522,10 @@
         const btn = document.getElementById('btnLogin');
         const err = document.getElementById('loginError');
 
-        if (!inputId || !inputPass) { err.style.display='block'; err.textContent="Isi ID & Password"; return; }
-        btn.disabled = true; btn.innerHTML = "Memuat...";
+        if (!inputId || !inputPass) { 
+            err.style.display='block'; err.textContent="Please enter both ID and Password"; return; 
+        }
+        btn.disabled = true; btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Authenticating...';
 
         try {
             let email = inputId;
@@ -366,22 +534,29 @@
                 const users = snap.val();
                 let found = null;
                 for (let k in users) if (users[k].nik == inputId) found = users[k];
-                if (!found) throw new Error("NIK tidak ditemukan.");
+                if (!found) throw new Error("ID not found in system.");
                 email = found.email;
             }
             await auth.signInWithEmailAndPassword(email, inputPass);
         } catch (e) {
-            btn.disabled = false; btn.innerHTML = "Masuk ke Workspace";
+            btn.disabled = false; btn.innerHTML = 'Authenticate';
             err.style.display = 'block'; err.textContent = e.message;
         }
     }
 
+    function handleLogout() {
+        if(confirm("Are you sure you want to log out?")) auth.signOut();
+    }
+
+    // --- APP CORE ---
     function initApp() {
-        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('appLayout').classList.remove('hidden');
         
         document.getElementById('myName').textContent = currentUser.nama;
+        document.getElementById('dashName').textContent = currentUser.nama;
         document.getElementById('myAvatar').textContent = currentUser.nama.charAt(0);
+        showToast(`Welcome back, ${currentUser.nama}`, "success");
 
         db.ref('reports').on('value', snap => {
             const data = snap.val();
@@ -390,9 +565,12 @@
             
             const activeTab = document.querySelector('.filter-tab.active');
             renderTickets(activeTab ? activeTab.id : 'tabAll');
-            renderDashboard();
+            updateDashboardData();
             
-            if(activeTicketId) loadTicketDetail(reports.find(r => r.id === activeTicketId));
+            if(activeTicketId) {
+                const updatedTicket = reports.find(r => r.id === activeTicketId);
+                updatedTicket ? loadTicketDetail(updatedTicket) : null;
+            }
         });
     }
 
@@ -402,36 +580,72 @@
         
         document.getElementById('view-workspace').style.display = view === 'workspace' ? 'grid' : 'none';
         document.getElementById('view-dashboard').style.display = view === 'dashboard' ? 'block' : 'none';
-        if(view === 'dashboard') renderDashboard();
+        
+        if(view === 'dashboard') {
+            updateDashboardData();
+            renderChart();
+        }
     }
 
+    // --- WORKSPACE LOGIC ---
     function renderTickets(tabId) {
         const listEl = document.getElementById('ticketList'); listEl.innerHTML = '';
         document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
+        if(document.getElementById(tabId)) document.getElementById(tabId).classList.add('active');
 
         let filtered = reports.filter(r => !r.isDeleted && r.status !== 'Closed');
         if (tabId === 'tabMine') filtered = filtered.filter(r => r.pic === currentUser.nama);
         if (tabId === 'tabCrit') filtered = filtered.filter(r => r.kategori === 'Critical');
+        
+        // Search filter logic
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        if(query) {
+            filtered = filtered.filter(r => 
+                r.id.toLowerCase().includes(query) || 
+                r.nama.toLowerCase().includes(query) ||
+                r.jenis.toLowerCase().includes(query)
+            );
+        }
 
-        if (filtered.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:13px;">No tickets found.</div>';
+        document.getElementById('queueCount').textContent = filtered.length;
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-tertiary);">
+                <i class="ri-checkbox-circle-line" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+                No tickets in this view.
+            </div>`;
+            return;
+        }
 
         filtered.forEach(r => {
             const el = document.createElement('div');
             el.className = `ticket-card ${activeTicketId === r.id ? 'active' : ''}`;
             el.onclick = () => selectTicket(r.id);
             const timeAgo = dayjs(r.created_iso).fromNow(true);
-            let bg = r.status === 'Open' ? 'bg-open' : 'bg-progress';
-            if(r.kategori === 'Critical') bg = 'bg-critical';
+            
+            let statusClass = 'st-open';
+            if(r.status === 'Progress') statusClass = 'st-progress';
+            if(r.kategori === 'Critical') statusClass = 'st-critical';
 
             el.innerHTML = `
-                <div class="t-meta"><span style="font-family:monospace; font-weight:700;">${r.id}</span><span>${timeAgo}</span></div>
+                <div class="t-header">
+                    <span class="t-id">${r.id}</span>
+                    <span class="t-date">${timeAgo}</span>
+                </div>
                 <div class="t-subject">${r.jenis}</div>
-                <div class="t-user"><div class="avatar-xs">${r.nama.charAt(0)}</div> ${r.nama}</div>
-                <div style="margin-top:8px;"><span class="badge ${bg}">${r.status}</span></div>
+                <div class="t-footer">
+                    <div class="t-user"><div class="avatar-xs">${r.nama.charAt(0)}</div> ${r.nama}</div>
+                    <span class="status-badge ${statusClass}">${r.status}</span>
+                </div>
             `;
             listEl.appendChild(el);
         });
+    }
+    
+    function filterListLocal() {
+        // Re-trigger render based on active tab
+        const activeTab = document.querySelector('.filter-tab.active');
+        renderTickets(activeTab ? activeTab.id : 'tabAll');
     }
 
     function selectTicket(id) {
@@ -447,32 +661,100 @@
         if(!r) return;
         document.getElementById('headId').textContent = r.id;
         document.getElementById('headSubject').textContent = r.jenis;
-        document.getElementById('headUser').innerHTML = `<i class="ri-user-line"></i> ${r.nama}`;
-        document.getElementById('headDept').innerHTML = `<i class="ri-building-line"></i> ${r.departemen || '-'}`;
+        document.getElementById('headUser').innerHTML = `<i class="ri-user-3-line"></i> ${r.nama}`;
+        document.getElementById('headDept').innerHTML = `<i class="ri-building-line"></i> ${r.departemen || 'General'}`;
         
+        const prioBadge = document.getElementById('headPrio');
+        if(r.kategori === 'Critical') prioBadge.style.display = 'inline-flex';
+        else prioBadge.style.display = 'none';
+
         document.getElementById('statusSelect').value = r.status;
         document.getElementById('prioSelect').value = r.kategori;
 
         const chat = document.getElementById('chatArea'); chat.innerHTML = '';
+        
+        // Initial Ticket (User)
         chat.innerHTML += `
-            <div class="chat-bubble chat-user">
-                <div class="chat-info"><span>${r.nama}</span> <span>${dayjs(r.created_iso).format('HH:mm')}</span></div>
-                <div class="chat-text"><strong>${r.jenis}</strong><br>${r.catatan || '-'}</div>
+            <div class="tl-item">
+                <div class="tl-icon"><i class="ri-user-3-line"></i></div>
+                <div class="tl-content">
+                    <div class="tl-meta"><span>${r.nama}</span> &bull; <span>${dayjs(r.created_iso).format('DD MMM HH:mm')}</span></div>
+                    <div class="tl-bubble">
+                        <strong>${r.jenis}</strong><br><br>
+                        ${r.catatan || 'No description provided.'}
+                    </div>
+                </div>
             </div>
         `;
+        
+        // Internal Notes & Updates Timeline reconstruction
+        // *Note: Since the original data structure stores notes in a simple string, we simulate a timeline.*
+        
         if (r.note_internal) {
-            r.note_internal.split('\n').filter(n=>n.trim()).forEach(n => chat.innerHTML += `<div class="chat-note"><strong>Internal Log:</strong> ${n}</div>`);
+            const notes = r.note_internal.split('\n').filter(n=>n.trim());
+            notes.forEach(note => {
+                // Try to parse standard format [Date Name]: Msg
+                let content = note;
+                let meta = "Internal Note";
+                
+                // Simple parsing for display
+                if(note.startsWith('[')) {
+                    const closeBracket = note.indexOf(']:');
+                    if(closeBracket > -1) {
+                        meta = note.substring(1, closeBracket);
+                        content = note.substring(closeBracket+2);
+                    }
+                }
+
+                chat.innerHTML += `
+                    <div class="tl-item internal">
+                        <div class="tl-icon"><i class="ri-eye-off-line"></i></div>
+                        <div class="tl-content">
+                            <div class="tl-meta"><span>${meta}</span></div>
+                            <div class="tl-bubble">${content}</div>
+                        </div>
+                    </div>
+                `;
+            });
         }
+        
+        // System status logs (Simulated based on status)
         if (r.status === 'Progress') {
-             chat.innerHTML += `<div class="chat-bubble chat-tech"><div class="chat-info"><span>System</span></div><div class="chat-text">Ticket marked In Progress by ${r.pic}.</div></div>`;
+             chat.innerHTML += `
+                <div class="tl-item system">
+                    <div class="tl-icon"><i class="ri-settings-5-fill"></i></div>
+                    <div class="tl-content">Ticket marked as <strong>In Progress</strong> by ${r.pic || 'Technician'}.</div>
+                </div>`;
         }
+        
+        // Scroll to bottom
+        chat.scrollTop = chat.scrollHeight;
     }
 
-    window.setMode = () => {
-        isInternalMode = document.querySelector('input[name="replyMode"]:checked').value === 'internal';
-        const box = document.getElementById('replyInput');
-        box.style.background = isInternalMode ? '#fffbeb' : 'white';
-        box.placeholder = isInternalMode ? "Tulis catatan rahasia..." : "Tulis balasan ke user...";
+    // --- INTERACTION LOGIC ---
+    window.setMode = (mode) => {
+        isInternalMode = (mode === 'internal');
+        document.getElementById('modePublic').classList.toggle('active', !isInternalMode);
+        document.getElementById('modeInternal').classList.toggle('active-internal', isInternalMode);
+        
+        const box = document.querySelector('.reply-box-wrapper');
+        const input = document.getElementById('replyInput');
+        
+        if(isInternalMode) {
+            box.style.borderColor = 'var(--warning-border)';
+            box.style.background = '#fffbeb';
+            input.style.background = '#fffbeb';
+            input.placeholder = "🔒 Internal Note: Visible only to support staff.";
+            document.getElementById('btnSend').innerHTML = '<span>Add Note</span> <i class="ri-save-line"></i>';
+            document.getElementById('btnSend').style.background = 'var(--warning)';
+        } else {
+            box.style.borderColor = 'var(--border-subtle)';
+            box.style.background = 'white';
+            input.style.background = 'white';
+            input.placeholder = "Type your response to the user...";
+            document.getElementById('btnSend').innerHTML = '<span>Send Update</span> <i class="ri-send-plane-fill"></i>';
+            document.getElementById('btnSend').style.background = 'var(--primary)';
+        }
     };
 
     window.submitResponse = () => {
@@ -481,41 +763,97 @@
         const prio = document.getElementById('prioSelect').value;
         const r = reports.find(x => x.id === activeTicketId);
 
-        let updates = { status: status, kategori: prio, pic: currentUser.nama };
+        if(!r) return;
+
+        let updates = { status: status, kategori: prio, pic: currentUser.nama, updated_iso: new Date().toISOString() };
+        
         if (text) {
             if (isInternalMode) {
                 const old = r.note_internal || "";
                 updates.note_internal = old + `\n[${dayjs().format('DD/MM HH:mm')} ${currentUser.nama}]: ${text}`;
+                showToast("Internal note saved", "success");
             } else {
-                alert(`Email terkirim ke ${r.nama}: "${text}"`);
+                // Simulate sending email
+                showToast(`Reply sent to ${r.nama}`, "success");
             }
+        } else {
+            showToast("Ticket status updated", "info");
         }
+        
         db.ref('reports/' + activeTicketId).update(updates);
         document.getElementById('replyInput').value = '';
     };
 
-    function renderDashboard() {
+    // --- DASHBOARD LOGIC ---
+    function updateDashboardData() {
         const myHandled = reports.filter(r => r.pic === currentUser.nama);
         const myClosed = myHandled.filter(r => r.status === 'Closed');
         
         document.getElementById('dTotal').textContent = myHandled.length;
-        document.getElementById('dMonth').textContent = myClosed.length; // Simplified logic
+        document.getElementById('dClosed').textContent = myClosed.length;
         document.getElementById('dActive').textContent = myHandled.filter(r => r.status !== 'Closed').length;
 
         const tbody = document.getElementById('historyTable'); tbody.innerHTML = '';
-        myClosed.slice(0, 10).forEach(r => {
+        myClosed.slice(0, 5).forEach(r => {
             tbody.innerHTML += `<tr>
-                <td style="font-family:monospace;">${r.id}</td>
+                <td style="font-family:monospace; color:var(--primary); font-weight:600;">${r.id}</td>
                 <td>${r.jenis}</td>
-                <td>${r.nama}</td>
-                <td>${dayjs(r.updated_iso || r.created_iso).format('DD MMM YYYY')}</td>
-                <td><span class="badge bg-closed">${r.kategori}</span></td>
+                <td style="text-align:right; font-size:11px; color:var(--text-tertiary);">${dayjs(r.updated_iso).format('DD/MM')}</td>
             </tr>`;
         });
     }
 
-    window.openAssetModal = () => document.getElementById('modalAsset').style.display = 'flex';
-    window.startRemote = () => alert("Initiating secure remote connection tunnel...");
+    function renderChart() {
+        const ctx = document.getElementById('perfChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        
+        // Dummy Data generation for visual
+        const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const data = [2, 5, 3, 8, 4, 1, 2];
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tickets Solved',
+                    data: data,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // --- UTILITIES ---
+    function showToast(msg, type='info') {
+        const box = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        el.className = 'toast';
+        let icon = 'ri-information-line';
+        if(type === 'success') { icon = 'ri-checkbox-circle-line'; el.style.borderLeft = '4px solid var(--success)'; }
+        if(type === 'error') { icon = 'ri-error-warning-line'; el.style.borderLeft = '4px solid var(--danger)'; }
+        
+        el.innerHTML = `<i class="${icon}" style="font-size:16px;"></i> ${msg}`;
+        box.appendChild(el);
+        setTimeout(() => { el.style.opacity='0'; setTimeout(()=>el.remove(), 300); }, 3500);
+    }
+    
+    window.openAssetModal = () => document.getElementById('modalAsset').classList.remove('hidden');
+    window.startRemote = () => showToast("Initiating secure tunnel to device...", "info");
 </script>
 </body>
 </html>
