@@ -17,7 +17,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
 
 <style>
-    /* === CORE STYLE DARI INDEX UTAMA === */
     :root {
         --font-main: 'Inter', system-ui, sans-serif;
         --font-heading: 'Plus Jakarta Sans', sans-serif;
@@ -39,16 +38,13 @@
         --danger-bg: #fee2e2;
         --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        --radius-lg: 16px;
     }
 
     * { box-sizing: border-box; outline: none; }
     body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); height: 100vh; overflow: hidden; }
 
-    /* LAYOUT KHUSUS TECHNICIAN (SPLIT VIEW) */
-    .app-layout { display: grid; grid-template-columns: 80px 350px 1fr; height: 100vh; width: 100vw; }
+    .app-layout { display: grid; grid-template-columns: 80px 380px 1fr; height: 100vh; width: 100vw; }
     
-    /* 1. MINI SIDEBAR (Navigation) */
     .mini-sidebar { 
         background: var(--bg-sidebar); display: flex; flex-direction: column; align-items: center; padding: 24px 0; z-index: 50; 
     }
@@ -65,7 +61,6 @@
     .nav-icon:hover { background: rgba(255,255,255,0.1); color: white; }
     .nav-icon.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.4); }
 
-    /* 2. TICKET LIST SIDEBAR */
     .list-sidebar { 
         background: var(--bg-surface); border-right: 1px solid var(--border-subtle); 
         display: flex; flex-direction: column;
@@ -95,9 +90,9 @@
     .badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
     .bg-open { background: var(--warning-bg); color: var(--warning); }
     .bg-progress { background: #e0f2fe; color: #0284c7; }
+    .bg-closed { background: var(--success-bg); color: var(--success); }
     .bg-critical { background: var(--danger-bg); color: var(--danger); }
 
-    /* 3. WORKSPACE (Right Panel) */
     .workspace { background: var(--bg-body); display: flex; flex-direction: column; position: relative; }
     
     .ws-header { 
@@ -109,7 +104,6 @@
     
     .ws-body { flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
     
-    /* Chat Bubbles Style */
     .chat-bubble { max-width: 80%; padding: 20px; border-radius: 16px; position: relative; box-shadow: var(--shadow-sm); }
     .chat-user { align-self: flex-start; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-top-left-radius: 4px; }
     .chat-tech { align-self: flex-end; background: linear-gradient(135deg, var(--primary), #4338ca); color: white; border-top-right-radius: 4px; }
@@ -118,7 +112,6 @@
     .chat-info { font-size: 11px; margin-bottom: 8px; font-weight: 600; opacity: 0.8; display: flex; justify-content: space-between; }
     .chat-text { font-size: 14px; line-height: 1.6; }
 
-    /* Input Area */
     .ws-footer { 
         background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 20px 32px; 
     }
@@ -138,16 +131,20 @@
     .action-bar { display: flex; justify-content: space-between; margin-top: 16px; align-items: center; }
     .status-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-surface); font-size: 13px; }
 
-    /* Login Screen - Styled like Index 3 */
     #loginScreen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #eef2ff, #f8fafc); z-index: 9999; display: flex; align-items: center; justify-content: center; }
     .login-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 48px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 420px; border: 1px solid white; }
     
-    /* Utilities */
     .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
     .btn:hover { background: #4338ca; transform: translateY(-1px); }
     .btn:disabled { opacity: 0.7; cursor: not-allowed; }
     .hidden { display: none !important; }
     .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); }
+    
+    @media (max-width: 1024px) {
+        .app-layout { grid-template-columns: 80px 1fr; }
+        .list-sidebar { display: none; } 
+        .list-sidebar.mobile-open { display: flex; position: fixed; width: 300px; height: 100%; z-index: 100; left: 80px; }
+    }
 </style>
 </head>
 <body>
@@ -189,13 +186,13 @@
         <div class="list-header">
             <h2 class="list-title">Incident Queue</h2>
             <div class="filter-tabs">
-                <div class="filter-tab active" onclick="renderTickets('all')">All Open</div>
-                <div class="filter-tab" onclick="renderTickets('mine')">My Tickets</div>
-                <div class="filter-tab" onclick="renderTickets('critical')" style="color:var(--danger);">Critical</div>
+                <div class="filter-tab active" id="tabAll" onclick="renderTickets('all')">All Open</div>
+                <div class="filter-tab" id="tabMine" onclick="renderTickets('mine')">My Tickets</div>
+                <div class="filter-tab" id="tabCrit" onclick="renderTickets('critical')" style="color:var(--danger);">Critical</div>
             </div>
         </div>
         <div class="ticket-scroller" id="ticketList">
-            </div>
+        </div>
         <div style="padding:16px; border-top:1px solid var(--border-subtle); background:var(--bg-surface);">
             <div style="display:flex; align-items:center; gap:10px;">
                 <div class="avatar-xs" style="width:32px; height:32px; font-size:14px; background:var(--primary); color:white;" id="myAvatar">T</div>
@@ -233,7 +230,7 @@
             </div>
 
             <div class="ws-body" id="chatArea">
-                </div>
+            </div>
 
             <div class="ws-footer">
                 <div class="input-tabs">
@@ -267,7 +264,6 @@
 <script>
     dayjs.extend(window.dayjs_plugin_relativeTime);
 
-    // --- CONFIG FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyA9wgSalrlTcveIZi2i-WND86z1i9JYHKw",
         authDomain: "it-support-53eeb.firebaseapp.com",
@@ -281,23 +277,20 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    // --- STATE ---
     let currentUser = null;
     let activeTicketId = null;
     let reports = [];
     let isInternalMode = false;
 
-    // --- AUTHENTICATION FLOW ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Ambil detail teknisi dari DB
             db.ref('users/' + user.uid).once('value').then(snap => {
                 const profile = snap.val();
-                if (profile && (profile.role === 'Admin' || profile.role === 'Support' || profile.departemen === 'IT')) {
+                if (profile && (profile.role === 'Admin' || profile.role === 'Support' || profile.departemen === 'IT' || profile.status === 'approved')) {
                     currentUser = { uid: user.uid, ...profile };
                     initApp();
                 } else {
-                    alert("Akses ditolak. Akun ini bukan akun Teknisi/IT.");
+                    alert("Akses ditolak. Akun tidak valid atau belum disetujui.");
                     auth.signOut();
                 }
             });
@@ -323,17 +316,17 @@
         try {
             let targetEmail = inputId;
 
-            // Jika input bukan email (asumsi NIK), cari emailnya di database dulu
             if (!inputId.includes('@')) {
                 const snapshot = await db.ref('users').once('value');
                 const users = snapshot.val();
                 let found = null;
                 
-                // Cari manual user dengan NIK yang cocok
-                for (let key in users) {
-                    if (users[key].nik == inputId) {
-                        found = users[key];
-                        break;
+                if (users) {
+                    for (let key in users) {
+                        if (users[key].nik == inputId) {
+                            found = users[key];
+                            break;
+                        }
                     }
                 }
 
@@ -341,9 +334,7 @@
                 targetEmail = found.email;
             }
 
-            // Login pakai Email (baik input langsung atau hasil cari NIK) dan Password
             await auth.signInWithEmailAndPassword(targetEmail, inputPass);
-            // Sukses -> onAuthStateChanged akan jalan
 
         } catch (e) {
             console.error(e);
@@ -357,36 +348,41 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appLayout').classList.remove('hidden');
         
-        // Update Profile UI
         document.getElementById('myName').textContent = currentUser.nama || 'Technician';
         document.getElementById('myAvatar').textContent = (currentUser.nama || 'T').charAt(0);
 
-        // Load Data Realtime
         db.ref('reports').on('value', snap => {
             const data = snap.val();
             reports = data ? Object.keys(data).map(k => ({...data[k], id: k})) : [];
-            // Sort by Date (Newest first)
             reports.sort((a,b) => new Date(b.created_iso) - new Date(a.created_iso));
-            renderTickets('all');
             
-            // Refresh tiket aktif jika ada update
+            const activeTab = document.querySelector('.filter-tab.active');
+            const filterType = activeTab ? (activeTab.id === 'tabMine' ? 'mine' : (activeTab.id === 'tabCrit' ? 'critical' : 'all')) : 'all';
+            
+            renderTickets(filterType);
+            
             if(activeTicketId) loadTicketDetail(reports.find(r => r.id === activeTicketId));
         });
     }
 
-    // --- UI RENDER ---
     function renderTickets(filter) {
         const listEl = document.getElementById('ticketList');
         listEl.innerHTML = '';
         
-        // Filter tabs UI
         document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
+        if(filter === 'all') document.getElementById('tabAll').classList.add('active');
+        if(filter === 'mine') document.getElementById('tabMine').classList.add('active');
+        if(filter === 'critical') document.getElementById('tabCrit').classList.add('active');
 
-        let filtered = reports.filter(r => !r.isDeleted && r.status !== 'Closed'); // Default: hanya yg aktif
+        let filtered = reports.filter(r => !r.isDeleted && r.status !== 'Closed');
 
         if (filter === 'mine') filtered = filtered.filter(r => r.pic === currentUser.nama);
         if (filter === 'critical') filtered = filtered.filter(r => r.kategori === 'Critical');
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:13px;">Tidak ada tiket ditemukan.</div>';
+            return;
+        }
 
         filtered.forEach(r => {
             const el = document.createElement('div');
@@ -417,7 +413,11 @@
 
     function selectTicket(id) {
         activeTicketId = id;
-        renderTickets('current'); // Refresh highlight list only
+        
+        const activeTab = document.querySelector('.filter-tab.active');
+        const filterType = activeTab ? (activeTab.id === 'tabMine' ? 'mine' : (activeTab.id === 'tabCrit' ? 'critical' : 'all')) : 'all';
+        renderTickets(filterType);
+
         const r = reports.find(r => r.id === id);
         
         document.getElementById('emptyState').classList.add('hidden');
@@ -429,22 +429,18 @@
     function loadTicketDetail(r) {
         if(!r) return;
         
-        // Header
         document.getElementById('headId').textContent = r.id;
         document.getElementById('headSubject').textContent = r.jenis;
         document.getElementById('headUser').innerHTML = `<i class="ri-user-line"></i> ${r.nama}`;
         document.getElementById('headDept').innerHTML = `<i class="ri-building-line"></i> ${r.departemen || 'General'}`;
         document.getElementById('headTime').innerHTML = `<i class="ri-time-line"></i> ${dayjs(r.created_iso).format('DD MMM, HH:mm')}`;
 
-        // Controls
         document.getElementById('statusSelect').value = r.status;
         document.getElementById('prioSelect').value = r.kategori;
 
-        // Chat Body
         const chat = document.getElementById('chatArea');
         chat.innerHTML = '';
 
-        // 1. Laporan Awal User
         chat.innerHTML += `
             <div class="chat-bubble chat-user">
                 <div class="chat-info"><span>${r.nama}</span> <span>${dayjs(r.created_iso).format('HH:mm')}</span></div>
@@ -455,26 +451,25 @@
             </div>
         `;
 
-        // 2. Tampilkan Note Internal jika ada
         if (r.note_internal) {
             const notes = r.note_internal.split('\n').filter(n => n.trim());
             notes.forEach(n => {
-                chat.innerHTML += `<div class="chat-note"><strong><i class="ri-lock-line"></i> Internal Log:</strong> ${n}</div>`;
+                chat.innerHTML += `<div class="chat-note"><strong><i class="ri-lock-line"></i> Log:</strong> ${n}</div>`;
             });
         }
 
-        // 3. Tampilkan Status Update (Simulasi chat history)
         if (r.status === 'Progress') {
              chat.innerHTML += `
                 <div class="chat-bubble chat-tech">
-                    <div class="chat-info"><span>${r.pic || 'System'}</span> <span>Just Now</span></div>
+                    <div class="chat-info"><span>${r.pic || 'System'}</span> <span>Updated</span></div>
                     <div class="chat-text">Status tiket diperbarui menjadi <strong>In Progress</strong>. Sedang dalam penanganan.</div>
                 </div>
              `;
         }
+        
+        chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- ACTIONS ---
     window.setMode = (mode) => {
         isInternalMode = (mode === 'note');
         const box = document.getElementById('replyInput');
@@ -501,24 +496,21 @@
         let updates = {
             status: status,
             kategori: prio,
-            pic: currentUser.nama // Auto assign ke teknisi yg login
+            pic: currentUser.nama
         };
 
         if (text) {
             if (isInternalMode) {
-                // Append Note Internal
                 const oldNote = r.note_internal || "";
                 const stamp = dayjs().format('DD/MM HH:mm');
                 updates.note_internal = oldNote + `\n[${stamp} ${currentUser.nama}]: ${text}`;
             } else {
-                // Di real world: Save to 'messages' collection
                 alert(`Balasan terkirim ke ${r.nama}: "${text}"`);
             }
         }
 
         db.ref('reports/' + activeTicketId).update(updates);
         document.getElementById('replyInput').value = '';
-        // UI akan auto-update karena listener 'on value'
     };
 
 </script>
