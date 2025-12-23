@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
 <title>Zeppelin — Enterprise Command Center</title>
 <link rel="icon" type="image/png" href="icov2.png" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -23,393 +23,640 @@
 
 <style>
     :root {
-        --bg-body: #f1f5f9;
-        --bg-sidebar: #ffffff;
-        --bg-card: #ffffff;
-        --bg-hover: #f8fafc;
-        --border-color: #e2e8f0;
+        --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        --font-heading: 'Plus Jakarta Sans', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+
+        --bg-body: #f8fafc;
+        --bg-surface: #ffffff;
+        --bg-glass: rgba(255, 255, 255, 0.85);
+        --bg-sidebar: #0f172a; 
         
-        --text-primary: #0f172a;
+        --border-subtle: #e2e8f0;
+        --border-focus: #6366f1;
+        
+        --text-primary: #1e293b;
         --text-secondary: #64748b;
         --text-tertiary: #94a3b8;
-        
-        --primary: #2563eb;
-        --primary-light: #eff6ff;
-        --primary-dark: #1d4ed8;
+        --text-on-dark: #f1f5f9;
+
+        --primary: #4f46e5; 
+        --primary-hover: #4338ca;
+        --primary-light: #e0e7ff;
         
         --success: #10b981;
+        --success-bg: #d1fae5;
         --warning: #f59e0b;
+        --warning-bg: #fef3c7;
         --danger: #ef4444;
-        --info: #06b6d4;
+        --danger-bg: #fee2e2;
+        --info: #0ea5e9;
         
         --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        
-        --radius: 12px;
-        --font-main: 'Inter', sans-serif;
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.3);
+
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
     }
 
     [data-theme="dark"] {
-        --bg-body: #0f172a;
-        --bg-sidebar: #1e293b;
-        --bg-card: #1e293b;
-        --bg-hover: #334155;
-        --border-color: #334155;
+        --bg-body: #0b1120;
+        --bg-surface: #1e293b;
+        --bg-glass: rgba(30, 41, 59, 0.85);
+        --bg-sidebar: #0f172a;
+        --border-subtle: #334155;
         --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
+        --text-secondary: #cbd5e1;
         --text-tertiary: #64748b;
-        --primary: #3b82f6;
-        --primary-light: rgba(59, 130, 246, 0.1);
+        --primary: #6366f1;
+        --primary-light: rgba(99, 102, 241, 0.15);
+        --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.5);
     }
 
-    * { box-sizing: border-box; outline: none; }
-    body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; outline: none; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); height: 100vh; overflow: hidden; transition: background 0.3s; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 10px; opacity: 0.5; }
+    h1, h2, h3, h4, h5 { font-family: var(--font-heading); margin: 0; color: var(--text-primary); }
+    a { text-decoration: none; color: inherit; }
 
-    /* LAYOUT UTAMA */
-    .app-layout { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 64px 1fr; height: 100vh; width: 100vw; }
-    
-    /* SIDEBAR */
-    .sidebar { grid-row: 1 / -1; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 16px; z-index: 50; }
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 12px; }
-    .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: var(--shadow-sm); }
-    .brand-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-    
-    .nav-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
-    .nav-item i { font-size: 18px; }
+    .app-layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; width: 100vw; }
 
-    /* TOPBAR */
-    .topbar { grid-column: 2; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 40; }
-    .search-box { position: relative; width: 400px; }
-    .search-box input { width: 100%; padding: 10px 16px 10px 40px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); font-size: 13px; transition: all 0.2s; }
-    .search-box input:focus { border-color: var(--primary); background: var(--bg-card); box-shadow: 0 0 0 3px var(--primary-light); }
+    .sidebar { 
+        background: var(--bg-sidebar); 
+        color: var(--text-on-dark);
+        display: flex; flex-direction: column; 
+        padding: 24px; 
+        z-index: 50; 
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; padding: 0 8px; }
+    .brand-icon { 
+        width: 40px; height: 40px; 
+        background: linear-gradient(135deg, var(--primary), #8b5cf6); 
+        border-radius: 10px; color: white; 
+        display: flex; align-items: center; justify-content: center; 
+        font-weight: 800; font-size: 20px; 
+        box-shadow: var(--shadow-glow);
+    }
+    .brand-text { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; font-family: var(--font-heading); }
+    .brand-text span { color: #818cf8; }
+
+    .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #475569; margin: 0 0 12px 12px; letter-spacing: 0.8px; }
+    .nav-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+    .nav-item { 
+        display: flex; align-items: center; gap: 12px; 
+        padding: 12px 16px; border-radius: var(--radius-md); 
+        color: #94a3b8; font-weight: 500; font-size: 14px; 
+        cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative; overflow: hidden;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: #f8fafc; }
+    .nav-item.active { 
+        background: var(--primary); 
+        color: white; 
+        box-shadow: var(--shadow-glow);
+    }
+    .nav-item i { font-size: 20px; }
+
+    .topbar { 
+        position: sticky; top: 0;
+        height: 72px; 
+        background: var(--bg-glass);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex; align-items: center; justify-content: space-between; 
+        padding: 0 32px; z-index: 40;
+    }
+
+    .search-box { position: relative; width: 320px; }
+    .search-box input { 
+        width: 100%; padding: 10px 16px 10px 42px; 
+        border-radius: var(--radius-md); 
+        border: 1px solid var(--border-subtle); 
+        background: var(--bg-surface); 
+        color: var(--text-primary); 
+        font-size: 13px; font-family: var(--font-main);
+        transition: all 0.2s; 
+        box-shadow: var(--shadow-xs);
+    }
+    .search-box input:focus { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 4px var(--primary-light); 
+    }
     .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
 
     .header-actions { display: flex; align-items: center; gap: 12px; }
-    .icon-btn { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; position: relative; transition: all 0.2s; border: 1px solid transparent; background: transparent; }
-    .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-color); }
-    .badge-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-sidebar); display: none; }
-
-    /* CONTENT AREA */
-    .main-content { grid-column: 2; background: var(--bg-body); padding: 32px; overflow-y: auto; }
-
-    /* STATS CARDS */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 32px; }
-    .stat-card { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; transition: all 0.2s; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .stat-info h4 { margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-info h2 { margin: 8px 0 0; font-size: 28px; color: var(--text-primary); font-weight: 700; letter-spacing: -1px; }
-    .stat-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; }
-    .stat-card.overdue .stat-icon { background: #fee2e2; color: var(--danger); }
-
-    /* TOOLBARS & FILTERS (UNIFIED STYLE) */
-    .view-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-    .view-title h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary); }
-    .view-title p { color: var(--text-secondary); margin: 0; font-size: 14px; }
-    
-    .table-toolbar { 
-        background: var(--bg-card); 
-        border: 1px solid var(--border-color); 
-        border-radius: var(--radius); 
-        padding: 12px 16px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        gap: 16px; 
-        margin-bottom: 24px; 
-        box-shadow: var(--shadow-sm);
-        flex-wrap: wrap;
+    .icon-btn { 
+        width: 40px; height: 40px; border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        color: var(--text-secondary); cursor: pointer; 
+        transition: all 0.2s; border: 1px solid transparent; background: transparent; 
     }
-    .toolbar-left { display: flex; gap: 12px; align-items: center; flex: 1; }
-    .toolbar-right { display: flex; gap: 12px; align-items: center; }
+    .icon-btn:hover { background: var(--bg-body); color: var(--primary); border-color: var(--border-subtle); }
+    .badge-dot { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-surface); display: none; }
+    
+    .user-profile-btn {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 14px; margin-left: 12px;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        cursor: pointer;
+    }
 
-    /* TABLE STYLING - REFINED */
-    .table-container { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-sm); }
-    .table-responsive { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    th { background: #f8fafc; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 24px; text-align: left; font-weight: 600; border-bottom: 1px solid var(--border-color); }
-    td { padding: 16px 24px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-primary); }
+    .main-content { padding: 32px 40px; overflow-y: auto; height: calc(100vh - 72px); scroll-behavior: smooth; }
+    
+    .view-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; animation: fadeInDown 0.4s ease-out; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .view-title h1 { font-size: 28px; font-weight: 700; margin: 0 0 6px 0; letter-spacing: -0.5px; }
+    .view-title p { color: var(--text-secondary); font-size: 15px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .stat-card { 
+        background: var(--bg-surface); 
+        padding: 24px; border-radius: var(--radius-lg); 
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-sm); 
+        display: flex; align-items: center; justify-content: space-between; 
+        cursor: pointer; position: relative; overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary-light); }
+    .stat-card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); opacity: 0; transition: 0.3s; }
+    .stat-card:hover::after { opacity: 1; }
+    
+    .stat-info h4 { font-size: 13px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-info h2 { font-size: 32px; color: var(--text-primary); font-weight: 800; letter-spacing: -1px; }
+    .stat-icon { 
+        width: 56px; height: 56px; border-radius: 14px; 
+        background: var(--primary-light); color: var(--primary); 
+        display: flex; align-items: center; justify-content: center; font-size: 24px; 
+        transition: 0.3s;
+    }
+    .stat-card:hover .stat-icon { transform: scale(1.1) rotate(5deg); }
+    
+    .stat-card.overdue:hover { border-color: #fee2e2; }
+    .stat-card.overdue:hover::after { background: var(--danger); }
+
+    .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .card-widget { 
+        background: var(--bg-surface); border-radius: var(--radius-lg); 
+        border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); 
+        padding: 24px; display: flex; flex-direction: column;
+    }
+    .card-widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .card-widget h3 { font-size: 16px; font-weight: 700; }
+
+    .announcement-item {
+        padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);
+        margin-bottom: 12px; background: var(--bg-body); transition: 0.2s; display: flex; gap: 14px; cursor: pointer;
+    }
+    .announcement-item:hover { background: var(--bg-surface); border-color: var(--primary); box-shadow: var(--shadow-sm); }
+    .ann-marker { width: 4px; border-radius: 4px; background: var(--text-tertiary); }
+    .ann-content { flex: 1; }
+
+    .table-toolbar { 
+        background: var(--bg-surface); border: 1px solid var(--border-subtle); 
+        border-radius: var(--radius-lg); padding: 12px; 
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; 
+        gap: 16px; margin-bottom: 24px; box-shadow: var(--shadow-xs);
+    }
+    .btn-group { background: var(--bg-body); padding: 4px; border-radius: var(--radius-md); display: flex; border: 1px solid var(--border-subtle); }
+    .btn-toggle { 
+        padding: 6px 14px; border: none; background: transparent; 
+        color: var(--text-secondary); cursor: pointer; border-radius: 6px; 
+        font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: center; 
+        transition: all 0.2s; 
+    }
+    .btn-toggle.active { background: var(--bg-surface); color: var(--primary); box-shadow: var(--shadow-xs); }
+    
+    select { 
+        appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+        padding-right: 32px !important; cursor: pointer;
+    }
+
+    .table-container { 
+        background: var(--bg-surface); border-radius: var(--radius-lg); 
+        border: 1px solid var(--border-subtle); overflow: hidden; 
+        box-shadow: var(--shadow-sm); 
+    }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
+    th { 
+        background: var(--bg-body); color: var(--text-secondary); 
+        font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; 
+        padding: 16px 24px; text-align: left; border-bottom: 1px solid var(--border-subtle); 
+    }
+    td { 
+        padding: 16px 24px; border-bottom: 1px solid var(--border-subtle); 
+        font-size: 14px; vertical-align: middle; color: var(--text-primary); 
+        background: var(--bg-surface); transition: background 0.15s;
+    }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--bg-hover); }
+    tr:hover td { background: #f8fafc; } 
+    [data-theme="dark"] tr:hover td { background: #1e293b; }
 
-    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; border-top: 1px solid var(--border-color); background: var(--bg-card); }
-    .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.3px; text-transform: uppercase; }
+    .status-Open { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .status-Progress { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+    .status-Closed { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .cat-Low { color: var(--info); background: #e0f2fe; }
+    .cat-Normal { color: var(--warning); background: #fef3c7; }
+    .cat-Critical, .cat-High { color: var(--danger); background: #fee2e2; }
+    .status-approved { background: var(--success-bg); color: var(--success); }
+    .status-rejected { background: var(--danger-bg); color: var(--danger); }
+    .status-pending { background: var(--warning-bg); color: var(--warning); }
+
+    .btn { 
+        display: inline-flex; align-items: center; gap: 8px; 
+        padding: 10px 20px; border-radius: 8px; 
+        font-weight: 600; font-size: 14px; cursor: pointer; 
+        border: 1px solid transparent; transition: all 0.2s; 
+        background: var(--primary); color: white; justify-content: center; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+    }
+    .btn:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
+    .btn-outline { background: var(--bg-surface); border: 1px solid var(--border-subtle); color: var(--text-primary); box-shadow: var(--shadow-xs); }
+    .btn-outline:hover { border-color: var(--text-secondary); background: var(--bg-body); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: var(--bg-body); }
+
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; overflow-x: auto; padding-bottom: 20px; align-items: start; }
+    .kanban-col { background: var(--bg-body); border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--border-subtle); min-height: 400px; }
+    .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
+    .kanban-header h3 { font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+    .kanban-count { background: var(--bg-surface); padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; box-shadow: var(--shadow-xs); }
+    
+    .kanban-card { 
+        background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); 
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-subtle); 
+        cursor: pointer; transition: all 0.2s; margin-bottom: 12px; position: relative;
+    }
+    .kanban-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    .k-card-top { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
+    .k-card-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--text-primary); }
+
+    .modal-overlay { 
+        position: fixed; inset: 0; 
+        background: rgba(15, 23, 42, 0.4); 
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        z-index: 1000; display: none; align-items: center; justify-content: center; 
+        opacity: 0; transition: opacity 0.3s; 
+    }
+    .modal-overlay.active { opacity: 1; }
+    .modal-content { 
+        background: var(--bg-surface); width: 100%; max-width: 550px; 
+        padding: 32px; border-radius: 20px; 
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
+        transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-subtle);
+    }
+    .modal-overlay.active .modal-content { transform: scale(1); }
+
+    label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+    input, select, textarea { 
+        width: 100%; padding: 11px 14px; border-radius: 8px; 
+        border: 1px solid var(--border-subtle); background: var(--bg-surface); 
+        color: var(--text-primary); font-family: inherit; font-size: 14px; 
+        transition: border 0.2s, box-shadow 0.2s; 
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px var(--primary-light); }
+    input:read-only { background: var(--bg-body); color: var(--text-secondary); cursor: not-allowed; }
+
+    #loginScreen { 
+        position: fixed; inset: 0; 
+        background: radial-gradient(circle at top right, #eef2ff, #f8fafc);
+        z-index: 9999; display: flex; align-items: center; justify-content: center; 
+    }
+    .login-card { 
+        background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);
+        padding: 48px; border-radius: 24px; 
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); 
+        width: 420px; border: 1px solid white; text-align: center;
+        position: relative; overflow: hidden;
+    }
+    .login-card::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+        background: linear-gradient(90deg, var(--primary), #8b5cf6);
+    }
+
+    .loader-overlay { 
+        background: var(--bg-surface);
+    }
+
+    .hidden { display: none !important; }
+    
+    @media (max-width: 1024px) {
+        .app-layout { grid-template-columns: 1fr; }
+        .sidebar { position: fixed; height: 100%; width: 280px; transform: translateX(-100%); transition: transform 0.3s; }
+        .sidebar.open { transform: translateX(0); box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .topbar { padding: 0 16px; }
+        .main-content { padding: 20px; }
+        #mobileMenuBtn { display: block !important; }
+        .search-box { display: none; }
+        .dash-grid { grid-template-columns: 1fr; }
+        .kanban-board { grid-template-columns: 1fr; gap: 16px; }
+    }
+    #mobileMenuBtn { display: none; font-size: 24px; color: var(--text-primary); cursor: pointer; }
+    
+    .announcement-feed { flex: 1; overflow-y: auto; max-height: 320px; padding-right: 4px; }
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-top: 1px solid var(--border-subtle); background: var(--bg-surface); }
+    .page-btn { padding: 6px 12px; border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
     .page-btn:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
     .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* KANBAN */
-    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; height: calc(100vh - 240px); overflow-x: auto; padding-bottom: 16px; }
-    .kanban-col { background: var(--bg-hover); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; max-height: 100%; border: 1px solid var(--border-color); }
-    .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
-    .kanban-card { background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
-    .kanban-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .btn-toggle { padding: 6px 12px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 13px; display: flex; gap: 6px; align-items: center; transition: all 0.2s; }
-    .btn-toggle.active { background: var(--bg-card); color: var(--text-primary); font-weight: 600; box-shadow: var(--shadow-xs); }
-    .btn-group { display: flex; background: var(--bg-hover); border-radius: 8px; padding: 3px; border: 1px solid var(--border-color); }
-
-    /* COMPONENTS */
-    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.3px; }
-    .status-Open { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-    .status-Progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-    .status-Closed { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-    .cat-Low { color: var(--info); background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); }
-    .cat-Normal { color: var(--warning); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
-    .cat-Critical, .cat-High { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
-
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; background: var(--primary); color: white; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-secondary); box-shadow: var(--shadow-xs); }
-    .btn-outline:hover { border-color: var(--text-secondary); color: var(--text-primary); background: var(--bg-hover); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-create { background: var(--primary); color: #fff; }
-
-    /* FORMS */
-    select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 14px; transition: border 0.2s, box-shadow 0.2s; }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
-
-    /* MODAL */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
-    .modal-overlay.active { opacity: 1; }
-    .modal-content { background: var(--bg-card); width: 100%; max-width: 600px; padding: 32px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
-    .modal-overlay.active .modal-content { transform: scale(1); }
-
-    #loginScreen { position: fixed; inset: 0; background: #f8fafc; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .login-card { background: white; padding: 48px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); width: 400px; border: 1px solid #e2e8f0; text-align: center; }
-
-    /* LOADING SCREEN PROFESSIONAL */
-    .loader-overlay { 
-        position: fixed; inset: 0; background: #ffffff; z-index: 100000; 
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-        transition: opacity 0.5s ease-in-out, visibility 0.5s;
-    }
-    .loader-logo {
-        width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), #8b5cf6);
-        border-radius: 16px; color: white; display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 32px; margin-bottom: 24px;
-        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
-    .loader-bar-bg { width: 200px; height: 4px; background: #f1f5f9; border-radius: 99px; overflow: hidden; position: relative; }
-    .loader-bar { width: 50%; height: 100%; background: var(--primary); border-radius: 99px; position: absolute; left: 0; animation: loadBar 1.5s infinite ease-in-out; }
-    @keyframes loadBar { 0% { left: -50%; width: 50%; } 50% { left: 25%; width: 75%; } 100% { left: 100%; width: 20%; } }
-
-    .hidden { display: none !important; }
-    .text-sm { font-size: 13px; color: var(--text-secondary); margin-top: 16px; font-weight: 500; }
-    
-    @media (max-width: 1024px) {
-        .app-layout { grid-template-columns: 1fr; grid-template-rows: 64px 1fr; }
-        .sidebar { display: none; position: fixed; height: 100%; width: 260px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .sidebar.open { display: flex; }
-        .topbar { grid-column: 1; padding: 0 16px; }
-        .main-content { grid-column: 1; padding: 16px; }
-        #mobileMenuBtn { display: block !important; }
-        .search-box { display: none; }
-        .kanban-board { grid-template-columns: 1fr; gap: 16px; }
-        .table-toolbar { flex-direction: column; align-items: stretch; }
-        .toolbar-left, .toolbar-right { flex-direction: column; width: 100%; }
-        .btn-group { width: 100%; } .btn-group button { flex: 1; justify-content: center; }
-    }
-    #mobileMenuBtn { display: none; font-size: 24px; color: var(--text-primary); cursor: pointer; }
-    .sla-progress { height: 4px; background: var(--border-color); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-    .sla-bar { height: 100%; background: var(--success); transition: width 0.3s; }
+    .sla-progress { height: 6px; background: var(--bg-body); border-radius: 10px; margin-top: 8px; overflow: hidden; width: 100px; }
+    .sla-bar { height: 100%; background: var(--success); transition: width 0.3s; border-radius: 10px; }
 </style>
 </head>
 <body data-theme="light">
 
-<div id="appLoader" class="loader-overlay">
-    <div class="loader-logo">Z</div>
-    <div class="loader-bar-bg"><div class="loader-bar"></div></div>
-    <div class="text-sm">Initializing Secure Environment...</div>
+<div id="appLoader" class="loader-overlay" style="position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s;">
+    <div class="brand-icon" style="width: 80px; height: 80px; font-size: 32px; margin-bottom: 24px;">Z</div>
+    <div style="width: 200px; height: 4px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative;">
+        <div style="width: 50%; height: 100%; background: var(--primary); border-radius: 10px; position: absolute; left: 0; animation: loadBar 1s infinite ease-in-out;"></div>
+    </div>
+    <div class="text-sm" style="margin-top: 16px; color: var(--text-secondary); font-weight: 500;">Secure Environment Loading...</div>
+    <style>@keyframes loadBar { 0% { left: -50%; width: 50%; } 50% { left: 25%; width: 75%; } 100% { left: 100%; width: 20%; } }</style>
 </div>
 
 <div id="loginScreen" class="hidden"> 
     <div class="login-card">
-        <div class="brand-icon" style="width:56px; height:56px; font-size:24px; margin:0 auto 24px;">Z</div>
-        <h2 style="margin-bottom:8px; font-weight:800; color:#1e293b;">Zeppelin Enterprise</h2>
-        <p style="color:#64748b; font-size:14px; margin-bottom:32px;">Secure Admin Access Point</p>
-        <div style="text-align:left; margin-bottom:16px;">
-            <label style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px; display:block;">USERNAME</label>
-            <input id="loginUser" type="text" placeholder="root" style="width:100%;">
+        <div class="brand-icon" style="width:64px; height:64px; font-size:28px; margin:0 auto 24px;">Z</div>
+        <h2 style="margin-bottom:8px; font-weight:800; color:#1e293b; font-size: 24px;">Zeppelin Enterprise</h2>
+        <p style="color:#64748b; font-size:15px; margin-bottom:40px; line-height: 1.5;">Access your secure administrative command center.</p>
+        
+        <div style="text-align:left; margin-bottom:20px;">
+            <label>USERNAME / ID</label>
+            <input id="loginUser" type="text" placeholder="root" style="padding: 14px;">
         </div>
-        <div style="text-align:left; margin-bottom:24px;">
-            <label style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px; display:block;">PASSWORD</label>
-            <input id="loginPass" type="password" placeholder="••••••" style="width:100%;">
+        <div style="text-align:left; margin-bottom:32px;">
+            <label>PASSWORD</label>
+            <input id="loginPass" type="password" placeholder="••••••••" style="padding: 14px;">
         </div>
-        <button id="loginBtn" class="btn" style="width:100%; padding:14px; font-size:14px;">Masuk Dashboard</button>
-        <p id="authError" style="color:var(--danger); font-size:13px; margin-top:16px; display:none;"></p>
+        
+        <button id="loginBtn" class="btn" style="width:100%; padding:14px; font-size:15px; background: linear-gradient(to right, var(--primary), #4338ca); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);">Sign In to Dashboard</button>
+        <p id="authError" style="color:var(--danger); font-size:13px; margin-top:20px; display:none; background: #fee2e2; padding: 10px; border-radius: 8px;"></p>
+        <div style="margin-top: 24px; font-size: 12px; color: #94a3b8;">&copy; 2024 Zeppelin Corp. Secure System v4.1</div>
     </div>
 </div>
 
 <div class="app-layout hidden" id="appInterface">
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-icon">Z</div><div class="brand-text">Zeppelin<span style="color:var(--primary);">.center</span></div></div>
+        <div class="brand">
+            <div class="brand-icon">Z</div>
+            <div class="brand-text">Zeppelin<span>.center</span></div>
+        </div>
+        
+        <div class="nav-label">Main Menu</div>
         <ul class="nav-menu">
             <li class="nav-item active" onclick="switchTab('dashboard')"><i class="ri-dashboard-3-line"></i> Dashboard</li>
             <li class="nav-item" onclick="switchTab('tickets')"><i class="ri-ticket-2-line"></i> Tiket & Insiden</li>
             <li class="nav-item" onclick="switchTab('users')"><i class="ri-team-line"></i> User Management</li>
             <li class="nav-item" onclick="switchTab('requests')"><i class="ri-macbook-line"></i> Permintaan Aset</li>
         </ul>
-        <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">
-            <div class="nav-item" style="color:var(--danger);" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</div>
-            <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">v4.1.0 (Fixed Filters)</div>
+
+        <div style="margin-top: auto;">
+            <div class="nav-label">System</div>
+            <ul class="nav-menu">
+                <li class="nav-item" id="logoutBtn" style="color: #f87171;"><i class="ri-logout-box-line"></i> Sign Out</li>
+            </ul>
+            <div style="font-size: 11px; color: #475569; margin-top: 20px; padding: 0 12px; font-family: var(--font-mono);">Build v4.1.0-stable</div>
         </div>
     </aside>
 
-    <header class="topbar">
-        <div style="display:flex; align-items:center; gap:16px;">
-            <i class="ri-menu-2-line" id="mobileMenuBtn"></i>
-            <div class="search-box"><i class="ri-search-line"></i><input type="text" id="globalSearch" placeholder="Cari tiket, user, atau aset (Cmd + K)..."></div>
-        </div>
-        <div class="header-actions">
-            <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
-            <a href="chatadm.html" class="icon-btn" title="Pesan Masuk"><i class="ri-message-3-line"></i><span class="badge-dot" id="chatBadge"></span></a>
-            <div style="height:20px; width:1px; background:var(--border-color);"></div>
-            <button class="icon-btn" id="backupBtn" title="Download Backup"><i class="ri-download-cloud-2-line"></i></button>
-            <input id="restoreFile" type="file" hidden accept=".json">
-            <button class="icon-btn" id="restoreBtn" title="Restore Data"><i class="ri-upload-cloud-2-line"></i></button>
-            <div style="width:36px; height:36px; background:linear-gradient(to bottom, #3b82f6, #2563eb); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; margin-left:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">A</div>
-        </div>
-    </header>
+    <div style="display: flex; flex-direction: column; overflow: hidden;">
+        <header class="topbar">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <i class="ri-menu-2-line" id="mobileMenuBtn"></i>
+                <div class="search-box">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="globalSearch" placeholder="Global Search (Tiket, User, Aset)...">
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
+                <a href="chatadm.html" class="icon-btn" title="Pesan Masuk">
+                    <i class="ri-message-3-line"></i>
+                    <span class="badge-dot" id="chatBadge"></span>
+                </a>
+                <div style="height:24px; width:1px; background:var(--border-subtle); margin: 0 4px;"></div>
+                <button class="icon-btn" id="backupBtn" title="Download Backup"><i class="ri-download-cloud-2-line"></i></button>
+                <input id="restoreFile" type="file" hidden accept=".json">
+                <button class="icon-btn" id="restoreBtn" title="Restore Data"><i class="ri-upload-cloud-2-line"></i></button>
+                <div class="user-profile-btn">A</div>
+            </div>
+        </header>
 
-    <main class="main-content">
-        <div id="view-dashboard">
-            <div class="view-header">
-                <div class="view-title"><h1>Command Center</h1><p>Ringkasan aktivitas sistem hari ini.</p></div>
-            </div>
-            <div class="stats-row">
-                <div class="stat-card" onclick="filterByStat('All')"><div class="stat-info"><h4>Total Tiket</h4><h2 id="statTotal">0</h2></div><div class="stat-icon"><i class="ri-folder-open-line"></i></div></div>
-                <div class="stat-card" onclick="filterByStat('Open')"><div class="stat-info"><h4>Open</h4><h2 id="statOpen" style="color:var(--warning)">0</h2></div><div class="stat-icon" style="background:#fffbeb; color:var(--warning)"><i class="ri-loader-2-line"></i></div></div>
-                <div class="stat-card" onclick="filterByStat('Closed')"><div class="stat-info"><h4>Selesai</h4><h2 id="statClosed" style="color:var(--success)">0</h2></div><div class="stat-icon" style="background:#ecfdf5; color:var(--success)"><i class="ri-check-double-line"></i></div></div>
-                <div class="stat-card overdue" onclick="filterByStat('Overdue')"><div class="stat-info"><h4 style="color:var(--danger)">Overdue</h4><h2 id="statOverdue" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-alarm-warning-line"></i></div></div>
-            </div>
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom: 24px;">
-                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); box-shadow:var(--shadow-sm);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:600; margin:0;">Analitik Kinerja</h3><select style="border:none; background:transparent; font-size:12px; color:var(--text-secondary); width:auto; padding:0;"><option>7 Hari Terakhir</option></select></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartCategory"></canvas></div>
-                        <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartSLA"></canvas></div>
+        <main class="main-content">
+            <div id="view-dashboard">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>Command Center</h1>
+                        <p>Real-time overview of system performance and incidents.</p>
+                    </div>
+                    <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); background: var(--bg-surface); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                        SERVER: ONLINE <span style="color:var(--success)">●</span>
                     </div>
                 </div>
-                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); display:flex; flex-direction:column; box-shadow:var(--shadow-sm);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:600; margin:0;">📢 Pengumuman</h3><button class="btn-toggle" onclick="openAnnModal(null)" style="font-size:12px;"><i class="ri-add-line"></i> Baru</button></div>
-                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:12px;"></div>
-                </div>
-            </div>
-        </div>
 
-        <div id="view-tickets" class="hidden">
-            <div class="view-header">
-                <div class="view-title"><h1>Manajemen Tiket</h1><p>Pantau insiden, lacak SLA, dan selesaikan laporan user.</p></div>
-                <div style="display:flex; gap:12px;">
-                    <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i> Sampah</button>
-                    <button class="btn" onclick="openReportModal(null)"><i class="ri-add-line"></i> Tiket Baru</button>
-                </div>
-            </div>
-
-            <div class="table-toolbar">
-                <div class="toolbar-left">
-                    <div class="btn-group">
-                        <button class="btn-toggle active" id="btnList" onclick="toggleViewMode('list')"><i class="ri-list-check"></i> List</button>
-                        <button class="btn-toggle" id="btnKanban" onclick="toggleViewMode('kanban')"><i class="ri-kanban-view"></i> Board</button>
+                <div class="stats-row">
+                    <div class="stat-card" onclick="filterByStat('All')">
+                        <div class="stat-info"><h4>Total Tiket</h4><h2 id="statTotal">0</h2></div>
+                        <div class="stat-icon"><i class="ri-folder-open-line"></i></div>
                     </div>
-                    <div style="height:24px; width:1px; background:var(--border-color); margin:0 8px;"></div>
-                    <select id="filterCat" style="width:160px;"><option value="">Semua Kategori</option><option value="Low">Low</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select>
-                </div>
-                <div class="toolbar-right">
-                    <div class="search-box" style="width:250px; display:block;"><i class="ri-search-line"></i><input type="text" id="ticketSearch" placeholder="Filter ID/Nama..." style="border-radius:6px;"></div>
-                </div>
-            </div>
-
-            <div id="cont-list" class="table-container">
-                <div class="table-responsive">
-                    <table id="reportTable"><thead><tr><th>ID & Pelapor</th><th>Subjek Masalah</th><th>Status & SLA</th><th>Teknisi (PIC)</th><th>Waktu Lapor</th><th style="text-align:right">Aksi</th></tr></thead><tbody></tbody></table>
-                </div>
-                <div class="pagination-container"><div class="pagination-info" id="paginationInfo">Menampilkan 0-0 dari 0</div><div class="pagination-btns" id="paginationBtns"></div></div>
-            </div>
-            
-            <div id="cont-kanban" class="hidden">
-                <div class="kanban-board">
-                    <div class="kanban-col"><div class="kanban-header"><h3>Open / Baru</h3><span class="kanban-count" id="countOpen">0</span></div><div id="kb-Open" class="kanban-items-container"></div></div>
-                    <div class="kanban-col"><div class="kanban-header"><h3>In Progress</h3><span class="kanban-count" id="countProgress">0</span></div><div id="kb-Progress" class="kanban-items-container"></div></div>
-                    <div class="kanban-col"><div class="kanban-header"><h3>Closed / Selesai</h3><span class="kanban-count" id="countClosed">0</span></div><div id="kb-Closed" class="kanban-items-container"></div></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-users" class="hidden">
-            <div class="view-header">
-                <div class="view-title"><h1>Manajemen User</h1><p>Kelola akses dan data karyawan.</p></div>
-                <button id="showCreateUserPopupBtn" class="btn btn-create"><i class="ri-user-add-line"></i> User Baru</button>
-            </div>
-            
-            <div class="stats-row">
-                <div class="stat-card"><div class="stat-info"><h4>Total User</h4><h2 id="userStatTotal">0</h2></div><div class="stat-icon"><i class="ri-group-line"></i></div></div>
-                <div class="stat-card"><div class="stat-info"><h4>Pending</h4><h2 id="userStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-user-follow-line"></i></div></div>
-                <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="userStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-user-smile-line"></i></div></div>
-            </div>
-
-            <div class="table-toolbar">
-                <div class="toolbar-left" style="flex:2;">
-                    <div class="search-box" style="width:100%; display:block;">
-                        <i class="ri-search-line"></i>
-                        <input id="userSearchInput" type="text" placeholder="Cari nama atau email..." style="border-radius:6px;">
+                    <div class="stat-card" onclick="filterByStat('Open')">
+                        <div class="stat-info"><h4>Open Issues</h4><h2 id="statOpen" style="color:var(--warning)">0</h2></div>
+                        <div class="stat-icon" style="background:#fffbeb; color:var(--warning)"><i class="ri-loader-2-line"></i></div>
+                    </div>
+                    <div class="stat-card" onclick="filterByStat('Closed')">
+                        <div class="stat-info"><h4>Resolved</h4><h2 id="statClosed" style="color:var(--success)">0</h2></div>
+                        <div class="stat-icon" style="background:#ecfdf5; color:var(--success)"><i class="ri-check-double-line"></i></div>
+                    </div>
+                    <div class="stat-card overdue" onclick="filterByStat('Overdue')">
+                        <div class="stat-info"><h4 style="color:var(--danger)">Overdue</h4><h2 id="statOverdue" style="color:var(--danger)">0</h2></div>
+                        <div class="stat-icon" style="background:#fee2e2; color:var(--danger)"><i class="ri-alarm-warning-line"></i></div>
                     </div>
                 </div>
-                <div class="toolbar-right">
-                    <select id="userFilterDept" style="width:180px;"><option value="">Semua Departemen</option></select>
-                    <select id="userFilterStatus" style="width:140px;"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
-                </div>
-            </div>
 
-            <div class="table-container table-responsive"><table id="userTable"><thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Status</th><th style="text-align:center;">Tiket</th><th>Aksi</th></tr></thead><tbody id="userTableBody"></tbody></table></div>
-        </div>
-
-        <div id="view-requests" class="hidden">
-            <div class="view-header">
-                <div class="view-title"><h1>Permintaan Aset</h1><p>Approval permintaan perangkat hardware/software.</p></div>
-            </div>
-            
-            <div class="stats-row">
-                <div class="stat-card"><div class="stat-info"><h4>Total Pending</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-time-line"></i></div></div>
-                <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="reqStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-check-line"></i></div></div>
-                <div class="stat-card"><div class="stat-info"><h4>Rejected</h4><h2 id="reqStatRejected" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-close-line"></i></div></div>
-            </div>
-
-            <div class="table-toolbar">
-                <div class="toolbar-left" style="flex:2;">
-                    <div class="search-box" style="width:100%; display:block;">
-                        <i class="ri-search-line"></i>
-                        <input id="reqSearch" type="text" placeholder="Cari user, email, detail..." style="border-radius:6px;">
+                <div class="dash-grid">
+                    <div class="card-widget">
+                        <div class="card-widget-header">
+                            <h3><i class="ri-bar-chart-grouped-line" style="margin-right:8px; color:var(--primary);"></i>Performance Analytics</h3>
+                            <select style="width:auto; border:none; background:transparent; font-size:12px; color:var(--text-secondary); padding-right:16px!important;"><option>Last 7 Days</option></select>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                            <div style="position: relative; height: 220px; width: 100%;"><canvas id="chartCategory"></canvas></div>
+                            <div style="position: relative; height: 220px; width: 100%;"><canvas id="chartSLA"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="card-widget" style="padding-bottom: 0;">
+                        <div class="card-widget-header">
+                            <h3><i class="ri-notification-3-line" style="margin-right:8px; color:var(--warning);"></i>Announcements</h3>
+                            <button class="btn-toggle" onclick="openAnnModal(null)" style="font-size:11px; background: var(--bg-body); border:1px solid var(--border-subtle);"><i class="ri-add-line"></i> Create</button>
+                        </div>
+                        <div id="announcementFeed" class="announcement-feed">
+                        </div>
                     </div>
                 </div>
-                <div class="toolbar-right">
-                    <select id="reqFilterDept" style="width:180px;"><option value="">Semua Departemen</option></select>
-                    <select id="reqFilterStatus" style="width:140px;"><option value="">Semua Status</option><option value="Pending" selected>Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+            </div>
+
+            <div id="view-tickets" class="hidden">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>Incident Management</h1>
+                        <p>Track, prioritize, and resolve support tickets.</p>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i> Sampah</button>
+                        <button class="btn" onclick="openReportModal(null)"><i class="ri-add-line"></i> Create Ticket</button>
+                    </div>
+                </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left" style="display:flex; align-items:center; gap:16px; flex:1;">
+                        <div class="btn-group">
+                            <button class="btn-toggle active" id="btnList" onclick="toggleViewMode('list')"><i class="ri-list-check"></i> List</button>
+                            <button class="btn-toggle" id="btnKanban" onclick="toggleViewMode('kanban')"><i class="ri-kanban-view"></i> Board</button>
+                        </div>
+                        <div style="height:20px; width:1px; background:var(--border-subtle);"></div>
+                        <select id="filterCat" style="width:180px;"><option value="">All Categories</option><option value="Low">Low</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="search-box" style="width:280px; display:block;">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="ticketSearch" placeholder="Search ID, Subject, User...">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cont-list" class="table-container">
+                    <div class="table-responsive">
+                        <table id="reportTable">
+                            <thead><tr><th>ID & Requester</th><th>Issue Subject</th><th>Status & SLA</th><th>Technician (PIC)</th><th>Date Reported</th><th style="text-align:right">Actions</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-container">
+                        <div class="pagination-info" id="paginationInfo" style="font-size: 13px; color: var(--text-secondary);">Showing 0-0 of 0</div>
+                        <div class="pagination-btns" id="paginationBtns" style="display: flex; gap: 4px;"></div>
+                    </div>
+                </div>
+                
+                <div id="cont-kanban" class="hidden">
+                    <div class="kanban-board">
+                        <div class="kanban-col">
+                            <div class="kanban-header"><h3>Open / New</h3><span class="kanban-count" id="countOpen">0</span></div>
+                            <div id="kb-Open" class="kanban-items-container"></div>
+                        </div>
+                        <div class="kanban-col">
+                            <div class="kanban-header"><h3>In Progress</h3><span class="kanban-count" id="countProgress">0</span></div>
+                            <div id="kb-Progress" class="kanban-items-container"></div>
+                        </div>
+                        <div class="kanban-col">
+                            <div class="kanban-header"><h3>Closed / Done</h3><span class="kanban-count" id="countClosed">0</span></div>
+                            <div id="kb-Closed" class="kanban-items-container"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="table-container table-responsive"><table id="reqTable"><thead><tr><th>Tanggal</th><th>User</th><th>Departemen</th><th>Kategori</th><th>Detail</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="reqTableBody"></tbody></table></div>
-        </div>
-    </main>
+            <div id="view-users" class="hidden">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>User Directory</h1>
+                        <p>Manage employee access and department roles.</p>
+                    </div>
+                    <button id="showCreateUserPopupBtn" class="btn"><i class="ri-user-add-line"></i> Add User</button>
+                </div>
+                
+                <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card"><div class="stat-info"><h4>Total Registered</h4><h2 id="userStatTotal">0</h2></div><div class="stat-icon"><i class="ri-group-line"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h4>Pending Approval</h4><h2 id="userStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-user-follow-line"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h4>Active Users</h4><h2 id="userStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-user-smile-line"></i></div></div>
+                </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left" style="flex:2;">
+                        <div class="search-box" style="width:100%; display:block;">
+                            <i class="ri-search-line"></i>
+                            <input id="userSearchInput" type="text" placeholder="Search by name or email...">
+                        </div>
+                    </div>
+                    <div class="toolbar-right" style="display:flex; gap:12px;">
+                        <select id="userFilterDept" style="width:200px;"><option value="">All Departments</option></select>
+                        <select id="userFilterStatus" style="width:160px;"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                    </div>
+                </div>
+
+                <div class="table-container table-responsive">
+                    <table id="userTable">
+                        <thead><tr><th>Name</th><th>Email Address</th><th>Department</th><th>Status</th><th style="text-align:center;">Tickets</th><th>Actions</th></tr></thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-requests" class="hidden">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>Asset Requests</h1>
+                        <p>Approve or reject hardware/software requisitions.</p>
+                    </div>
+                </div>
+                
+                <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card"><div class="stat-info"><h4>Pending Requests</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-time-line"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="reqStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-check-line"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h4>Rejected</h4><h2 id="reqStatRejected" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-close-line"></i></div></div>
+                </div>
+
+                <div class="table-toolbar">
+                    <div class="toolbar-left" style="flex:2;">
+                        <div class="search-box" style="width:100%; display:block;">
+                            <i class="ri-search-line"></i>
+                            <input id="reqSearch" type="text" placeholder="Search requests...">
+                        </div>
+                    </div>
+                    <div class="toolbar-right" style="display:flex; gap:12px;">
+                        <select id="reqFilterDept" style="width:200px;"><option value="">All Departments</option></select>
+                        <select id="reqFilterStatus" style="width:160px;"><option value="">All Status</option><option value="Pending" selected>Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+                    </div>
+                </div>
+
+                <div class="table-container table-responsive">
+                    <table id="reqTable">
+                        <thead><tr><th>Request Date</th><th>User</th><th>Department</th><th>Category</th><th>Details</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="reqTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 </div>
 
 <div class="modal-overlay" id="modalTicket">
     <div class="modal-content">
-        <h2 style="margin-top:0; font-weight:700;">Detail Tiket</h2>
+        <h2 style="margin-bottom: 24px;">Ticket Details</h2>
         <form id="formTicket" onsubmit="return false;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                <div><label style="font-size:12px; font-weight:600;">Pelapor</label><input id="t_nama" required placeholder="Nama User" style="margin-top:4px;"></div>
-                <div><label style="font-size:12px; font-weight:600;">PIC Teknisi</label><input id="t_pic" required placeholder="Nama Anda" style="margin-top:4px;"></div>
+                <div><label>Requester (User)</label><input id="t_nama" required placeholder="Nama User" style="background:var(--bg-body);"></div>
+                <div><label>Technician (PIC)</label><input id="t_pic" required placeholder="Assign to..." style="border-color:var(--border-focus);"></div>
             </div>
             <div style="margin-bottom:16px;">
-                <label style="font-size:12px; font-weight:600;">Jenis & Kategori</label>
+                <label>Issue Classification</label>
                 <div style="display:flex; gap:12px; margin-top:4px;">
                     <select id="t_jenis" style="flex:2;">
-                        <option value="" disabled selected>-- Pilih Jenis Masalah --</option>
+                        <option value="" disabled selected>-- Select Type --</option>
                         <optgroup label="Hardware & Perangkat">
                             <option value="Hardware - Laptop/PC">Laptop / PC Rusak</option>
                             <option value="Hardware - Printer">Printer / Scanner</option>
@@ -436,11 +683,17 @@
                     <select id="t_kategori" style="flex:1;"><option value="Low">Low (48h)</option><option value="Normal">Normal (24h)</option><option value="Critical">Critical (4h)</option></select>
                 </div>
             </div>
-            <div style="margin-bottom:16px;"><label style="font-size:12px; font-weight:600;">Catatan Publik</label><textarea id="t_note" rows="3" style="margin-top:4px;"></textarea></div>
-            <div style="margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal</label><textarea id="t_internal" rows="3" style="background:var(--bg-hover); margin-top:4px; border-color:#cbd5e1;"></textarea></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <select id="t_status" style="width:auto;"><option value="Open">Open</option><option value="Progress">Progress</option><option value="Closed">Closed</option></select>
-                <div style="display:flex; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalTicket')">Batal</button><button class="btn" onclick="saveTicket()">Simpan Perubahan</button></div>
+            <div style="margin-bottom:16px;"><label>Public Notes</label><textarea id="t_note" rows="3"></textarea></div>
+            <div style="margin-bottom:24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px dashed #f59e0b;">
+                <label style="color:#b45309;"><i class="ri-lock-line"></i> Internal Notes (Admin Only)</label>
+                <textarea id="t_internal" rows="2" style="background:white; margin-top:4px; border-color:#f59e0b;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border-subtle); padding-top: 20px;">
+                <select id="t_status" style="width:140px; font-weight:600;"><option value="Open">Open</option><option value="Progress">Progress</option><option value="Closed">Closed</option></select>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-ghost" onclick="closeModal('modalTicket')">Cancel</button>
+                    <button class="btn" onclick="saveTicket()">Save Changes</button>
+                </div>
             </div>
         </form>
     </div>
@@ -448,54 +701,95 @@
 
 <div class="modal-overlay" id="modalAnn">
     <div class="modal-content">
-        <h2 style="margin-top:0;">Buat Pengumuman</h2>
-        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Judul</label><input id="a_title" placeholder="Cth: Libur Nasional" style="margin-top:4px;"></div>
-        <div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:600;">Konten</label><textarea id="a_content" rows="6" placeholder="Isi..." style="margin-top:4px;"></textarea></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-            <div><label style="font-size:12px; font-weight:600;">Kategori</label><select id="a_cat" style="margin-top:4px;"><option value="Umum">Umum</option><option value="Penting">Penting</option><option value="Event">Event</option></select></div>
-            <div><label style="font-size:12px; font-weight:600;">Author</label><input id="a_author" value="Admin" style="margin-top:4px;"></div>
+        <h2>New Announcement</h2>
+        <div style="margin-top:20px; margin-bottom:16px;"><label>Title</label><input id="a_title" placeholder="e.g. System Maintenance"></div>
+        <div style="margin-bottom:16px;"><label>Content</label><textarea id="a_content" rows="6" placeholder="Write your announcement here..."></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+            <div><label>Category</label><select id="a_cat"><option value="Umum">General</option><option value="Penting">Important</option><option value="Event">Event</option></select></div>
+            <div><label>Author</label><input id="a_author" value="Admin" readonly></div>
         </div>
-        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:24px;"><input type="checkbox" id="a_pin"> <span>Sematkan (Pin)</span></label>
-        <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalAnn')">Batal</button><button class="btn" onclick="saveAnnouncement()">Publikasikan</button></div>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:24px; padding: 12px; background: var(--bg-body); border-radius: 8px;">
+            <input type="checkbox" id="a_pin" style="width:auto; margin:0;"> 
+            <span style="font-weight:600;">Pin to Top</span>
+        </label>
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn btn-ghost" onclick="closeModal('modalAnn')">Cancel</button>
+            <button class="btn" onclick="saveAnnouncement()">Publish</button>
+        </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="modalUserDetail">
     <div class="modal-content">
-        <h3>Detail User: <span id="ud_name" style="color:var(--primary)"></span></h3><input type="hidden" id="ud_id">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;"><div><label class="small">Nama Lengkap</label><input type="text" id="ud_fullname"></div><div><label class="small">Departemen</label><input type="text" id="ud_dept"></div></div>
-        <div style="margin-bottom:16px;"><label class="small">Email</label><input type="email" id="ud_email" disabled></div>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;"><button class="btn" style="background:var(--success)" onclick="updateUserStatus('approved')">Approve</button><button class="btn" style="background:var(--danger)" onclick="updateUserStatus('rejected')">Reject</button><button class="btn" style="background:var(--warning)" onclick="updateUserStatus('pending')">Pending</button></div>
-        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border-color); padding-top:16px;"><button class="btn btn-outline" onclick="closeModal('modalUserDetail')">Tutup</button><button class="btn" onclick="saveUserChanges()">Simpan Data</button></div>
+        <h3>User Profile: <span id="ud_name" style="color:var(--primary)"></span></h3><input type="hidden" id="ud_id">
+        <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div><label>Full Name</label><input type="text" id="ud_fullname"></div>
+            <div><label>Department</label><input type="text" id="ud_dept"></div>
+        </div>
+        <div style="margin-bottom:24px;"><label>Email Address</label><input type="email" id="ud_email" disabled></div>
+        
+        <label>Set Account Status</label>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px;">
+            <button class="btn" style="background:var(--success-bg); color:var(--success); border:1px solid var(--success);" onclick="updateUserStatus('approved')"><i class="ri-check-line"></i> Approve</button>
+            <button class="btn" style="background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger);" onclick="updateUserStatus('rejected')"><i class="ri-close-line"></i> Reject</button>
+            <button class="btn" style="background:var(--warning-bg); color:var(--warning); border:1px solid var(--warning);" onclick="updateUserStatus('pending')"><i class="ri-time-line"></i> Pending</button>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border-subtle); padding-top:20px;">
+            <button class="btn btn-ghost" onclick="closeModal('modalUserDetail')">Close</button>
+            <button class="btn" onclick="saveUserChanges()">Save Profile</button>
+        </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="modalCreateUser">
     <div class="modal-content">
-        <h3>Buat User Baru</h3>
+        <h3>Onboard New User</h3>
+        <p style="color:var(--text-secondary); font-size:14px; margin-bottom:24px;">Create a new account for an employee manually.</p>
         <form id="formCreateUser" onsubmit="return false;">
-            <div style="margin-bottom:12px;"><label class="small">Nama Lengkap</label><input id="cu_name" required></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;"><div><label class="small">Email</label><input id="cu_email" type="email" required></div><div><label class="small">Departemen</label><input id="cu_dept" required></div></div>
-            <div style="margin-bottom:16px;"><label class="small">Password (Min. 6 char)</label><input id="cu_pass" type="password" required minlength="6"></div>
-            <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalCreateUser')">Batal</button><button class="btn" onclick="submitNewUser()">Buat Akun</button></div>
+            <div style="margin-bottom:16px;"><label>Full Name</label><input id="cu_name" required></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div><label>Email</label><input id="cu_email" type="email" required></div>
+                <div><label>Department</label><input id="cu_dept" required></div>
+            </div>
+            <div style="margin-bottom:24px;"><label>Temporary Password (Min. 6 char)</label><input id="cu_pass" type="password" required minlength="6"></div>
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn btn-ghost" onclick="closeModal('modalCreateUser')">Cancel</button>
+                <button class="btn" onclick="submitNewUser()">Create Account</button>
+            </div>
         </form>
     </div>
 </div>
 
 <div class="modal-overlay" id="modalReqDetail">
     <div class="modal-content">
-        <h3>Proses Permintaan</h3><input type="hidden" id="rd_id">
-        <div style="background:var(--bg-hover); padding:16px; border-radius:8px; margin-bottom:16px;"><div style="font-weight:700; margin-bottom:4px;" id="rd_user">User Name</div><div style="font-size:13px; color:var(--text-secondary);" id="rd_detail">Request Details...</div><div style="margin-top:8px; font-style:italic;" id="rd_reason">"Reason..."</div></div>
-        <div id="assetAssignSection" style="margin-bottom:16px; display:none;"><label class="small" style="color:var(--primary)"><i class="ri-box-3-line"></i> Tetapkan Aset dari Stok</label><select id="rd_asset_select" style="margin-top:4px;"><option value="">-- Pilih Aset --</option></select></div>
-        <div style="margin-bottom:16px;"><label class="small">Catatan Admin</label><textarea id="rd_notes" rows="3" placeholder="Respon untuk user..."></textarea></div>
-        <div style="display:flex; justify-content:flex-end; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalReqDetail')">Batal</button><button class="btn" style="background:var(--danger)" onclick="processRequest('Rejected')">Tolak</button><button class="btn" style="background:var(--success)" onclick="processRequest('Approved')">Setujui</button></div>
+        <h3>Process Asset Request</h3><input type="hidden" id="rd_id">
+        <div style="background:var(--bg-body); padding:20px; border-radius:12px; margin: 20px 0 20px 0; border: 1px solid var(--border-subtle);">
+            <div style="font-weight:700; font-size:16px; margin-bottom:4px;" id="rd_user">User Name</div>
+            <div style="font-size:14px; color:var(--text-secondary); margin-bottom:8px;" id="rd_detail">Request Details...</div>
+            <div style="margin-top:8px; font-style:italic; font-family:serif; color:var(--text-primary);" id="rd_reason">"Reason..."</div>
+        </div>
+        
+        <div id="assetAssignSection" style="margin-bottom:20px; display:none; padding:16px; background:#eff6ff; border-radius:8px; border:1px solid #bfdbfe;">
+            <label style="color:var(--primary);"><i class="ri-box-3-line"></i> Assign Asset from Inventory</label>
+            <select id="rd_asset_select" style="margin-top:8px; background:white;"><option value="">-- Choose Available Asset --</option></select>
+        </div>
+        
+        <div style="margin-bottom:24px;"><label>Admin Response / Notes</label><textarea id="rd_notes" rows="3" placeholder="Message to user..."></textarea></div>
+        
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn btn-ghost" onclick="closeModal('modalReqDetail')">Close</button>
+            <button class="btn btn-danger" style="background:var(--danger); color:white;" onclick="processRequest('Rejected')">Reject</button>
+            <button class="btn" style="background:var(--success); color:white;" onclick="processRequest('Approved')">Approve Request</button>
+        </div>
     </div>
 </div>
 
-<div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:white; padding:12px 24px; border-radius:50px; font-weight:600; transition:all 0.3s; z-index:99999; box-shadow:var(--shadow-md); font-size:14px;">Notification</div>
+<div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:white; padding:12px 32px; border-radius:50px; font-weight:600; transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index:99999; box-shadow:0 10px 25px rgba(0,0,0,0.2); font-size:14px; display:flex; align-items:center; gap:8px;">
+    <i class="ri-checkbox-circle-line"></i> <span>Notification</span>
+</div>
 
 <script>
-    // === CONFIGURATION ===
     const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
     const ADMIN_EMAIL = "root@zeppelin.center";
     const firebaseConfig = {
@@ -515,7 +809,6 @@
     const firestore = mainApp.firestore();
     const SLA_HOURS = { Low: 48, Normal: 24, Critical: 4 };
 
-    // === STATE ===
     let reports = [];
     let users = [];
     let requests = [];
@@ -528,18 +821,16 @@
     let currentTicketPage = 1;
     const itemsPerPage = 10;
 
-    // === UTILS ===
     const $ = (sel) => document.querySelector(sel);
     const showToast = (msg, type='normal') => {
         const t = $('#toast'); 
-        t.textContent = msg; 
+        t.querySelector('span').textContent = msg; 
         t.style.background = type === 'error' ? 'var(--danger)' : '#1e293b';
-        t.style.bottom = "32px";
+        t.style.bottom = "40px";
         setTimeout(() => t.style.bottom = "-100px", 3000);
     };
     const nowISO = () => new Date().toISOString();
     
-    // === LOADING EFFECT HELPER (UPDATED) ===
     const showLoading = () => {
         const l = $('#appLoader');
         l.style.display = 'flex';
@@ -555,28 +846,23 @@
         }, 500);
     };
 
-    // === AUTH & INIT (FIXED REFRESH FLASHING) ===
     auth.onAuthStateChanged(user => {
         if (user && user.uid === ADMIN_UID) {
-            // Logged In: Show Dashboard
             $('#loginScreen').classList.add('hidden');
             $('#appInterface').classList.remove('hidden');
             initApp(user);
         } else {
-            // Not Logged In: Show Login
             $('#loginScreen').classList.remove('hidden');
             $('#appInterface').classList.add('hidden');
         }
-        
-        // Sembunyikan Loading Screen HANYA SETELAH status auth dicek
-        setTimeout(() => hideLoading(), 800); // Sedikit lebih lama agar smooth
+        setTimeout(() => hideLoading(), 800);
     });
 
     $('#loginBtn').onclick = async () => {
         const u = $('#loginUser').value; const p = $('#loginPass').value;
         if (u !== 'root' || p !== 'adm123') return $('#authError').textContent = "Invalid Credentials", $('#authError').style.display = 'block';
         try { 
-            showLoading(); // Show Spinner immediately
+            showLoading(); 
             await auth.signInWithEmailAndPassword(ADMIN_EMAIL, p); 
         } 
         catch (e) { 
@@ -594,23 +880,21 @@
         $('#themeToggle').onclick = () => {
             const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
+            $('#themeToggle i').className = newTheme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
         };
         $('#mobileMenuBtn').onclick = () => $('#sidebar').classList.toggle('open');
 
-        // === FILTER LISTENERS ===
         $('#filterCat').onchange = () => renderTickets(1);
         $('#userFilterDept').onchange = renderUsers;
         $('#userFilterStatus').onchange = renderUsers;
         $('#reqFilterDept').onchange = renderRequests;
         $('#reqFilterStatus').onchange = renderRequests;
 
-        // === SEARCH LISTENERS ===
         $('#ticketSearch').oninput = () => renderTickets(1);
         $('#globalSearch').oninput = () => { renderTickets(1); renderUsers(); renderRequests(); };
         $('#userSearchInput').oninput = renderUsers;
         $('#reqSearch').oninput = renderRequests;
 
-        // === BACKUP & RESTORE LOGIC ===
         $('#backupBtn').onclick = async () => {
             showLoading();
             try {
@@ -657,7 +941,6 @@
             reader.readAsText(file);
         };
 
-        // === REALTIME LISTENERS ===
         db.ref('reports').on('value', snap => {
             const val = snap.val();
             reports = val ? Object.keys(val).map(k => ({...val[k], id: k})) : [];
@@ -692,7 +975,6 @@
         });
     }
 
-    // === TABS & FILTER LOGIC ===
     window.switchTab = (tab) => {
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         const navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(tab));
@@ -715,7 +997,6 @@
         renderTickets(1);
     };
 
-    // === RENDERING FUNCTIONS ===
     function renderStats() {
         const active = reports.filter(r => !r.isDeleted);
         $('#statTotal').textContent = active.length;
@@ -730,17 +1011,22 @@
     function renderAnnouncements() {
         const sorted = announcements.sort((a,b) => (a.isPinned === b.isPinned) ? b.timestamp - a.timestamp : a.isPinned ? -1 : 1);
         $('#announcementFeed').innerHTML = sorted.length ? sorted.map(a => `
-            <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:12px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'" onclick="openAnnModal('${a.key}')">
-                <div style="width:4px; height:40px; background:${a.isPinned?'var(--warning)':'var(--primary-light)'}; border-radius:2px;"></div>
-                <div style="flex:1;">
-                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:2px;">${a.category}</div>
-                    <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${a.title}</div>
-                    <div style="font-size:11px; color:var(--text-tertiary);">${new Date(a.timestamp).toLocaleDateString()}</div>
+            <div class="announcement-item" onclick="openAnnModal('${a.key}')">
+                <div class="ann-marker" style="background:${a.isPinned?'var(--warning)':'var(--primary)'}"></div>
+                <div class="ann-content">
+                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:4px; display:flex; justify-content:space-between;">
+                        <span>${a.category}</span>
+                        <span style="color:var(--text-tertiary); font-weight:500;">${new Date(a.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div style="font-weight:600; font-size:14px; color:var(--text-primary); margin-bottom:2px;">${a.title}</div>
+                    <div style="font-size:13px; color:var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${a.content}</div>
                 </div>
-                ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
-                <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer; opacity:0.5;"></i>
+                <div style="display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end;">
+                     ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
+                     <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer; opacity:0.6;"></i>
+                </div>
             </div>
-        `).join('') : '<div style="text-align:center; padding:32px; color:var(--text-secondary)"><i class="ri-notification-off-line" style="font-size:24px; display:block; margin-bottom:8px;"></i>Belum ada pengumuman</div>';
+        `).join('') : '<div style="text-align:center; padding:32px; color:var(--text-secondary)"><i class="ri-notification-off-line" style="font-size:32px; display:block; margin-bottom:12px; opacity:0.5;"></i>No announcements yet</div>';
     }
 
     window.toggleViewMode = (mode) => {
@@ -783,7 +1069,6 @@
             const percent = Math.max(0, Math.min(100, (timeLeft / (SLA_HOURS[r.kategori]*3600000)) * 100));
             const color = (timeLeft < 0 && r.status!=='Closed') ? 'var(--danger)' : (percent<50?'var(--warning)':'var(--success)');
             
-            // DATE FORMATTING
             const createdDate = new Date(r.created_iso);
             const dateStr = createdDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             const timeStr = createdDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -791,12 +1076,12 @@
             tbody.innerHTML += `
             <tr onclick="openReportModal('${r.id}')" style="cursor:pointer;">
                 <td>
-                    <div style="font-weight:700; color:var(--primary); font-family:'JetBrains Mono', monospace;">${r.id}</div>
-                    <div style="font-size:13px; font-weight:500; color:var(--text-primary); margin-top:2px;">${r.nama}</div>
+                    <div style="font-weight:700; color:var(--primary); font-family:var(--font-mono);">${r.id}</div>
+                    <div style="font-size:13px; font-weight:500; color:var(--text-primary); margin-top:4px;">${r.nama}</div>
                 </td>
                 <td>
                     <div style="font-weight:600; font-size:14px; margin-bottom:4px;">${r.jenis}</div>
-                    <div style="font-size:12px; color:var(--text-tertiary); max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${(r.catatan||'-')}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); max-width:280px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${(r.catatan||'-')}</div>
                 </td>
                 <td>
                     <div style="display:flex; gap:6px; margin-bottom:6px;">
@@ -806,7 +1091,7 @@
                     ${r.status!=='Closed' ? `<div class="sla-progress"><div class="sla-bar" style="width:${percent}%; background:${color}"></div></div>` : ''}
                 </td>
                 <td>
-                    ${r.pic ? `<div style="display:flex; align-items:center; gap:6px; font-size:13px;"><div style="width:24px; height:24px; background:var(--bg-hover); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">${r.pic.charAt(0)}</div>${r.pic}</div>` : '<span style="color:var(--text-tertiary); font-style:italic; font-size:12px;">Belum ada PIC</span>'}
+                    ${r.pic ? `<div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500;"><div style="width:26px; height:26px; background:var(--primary-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">${r.pic.charAt(0)}</div>${r.pic}</div>` : '<span style="color:var(--text-tertiary); font-style:italic; font-size:12px;">Unassigned</span>'}
                 </td>
                 <td>
                     <div style="font-size:13px; font-weight:600;">${dateStr}</div>
@@ -818,7 +1103,7 @@
                 </td>
             </tr>`;
         });
-        $('#paginationInfo').textContent = `Menampilkan ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} dari ${total}`;
+        $('#paginationInfo').textContent = `Showing ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} of ${total}`;
         $('#paginationBtns').innerHTML = '';
         if(totalPages > 1) {
             for(let i=1; i<=totalPages; i++) {
@@ -855,11 +1140,11 @@
             container.innerHTML = items.map(r => `
                 <div class="kanban-card" onclick="openReportModal('${r.id}')">
                     <div class="k-card-top">
-                        <span style="font-family:'JetBrains Mono'; font-weight:700; color:var(--primary);">${r.id}</span>
+                        <span style="font-family:var(--font-mono); font-weight:700; color:var(--primary);">${r.id}</span>
                         <span>${new Date(r.created_iso).toLocaleDateString()}</span>
                     </div>
                     <div class="k-card-title">${r.jenis}</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">${r.nama}</div>
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">${r.nama}</div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="badge cat-${r.kategori}">${r.kategori}</div>
                         <div style="font-size:12px; color:var(--text-tertiary);"><i class="ri-user-smile-line"></i> ${r.pic||'?'}</div>
@@ -887,7 +1172,14 @@
         $('#userTableBody').innerHTML = filtered.map(u => {
             const ticketCount = reports.filter(r => r.uid === u.uid).length;
             const statusClass = u.status === 'approved' ? 'status-approved' : (u.status==='rejected'?'status-rejected':'status-pending');
-            return `<tr><td>${u.nama}</td><td>${u.email}</td><td>${u.departemen}</td><td><span class="badge ${statusClass}">${u.status||'pending'}</span></td><td style="text-align:center">${ticketCount}</td><td><button class="btn ghost" style="padding:6px 12px; font-size:12px; border:1px solid var(--border-color);" onclick="showUserDetail('${u.uid}')">Edit</button></td></tr>`;
+            return `<tr>
+                <td><div style="font-weight:600;">${u.nama}</div></td>
+                <td>${u.email}</td>
+                <td><span style="background:var(--bg-body); padding:4px 8px; border-radius:4px; font-size:12px; border:1px solid var(--border-subtle);">${u.departemen}</span></td>
+                <td><span class="badge ${statusClass}">${u.status||'pending'}</span></td>
+                <td style="text-align:center"><span style="font-weight:700; color:var(--primary);">${ticketCount}</span></td>
+                <td><button class="btn btn-ghost" style="padding:6px 12px; font-size:12px;" onclick="showUserDetail('${u.uid}')">Edit</button></td>
+            </tr>`;
         }).join('');
     }
 
@@ -906,13 +1198,20 @@
             const matchesDept = !deptFilter || r.departemen === deptFilter;
             return matchesSearch && matchesStatus && matchesDept;
         }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-        $('#reqTableBody').innerHTML = filtered.map(r => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.nama}</td><td>${r.departemen}</td><td>${r.kategori}</td><td>${r.detail}</td><td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td><td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td><td><button class="btn ghost" style="padding:6px 12px; border:1px solid var(--border-color);" onclick="openReqDetail('${r.id}')">Proses</button></td></tr>`).join('');
+        $('#reqTableBody').innerHTML = filtered.map(r => `<tr>
+            <td>${new Date(r.created_at).toLocaleDateString()}</td>
+            <td><div style="font-weight:600;">${r.nama}</div></td>
+            <td>${r.departemen}</td>
+            <td>${r.kategori}</td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.detail}</td>
+            <td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td>
+            <td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td>
+            <td><button class="btn btn-ghost" style="padding:6px 12px;" onclick="openReqDetail('${r.id}')">Review</button></td>
+        </tr>`).join('');
     }
 
-    // === OPERATIONS (WITH LOADING EFFECT) ===
     window.openReportModal = (id) => {
         editingId = id; 
-        // Animasi Modal
         const m = $('#modalTicket'); m.style.display = 'flex'; 
         setTimeout(() => m.classList.add('active'), 10);
         $('#formTicket').reset();
@@ -927,14 +1226,13 @@
 
     window.saveTicket = async () => {
         const nama = $('#t_nama').value, pic = $('#t_pic').value;
-        if(!nama || !pic) return alert("Wajib diisi");
-        showLoading(); // START LOADING
+        if(!nama || !pic) return alert("Required fields missing");
+        showLoading(); 
         try {
             let id = editingId;
             const oldData = id ? reports.find(r => r.id === id) : {};
             if(!id) { const s = await db.ref('counter').transaction(c => (c||0)+1); id = 'ZP-'+String(s.snapshot.val()).padStart(4,'0'); }
             
-            // DATA & LOGIC URGENT (JANGAN DIHAPUS)
             const data = { 
                 id, nama, pic, 
                 jenis: $('#t_jenis').value, 
@@ -949,14 +1247,14 @@
             };
 
             await db.ref('reports/'+id).update(data);
-            closeModal('modalTicket'); showToast("Tiket Disimpan");
+            closeModal('modalTicket'); showToast("Ticket Saved Successfully");
         } catch(e) { alert(e.message); }
-        finally { hideLoading(); } // END LOADING
+        finally { hideLoading(); } 
     };
 
-    window.softDelete = (id) => { if(confirm("Hapus?")) db.ref(`reports/${id}`).update({isDeleted: true}); };
+    window.softDelete = (id) => { if(confirm("Move to trash?")) db.ref(`reports/${id}`).update({isDeleted: true}); };
     window.restore = (id) => db.ref(`reports/${id}`).update({isDeleted: null});
-    window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Mode Sampah" : "Mode Aktif"); };
+    window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Trash View Active" : "Active View Restored"); };
 
     window.openAnnModal = (key) => {
         editingAnnId = key; 
@@ -972,10 +1270,10 @@
             const d = { title: $('#a_title').value, content: $('#a_content').value, category: $('#a_cat').value, author: $('#a_author').value, isPinned: $('#a_pin').checked, timestamp: firebase.database.ServerValue.TIMESTAMP };
             if(editingAnnId) await db.ref(`announcements/${editingAnnId}`).update(d);
             else await db.ref('announcements').push(d);
-            closeModal('modalAnn'); showToast("Pengumuman Terbit");
+            closeModal('modalAnn'); showToast("Announcement Published");
         } finally { hideLoading(); }
     };
-    window.deleteAnn = (k) => { if(confirm("Hapus?")) db.ref(`announcements/${k}`).remove(); };
+    window.deleteAnn = (k) => { if(confirm("Delete this announcement?")) db.ref(`announcements/${k}`).remove(); };
 
     window.showUserDetail = (uid) => {
         const u = users.find(x => x.uid === uid);
@@ -988,25 +1286,25 @@
     window.updateUserStatus = (s) => {
         const uid = $('#ud_id').value;
         db.ref(`users/${uid}`).update({status: s});
-        showToast(`Status user diubah ke ${s}`);
+        showToast(`User status updated to ${s}`);
     };
     window.saveUserChanges = () => {
         const uid = $('#ud_id').value;
         db.ref(`users/${uid}`).update({ nama: $('#ud_fullname').value, departemen: $('#ud_dept').value });
-        closeModal('modalUserDetail'); showToast("Data User Disimpan");
+        closeModal('modalUserDetail'); showToast("User Profile Updated");
     };
     
     $('#showCreateUserPopupBtn').onclick = () => { const m = $('#modalCreateUser'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10); };
     window.submitNewUser = async () => {
         const email = $('#cu_email').value, pass = $('#cu_pass').value, name = $('#cu_name').value, dept = $('#cu_dept').value;
-        if(!email || !pass || !name) return alert("Lengkapi form");
+        if(!email || !pass || !name) return alert("Please fill all fields");
         showLoading();
         try {
             const secApp = firebase.initializeApp(firebaseConfig, "Secondary");
             const uc = await secApp.auth().createUserWithEmailAndPassword(email, pass);
             await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: name, email, departemen: dept, status: 'approved' });
             await secApp.delete();
-            closeModal('modalCreateUser'); showToast("User Baru Dibuat");
+            closeModal('modalCreateUser'); showToast("New User Created");
         } catch(e) { alert(e.message); }
         finally { hideLoading(); }
     };
@@ -1021,7 +1319,7 @@
         const isHW = (r.detail||'').toLowerCase().match(/laptop|desktop|monitor/);
         const stock = assets.filter(a => ['Laptop','Desktop','Monitor'].includes(a.type) && !a.pic);
         const sel = $('#rd_asset_select');
-        sel.innerHTML = '<option value="">-- Pilih Aset --</option>';
+        sel.innerHTML = '<option value="">-- Choose Available Asset --</option>';
         if(isHW) {
             $('#assetAssignSection').style.display = 'block';
             stock.forEach(a => sel.innerHTML += `<option value="${a.id}">${a.name} (${a.serial})</option>`);
@@ -1031,7 +1329,7 @@
         const id = editingId;
         const notes = $('#rd_notes').value;
         const assetId = $('#rd_asset_select').value;
-        if(status === 'Approved' && $('#assetAssignSection').style.display !== 'none' && !assetId) return alert("Harap pilih aset untuk diserahkan ke user.");
+        if(status === 'Approved' && $('#assetAssignSection').style.display !== 'none' && !assetId) return alert("Please assign an asset before approving.");
         showLoading();
         try {
             if(status === 'Approved' && assetId) {
@@ -1042,14 +1340,14 @@
             }
             await db.ref(`device_requests/${id}`).update({ status, admin_notes: notes, processed_at: nowISO() });
             closeModal('modalReqDetail');
-            showToast(`Permintaan ${status}`);
+            showToast(`Request ${status}`);
         } finally { hideLoading(); }
     };
 
     window.closeModal = (id) => {
         const m = $(`#${id}`);
         m.classList.remove('active');
-        setTimeout(() => m.style.display = 'none', 200); // Tunggu animasi selesai
+        setTimeout(() => m.style.display = 'none', 300); 
     };
 
     let chartCat, chartSLA;
@@ -1060,12 +1358,54 @@
             cats[r.kategori] = (cats[r.kategori]||0)+1;
             statusCounts[r.status] = (statusCounts[r.status]||0)+1;
         });
+        
         const ctxC = $('#chartCategory').getContext('2d');
         if(chartCat) chartCat.destroy();
-        chartCat = new Chart(ctxC, { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#06b6d4', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, plugins: { legend: {position:'right'} } } });
+        chartCat = new Chart(ctxC, { 
+            type: 'doughnut', 
+            data: { 
+                labels: Object.keys(cats), 
+                datasets: [{ 
+                    data: Object.values(cats), 
+                    backgroundColor: ['#0ea5e9', '#f59e0b', '#ef4444'], 
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }] 
+            }, 
+            options: { 
+                maintainAspectRatio: false, 
+                cutout: '75%',
+                plugins: { legend: {position:'right', labels: {boxWidth: 12, usePointStyle: true, font: {family: "'Inter', sans-serif"}}} } 
+            } 
+        });
+
         const ctxS = $('#chartSLA').getContext('2d');
         if(chartSLA) chartSLA.destroy();
-        chartSLA = new Chart(ctxS, { type: 'bar', data: { labels: Object.keys(statusCounts), datasets: [{ label:'Tiket', data: Object.values(statusCounts), backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'], borderRadius: 4 }] }, options: { maintainAspectRatio: false, plugins: { legend: {display:false} } } });
+        const gradientOpen = ctxS.createLinearGradient(0,0,0,300); gradientOpen.addColorStop(0, '#f59e0b'); gradientOpen.addColorStop(1, '#d97706');
+        const gradientProg = ctxS.createLinearGradient(0,0,0,300); gradientProg.addColorStop(0, '#3b82f6'); gradientProg.addColorStop(1, '#2563eb');
+        const gradientDone = ctxS.createLinearGradient(0,0,0,300); gradientDone.addColorStop(0, '#10b981'); gradientDone.addColorStop(1, '#059669');
+
+        chartSLA = new Chart(ctxS, { 
+            type: 'bar', 
+            data: { 
+                labels: Object.keys(statusCounts), 
+                datasets: [{ 
+                    label:'Tickets', 
+                    data: Object.values(statusCounts), 
+                    backgroundColor: [gradientOpen, gradientProg, gradientDone], 
+                    borderRadius: 6,
+                    barThickness: 40
+                }] 
+            }, 
+            options: { 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { grid: { display: true, borderDash: [5,5], color: '#e2e8f0' }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: {display:false} } 
+            } 
+        });
     }
 </script>
 </body>
