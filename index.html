@@ -23,23 +23,29 @@
 
 <style>
     :root {
-        --bg-body: #f8fafc;
+        --bg-body: #f1f5f9;
         --bg-sidebar: #ffffff;
         --bg-card: #ffffff;
-        --bg-hover: #f1f5f9;
+        --bg-hover: #f8fafc;
         --border-color: #e2e8f0;
+        
         --text-primary: #0f172a;
         --text-secondary: #64748b;
         --text-tertiary: #94a3b8;
+        
         --primary: #2563eb;
         --primary-light: #eff6ff;
         --primary-dark: #1d4ed8;
+        
         --success: #10b981;
         --warning: #f59e0b;
         --danger: #ef4444;
         --info: #06b6d4;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        
+        --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        
         --radius: 12px;
         --font-main: 'Inter', sans-serif;
     }
@@ -58,102 +64,142 @@
     }
 
     * { box-sizing: border-box; outline: none; }
-    body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); transition: background 0.3s, color 0.3s; height: 100vh; overflow: hidden; }
+    body { margin: 0; font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); height: 100vh; overflow: hidden; }
 
+    /* LAYOUT UTAMA */
     .app-layout { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 64px 1fr; height: 100vh; width: 100vw; }
+    
+    /* SIDEBAR */
     .sidebar { grid-row: 1 / -1; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 16px; z-index: 50; }
     .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 12px; }
-    .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+    .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: var(--shadow-sm); }
     .brand-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
     
     .nav-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-secondary); font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-    .nav-item:hover, .nav-item.active { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
     .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
     .nav-item i { font-size: 18px; }
 
-    .topbar { grid-column: 2; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+    /* TOPBAR */
+    .topbar { grid-column: 2; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 40; }
     .search-box { position: relative; width: 400px; }
-    .search-box input { width: 100%; padding: 10px 16px 10px 40px; border-radius: 99px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); font-size: 14px; transition: all 0.2s; }
-    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .search-box input { width: 100%; padding: 10px 16px 10px 40px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); font-size: 13px; transition: all 0.2s; }
+    .search-box input:focus { border-color: var(--primary); background: var(--bg-card); box-shadow: 0 0 0 3px var(--primary-light); }
     .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
 
-    .header-actions { display: flex; align-items: center; gap: 16px; }
-    .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; position: relative; transition: background 0.2s; border: none; background: transparent; }
-    .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .icon-btn { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; position: relative; transition: all 0.2s; border: 1px solid transparent; background: transparent; }
+    .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-color); }
     .badge-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-sidebar); display: none; }
 
+    /* CONTENT AREA */
     .main-content { grid-column: 2; background: var(--bg-body); padding: 32px; overflow-y: auto; }
-    
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px; }
-    .stat-card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .stat-info h4 { margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
-    .stat-info h2 { margin: 6px 0 0; font-size: 24px; color: var(--text-primary); font-weight: 700; }
-    .stat-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+    /* STATS CARDS */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .stat-card { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    .stat-info h4 { margin: 0; font-size: 13px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-info h2 { margin: 8px 0 0; font-size: 28px; color: var(--text-primary); font-weight: 700; letter-spacing: -1px; }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; }
     .stat-card.overdue .stat-icon { background: #fee2e2; color: var(--danger); }
 
-    .view-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .btn-group { display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
-    .btn-toggle { padding: 8px 12px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 13px; display: flex; gap: 6px; align-items: center; }
-    .btn-toggle.active { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; shadow: var(--shadow-sm); }
+    /* TOOLBARS & FILTERS (UNIFIED STYLE) */
+    .view-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+    .view-title h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary); }
+    .view-title p { color: var(--text-secondary); margin: 0; font-size: 14px; }
+    
+    .table-toolbar { 
+        background: var(--bg-card); 
+        border: 1px solid var(--border-color); 
+        border-radius: var(--radius); 
+        padding: 12px 16px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        gap: 16px; 
+        margin-bottom: 24px; 
+        box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
+    }
+    .toolbar-left { display: flex; gap: 12px; align-items: center; flex: 1; }
+    .toolbar-right { display: flex; gap: 12px; align-items: center; }
 
-    .table-responsive { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 800px; }
-    th { background: var(--bg-hover); color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; padding: 16px 24px; text-align: left; font-weight: 600; }
-    td { padding: 16px 24px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
+    /* TABLE STYLING - REFINED */
+    .table-container { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th { background: #f8fafc; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 24px; text-align: left; font-weight: 600; border-bottom: 1px solid var(--border-color); }
+    td { padding: 16px 24px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-primary); }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg-hover); }
 
-    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-top: 1px solid var(--border-color); background: var(--bg-card); }
-    .pagination-info { font-size: 13px; color: var(--text-secondary); }
-    .pagination-btns { display: flex; gap: 6px; }
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; border-top: 1px solid var(--border-color); background: var(--bg-card); }
     .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .page-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .page-btn:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
     .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-    
-    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; height: calc(100vh - 220px); overflow-x: auto; }
-    .kanban-col { background: var(--bg-hover); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; max-height: 100%; }
-    .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; flex-shrink: 0; }
-    .kanban-header h3 { margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
-    .kanban-count { background: var(--border-color); padding: 2px 8px; border-radius: 12px; font-size: 12px; }
-    .kanban-items-container { flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
-    .kanban-card { background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
-    .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-    .k-card-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-tertiary); }
-    .k-card-title { font-weight: 600; margin-bottom: 8px; font-size: 14px; line-height: 1.4; }
-    .k-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 
-    .badge { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
-    .status-Open, .status-pending, .status-Pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    /* KANBAN */
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; height: calc(100vh - 240px); overflow-x: auto; padding-bottom: 16px; }
+    .kanban-col { background: var(--bg-hover); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; max-height: 100%; border: 1px solid var(--border-color); }
+    .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
+    .kanban-card { background: var(--bg-card); padding: 16px; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+    .kanban-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+    .btn-toggle { padding: 6px 12px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 13px; display: flex; gap: 6px; align-items: center; transition: all 0.2s; }
+    .btn-toggle.active { background: var(--bg-card); color: var(--text-primary); font-weight: 600; box-shadow: var(--shadow-xs); }
+    .btn-group { display: flex; background: var(--bg-hover); border-radius: 8px; padding: 3px; border: 1px solid var(--border-color); }
+
+    /* COMPONENTS */
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.3px; }
+    .status-Open { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
     .status-Progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-    .status-Closed, .status-approved, .status-Approved { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-    .status-Rejected, .status-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
-    .cat-Low { color: var(--info); background: rgba(6, 182, 212, 0.1); }
-    .cat-Normal { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
-    .cat-Critical, .cat-High { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+    .status-Closed { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .cat-Low { color: var(--info); background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.2); }
+    .cat-Normal { color: var(--warning); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
+    .cat-Critical, .cat-High { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
 
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: all 0.2s; background: var(--primary); color: white; justify-content: center; }
-    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
-    .btn-outline:hover { border-color: var(--text-primary); color: var(--text-primary); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; background: var(--primary); color: white; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-secondary); box-shadow: var(--shadow-xs); }
+    .btn-outline:hover { border-color: var(--text-secondary); color: var(--text-primary); background: var(--bg-hover); }
     .btn-danger { background: var(--danger); color: white; }
     .btn-create { background: var(--primary); color: #fff; }
 
-    .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-    select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 14px; }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px var(--primary-light); }
-    input:disabled { background: var(--bg-hover); cursor: not-allowed; }
+    /* FORMS */
+    select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 14px; transition: border 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; }
-    .modal-content { background: var(--bg-card); width: 100%; max-width: 600px; padding: 32px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+    .modal-overlay.active { opacity: 1; }
+    .modal-content { background: var(--bg-card); width: 100%; max-width: 600px; padding: 32px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
+    .modal-overlay.active .modal-content { transform: scale(1); }
 
-    #loginScreen { position: fixed; inset: 0; background: var(--bg-body); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .login-card { background: var(--bg-card); padding: 48px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); width: 400px; border: 1px solid var(--border-color); text-align: center; }
+    #loginScreen { position: fixed; inset: 0; background: #f8fafc; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .login-card { background: white; padding: 48px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); width: 400px; border: 1px solid #e2e8f0; text-align: center; }
+
+    /* LOADING SCREEN PROFESSIONAL */
+    .loader-overlay { 
+        position: fixed; inset: 0; background: #ffffff; z-index: 100000; 
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: opacity 0.5s ease-in-out, visibility 0.5s;
+    }
+    .loader-logo {
+        width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), #8b5cf6);
+        border-radius: 16px; color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 32px; margin-bottom: 24px;
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
+    .loader-bar-bg { width: 200px; height: 4px; background: #f1f5f9; border-radius: 99px; overflow: hidden; position: relative; }
+    .loader-bar { width: 50%; height: 100%; background: var(--primary); border-radius: 99px; position: absolute; left: 0; animation: loadBar 1.5s infinite ease-in-out; }
+    @keyframes loadBar { 0% { left: -50%; width: 50%; } 50% { left: 25%; width: 75%; } 100% { left: 100%; width: 20%; } }
 
     .hidden { display: none !important; }
-    .flex-col { display: flex; flex-direction: column; gap: 4px; }
+    .text-sm { font-size: 13px; color: var(--text-secondary); margin-top: 16px; font-weight: 500; }
+    
     @media (max-width: 1024px) {
         .app-layout { grid-template-columns: 1fr; grid-template-rows: 64px 1fr; }
         .sidebar { display: none; position: fixed; height: 100%; width: 260px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
@@ -163,54 +209,53 @@
         #mobileMenuBtn { display: block !important; }
         .search-box { display: none; }
         .kanban-board { grid-template-columns: 1fr; gap: 16px; }
-        .filter-bar { grid-template-columns: 1fr; }
+        .table-toolbar { flex-direction: column; align-items: stretch; }
+        .toolbar-left, .toolbar-right { flex-direction: column; width: 100%; }
+        .btn-group { width: 100%; } .btn-group button { flex: 1; justify-content: center; }
     }
     #mobileMenuBtn { display: none; font-size: 24px; color: var(--text-primary); cursor: pointer; }
     .sla-progress { height: 4px; background: var(--border-color); border-radius: 2px; margin-top: 8px; overflow: hidden; }
     .sla-bar { height: 100%; background: var(--success); transition: width 0.3s; }
-    .overdue .sla-bar { background: var(--danger); }
-
-    /* LOADING SPINNER - FIXED Z-INDEX & DISPLAY */
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .loader-overlay { 
-        position: fixed; inset: 0; background: var(--bg-body); z-index: 100000; 
-        display: flex; /* ACTIVE BY DEFAULT (PENTING!) */
-        justify-content: center; align-items: center; flex-direction: column; 
-    }
-    .loader { width: 48px; height: 48px; border: 5px solid var(--border-color); border-bottom-color: var(--primary); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body data-theme="light">
 
 <div id="appLoader" class="loader-overlay">
-    <div class="brand-icon" style="margin-bottom:20px; font-size:24px;">Z</div>
-    <span class="loader"></span>
-    <p style="margin-top:16px; font-weight:600; color:var(--text-secondary); font-size:14px;">Memuat Sistem...</p>
+    <div class="loader-logo">Z</div>
+    <div class="loader-bar-bg"><div class="loader-bar"></div></div>
+    <div class="text-sm">Initializing Secure Environment...</div>
 </div>
 
-<div id="loginScreen" class="hidden"> <div class="login-card">
+<div id="loginScreen" class="hidden"> 
+    <div class="login-card">
         <div class="brand-icon" style="width:56px; height:56px; font-size:24px; margin:0 auto 24px;">Z</div>
-        <h2 style="margin-bottom:8px;">Zeppelin Enterprise</h2>
-        <p style="color:var(--text-secondary); font-size:14px; margin-bottom:32px;">Secure Admin Access Point</p>
-        <div style="text-align:left; margin-bottom:16px;"><label style="font-size:12px; font-weight:600; color:var(--text-secondary);">USERNAME</label><input id="loginUser" type="text" placeholder="root" style="width:100%; margin-top:4px;"></div>
-        <div style="text-align:left; margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--text-secondary);">PASSWORD</label><input id="loginPass" type="password" placeholder="••••••" style="width:100%; margin-top:4px;"></div>
-        <button id="loginBtn" class="btn" style="width:100%; padding:14px;">Masuk Dashboard</button>
+        <h2 style="margin-bottom:8px; font-weight:800; color:#1e293b;">Zeppelin Enterprise</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:32px;">Secure Admin Access Point</p>
+        <div style="text-align:left; margin-bottom:16px;">
+            <label style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px; display:block;">USERNAME</label>
+            <input id="loginUser" type="text" placeholder="root" style="width:100%;">
+        </div>
+        <div style="text-align:left; margin-bottom:24px;">
+            <label style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px; display:block;">PASSWORD</label>
+            <input id="loginPass" type="password" placeholder="••••••" style="width:100%;">
+        </div>
+        <button id="loginBtn" class="btn" style="width:100%; padding:14px; font-size:14px;">Masuk Dashboard</button>
         <p id="authError" style="color:var(--danger); font-size:13px; margin-top:16px; display:none;"></p>
     </div>
 </div>
 
 <div class="app-layout hidden" id="appInterface">
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-icon">Z</div><div class="brand-text">Zeppelin<span style="color:var(--primary);">.support</span></div></div>
+        <div class="brand"><div class="brand-icon">Z</div><div class="brand-text">Zeppelin<span style="color:var(--primary);">.center</span></div></div>
         <ul class="nav-menu">
-            <li class="nav-item active" onclick="switchTab('dashboard')"><i class="ri-dashboard-line"></i> Dashboard</li>
-            <li class="nav-item" onclick="switchTab('tickets')"><i class="ri-ticket-line"></i> Tiket & Insiden</li>
-            <li class="nav-item" onclick="switchTab('users')"><i class="ri-group-line"></i> User Management</li>
+            <li class="nav-item active" onclick="switchTab('dashboard')"><i class="ri-dashboard-3-line"></i> Dashboard</li>
+            <li class="nav-item" onclick="switchTab('tickets')"><i class="ri-ticket-2-line"></i> Tiket & Insiden</li>
+            <li class="nav-item" onclick="switchTab('users')"><i class="ri-team-line"></i> User Management</li>
             <li class="nav-item" onclick="switchTab('requests')"><i class="ri-macbook-line"></i> Permintaan Aset</li>
         </ul>
         <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">
-            <div class="nav-item text-danger" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</div>
-            <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">v3.4.0 (Filtered Board)</div>
+            <div class="nav-item" style="color:var(--danger);" id="logoutBtn"><i class="ri-logout-box-line"></i> Sign Out</div>
+            <div style="font-size:11px; color:var(--text-tertiary); margin-top:16px; text-align:center;">v4.1.0 (Fixed Filters)</div>
         </div>
     </aside>
 
@@ -222,17 +267,19 @@
         <div class="header-actions">
             <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
             <a href="chatadm.html" class="icon-btn" title="Pesan Masuk"><i class="ri-message-3-line"></i><span class="badge-dot" id="chatBadge"></span></a>
-            <div style="height:24px; width:1px; background:var(--border-color);"></div>
+            <div style="height:20px; width:1px; background:var(--border-color);"></div>
             <button class="icon-btn" id="backupBtn" title="Download Backup"><i class="ri-download-cloud-2-line"></i></button>
             <input id="restoreFile" type="file" hidden accept=".json">
-            <button class="icon-btn" id="restoreBtn" title="Restore Data (Upload)"><i class="ri-upload-cloud-2-line"></i></button>
-            <div style="width:36px; height:36px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">A</div>
+            <button class="icon-btn" id="restoreBtn" title="Restore Data"><i class="ri-upload-cloud-2-line"></i></button>
+            <div style="width:36px; height:36px; background:linear-gradient(to bottom, #3b82f6, #2563eb); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; margin-left:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">A</div>
         </div>
     </header>
 
     <main class="main-content">
         <div id="view-dashboard">
-            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Command Center</h1>
+            <div class="view-header">
+                <div class="view-title"><h1>Command Center</h1><p>Ringkasan aktivitas sistem hari ini.</p></div>
+            </div>
             <div class="stats-row">
                 <div class="stat-card" onclick="filterByStat('All')"><div class="stat-info"><h4>Total Tiket</h4><h2 id="statTotal">0</h2></div><div class="stat-icon"><i class="ri-folder-open-line"></i></div></div>
                 <div class="stat-card" onclick="filterByStat('Open')"><div class="stat-info"><h4>Open</h4><h2 id="statOpen" style="color:var(--warning)">0</h2></div><div class="stat-icon" style="background:#fffbeb; color:var(--warning)"><i class="ri-loader-2-line"></i></div></div>
@@ -240,37 +287,50 @@
                 <div class="stat-card overdue" onclick="filterByStat('Overdue')"><div class="stat-info"><h4 style="color:var(--danger)">Overdue</h4><h2 id="statOverdue" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-alarm-warning-line"></i></div></div>
             </div>
             <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom: 24px;">
-                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:16px;"><h3 style="font-size:16px; font-weight:600;">Analitik Kinerja</h3><select style="border:none; background:transparent; font-size:12px; color:var(--text-secondary);"><option>7 Hari Terakhir</option></select></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); box-shadow:var(--shadow-sm);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:600; margin:0;">Analitik Kinerja</h3><select style="border:none; background:transparent; font-size:12px; color:var(--text-secondary); width:auto; padding:0;"><option>7 Hari Terakhir</option></select></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
                         <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartCategory"></canvas></div>
                         <div style="position: relative; height: 200px; width: 100%;"><canvas id="chartSLA"></canvas></div>
                     </div>
                 </div>
-                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); display:flex; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:16px; font-weight:600;">📢 Pengumuman</h3><button class="btn-toggle" onclick="openAnnModal(null)"><i class="ri-add-line"></i> Baru</button></div>
-                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:8px;"></div>
+                <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius); border:1px solid var(--border-color); display:flex; flex-direction:column; box-shadow:var(--shadow-sm);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:600; margin:0;">📢 Pengumuman</h3><button class="btn-toggle" onclick="openAnnModal(null)" style="font-size:12px;"><i class="ri-add-line"></i> Baru</button></div>
+                    <div id="announcementFeed" style="flex:1; overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:12px;"></div>
                 </div>
             </div>
         </div>
 
         <div id="view-tickets" class="hidden">
-            <div class="view-controls">
-                <div><h1 style="font-size:24px; font-weight:700;">Manajemen Tiket</h1><p style="color:var(--text-secondary); font-size:14px;">Pantau dan selesaikan laporan user.</p></div>
+            <div class="view-header">
+                <div class="view-title"><h1>Manajemen Tiket</h1><p>Pantau insiden, lacak SLA, dan selesaikan laporan user.</p></div>
                 <div style="display:flex; gap:12px;">
-                    <div class="btn-group"><button class="btn-toggle active" id="btnList" onclick="toggleViewMode('list')"><i class="ri-list-check"></i> List</button><button class="btn-toggle" id="btnKanban" onclick="toggleViewMode('kanban')"><i class="ri-kanban-view"></i> Board</button></div>
+                    <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i> Sampah</button>
                     <button class="btn" onclick="openReportModal(null)"><i class="ri-add-line"></i> Tiket Baru</button>
-                    <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i></button>
                 </div>
             </div>
-            <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-                <select id="filterCat" class="btn-outline" style="padding:8px; border-radius:8px; width:auto;"><option value="">Semua Kategori</option><option value="Low">Low</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select>
-                <input type="text" id="ticketSearch" placeholder="Filter ID/Nama..." style="padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); width:200px;">
+
+            <div class="table-toolbar">
+                <div class="toolbar-left">
+                    <div class="btn-group">
+                        <button class="btn-toggle active" id="btnList" onclick="toggleViewMode('list')"><i class="ri-list-check"></i> List</button>
+                        <button class="btn-toggle" id="btnKanban" onclick="toggleViewMode('kanban')"><i class="ri-kanban-view"></i> Board</button>
+                    </div>
+                    <div style="height:24px; width:1px; background:var(--border-color); margin:0 8px;"></div>
+                    <select id="filterCat" style="width:160px;"><option value="">Semua Kategori</option><option value="Low">Low</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select>
+                </div>
+                <div class="toolbar-right">
+                    <div class="search-box" style="width:250px; display:block;"><i class="ri-search-line"></i><input type="text" id="ticketSearch" placeholder="Filter ID/Nama..." style="border-radius:6px;"></div>
+                </div>
             </div>
-            <div id="cont-list" class="table-responsive">
-                <table id="reportTable"><thead><tr><th>ID & User</th><th>Subjek Masalah</th><th>Status & SLA</th><th>PIC</th><th>Updated</th><th style="text-align:right">Aksi</th></tr></thead><tbody></tbody></table>
+
+            <div id="cont-list" class="table-container">
+                <div class="table-responsive">
+                    <table id="reportTable"><thead><tr><th>ID & Pelapor</th><th>Subjek Masalah</th><th>Status & SLA</th><th>Teknisi (PIC)</th><th>Waktu Lapor</th><th style="text-align:right">Aksi</th></tr></thead><tbody></tbody></table>
+                </div>
                 <div class="pagination-container"><div class="pagination-info" id="paginationInfo">Menampilkan 0-0 dari 0</div><div class="pagination-btns" id="paginationBtns"></div></div>
             </div>
+            
             <div id="cont-kanban" class="hidden">
                 <div class="kanban-board">
                     <div class="kanban-col"><div class="kanban-header"><h3>Open / Baru</h3><span class="kanban-count" id="countOpen">0</span></div><div id="kb-Open" class="kanban-items-container"></div></div>
@@ -281,41 +341,65 @@
         </div>
 
         <div id="view-users" class="hidden">
-            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Manajemen User</h1>
+            <div class="view-header">
+                <div class="view-title"><h1>Manajemen User</h1><p>Kelola akses dan data karyawan.</p></div>
+                <button id="showCreateUserPopupBtn" class="btn btn-create"><i class="ri-user-add-line"></i> User Baru</button>
+            </div>
+            
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-info"><h4>Total User</h4><h2 id="userStatTotal">0</h2></div><div class="stat-icon"><i class="ri-group-line"></i></div></div>
                 <div class="stat-card"><div class="stat-info"><h4>Pending</h4><h2 id="userStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-user-follow-line"></i></div></div>
                 <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="userStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-user-smile-line"></i></div></div>
             </div>
-            <div class="filter-bar">
-                <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
-                <select id="userFilterDept"><option value="">Semua Departemen</option></select>
-                <select id="userFilterStatus"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
-                <button id="showCreateUserPopupBtn" class="btn btn-create"><i class="ri-user-add-line"></i> User Baru</button>
+
+            <div class="table-toolbar">
+                <div class="toolbar-left" style="flex:2;">
+                    <div class="search-box" style="width:100%; display:block;">
+                        <i class="ri-search-line"></i>
+                        <input id="userSearchInput" type="text" placeholder="Cari nama atau email..." style="border-radius:6px;">
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <select id="userFilterDept" style="width:180px;"><option value="">Semua Departemen</option></select>
+                    <select id="userFilterStatus" style="width:140px;"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+                </div>
             </div>
-            <div class="table-responsive"><table id="userTable"><thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Status</th><th style="text-align:center;">Tiket</th><th>Aksi</th></tr></thead><tbody id="userTableBody"></tbody></table></div>
+
+            <div class="table-container table-responsive"><table id="userTable"><thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Status</th><th style="text-align:center;">Tiket</th><th>Aksi</th></tr></thead><tbody id="userTableBody"></tbody></table></div>
         </div>
 
         <div id="view-requests" class="hidden">
-            <h1 style="font-size:24px; font-weight:700; margin-bottom:24px;">Permintaan Aset</h1>
+            <div class="view-header">
+                <div class="view-title"><h1>Permintaan Aset</h1><p>Approval permintaan perangkat hardware/software.</p></div>
+            </div>
+            
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-info"><h4>Total Pending</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-time-line"></i></div></div>
                 <div class="stat-card"><div class="stat-info"><h4>Approved</h4><h2 id="reqStatApproved" style="color:var(--success)">0</h2></div><div class="stat-icon"><i class="ri-check-line"></i></div></div>
                 <div class="stat-card"><div class="stat-info"><h4>Rejected</h4><h2 id="reqStatRejected" style="color:var(--danger)">0</h2></div><div class="stat-icon"><i class="ri-close-line"></i></div></div>
             </div>
-            <div class="filter-bar">
-                <input id="reqSearch" type="text" placeholder="Cari user, email, detail...">
-                <select id="reqFilterDept"><option value="">Semua Departemen</option></select>
-                <select id="reqFilterStatus"><option value="">Semua Status</option><option value="Pending" selected>Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+
+            <div class="table-toolbar">
+                <div class="toolbar-left" style="flex:2;">
+                    <div class="search-box" style="width:100%; display:block;">
+                        <i class="ri-search-line"></i>
+                        <input id="reqSearch" type="text" placeholder="Cari user, email, detail..." style="border-radius:6px;">
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <select id="reqFilterDept" style="width:180px;"><option value="">Semua Departemen</option></select>
+                    <select id="reqFilterStatus" style="width:140px;"><option value="">Semua Status</option><option value="Pending" selected>Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+                </div>
             </div>
-            <div class="table-responsive"><table id="reqTable"><thead><tr><th>Tanggal</th><th>User</th><th>Departemen</th><th>Kategori</th><th>Detail</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="reqTableBody"></tbody></table></div>
+
+            <div class="table-container table-responsive"><table id="reqTable"><thead><tr><th>Tanggal</th><th>User</th><th>Departemen</th><th>Kategori</th><th>Detail</th><th>Prioritas</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="reqTableBody"></tbody></table></div>
         </div>
     </main>
 </div>
 
 <div class="modal-overlay" id="modalTicket">
     <div class="modal-content">
-        <h2 style="margin-top:0;">Detail Tiket</h2>
+        <h2 style="margin-top:0; font-weight:700;">Detail Tiket</h2>
         <form id="formTicket" onsubmit="return false;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                 <div><label style="font-size:12px; font-weight:600;">Pelapor</label><input id="t_nama" required placeholder="Nama User" style="margin-top:4px;"></div>
@@ -324,15 +408,39 @@
             <div style="margin-bottom:16px;">
                 <label style="font-size:12px; font-weight:600;">Jenis & Kategori</label>
                 <div style="display:flex; gap:12px; margin-top:4px;">
-                    <select id="t_jenis"><option>Jaringan</option><option>Hardware</option><option>Software</option><option>Akun</option></select>
-                    <select id="t_kategori"><option value="Low">Low (48h)</option><option value="Normal">Normal (24h)</option><option value="Critical">Critical (4h)</option></select>
+                    <select id="t_jenis" style="flex:2;">
+                        <option value="" disabled selected>-- Pilih Jenis Masalah --</option>
+                        <optgroup label="Hardware & Perangkat">
+                            <option value="Hardware - Laptop/PC">Laptop / PC Rusak</option>
+                            <option value="Hardware - Printer">Printer / Scanner</option>
+                            <option value="Hardware - Peripheral">Mouse / Keyboard / Monitor</option>
+                        </optgroup>
+                        <optgroup label="Jaringan & Internet">
+                            <option value="Network - No Internet">Tidak Ada Internet</option>
+                            <option value="Network - WiFi">Masalah WiFi</option>
+                            <option value="Network - VPN">Akses VPN</option>
+                        </optgroup>
+                        <optgroup label="Software & Aplikasi">
+                            <option value="Software - OS">Windows / MacOS Error</option>
+                            <option value="Software - Office">Microsoft Office / Email</option>
+                            <option value="Software - ERP/SAP">Aplikasi ERP / Internal</option>
+                        </optgroup>
+                        <optgroup label="Akun & Keamanan">
+                            <option value="Account - Reset Password">Lupa Password / Reset</option>
+                            <option value="Account - New Access">Permintaan Akses Baru</option>
+                        </optgroup>
+                        <optgroup label="Lainnya">
+                            <option value="Other">Lain-lain</option>
+                        </optgroup>
+                    </select>
+                    <select id="t_kategori" style="flex:1;"><option value="Low">Low (48h)</option><option value="Normal">Normal (24h)</option><option value="Critical">Critical (4h)</option></select>
                 </div>
             </div>
             <div style="margin-bottom:16px;"><label style="font-size:12px; font-weight:600;">Catatan Publik</label><textarea id="t_note" rows="3" style="margin-top:4px;"></textarea></div>
-            <div style="margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal</label><textarea id="t_internal" rows="3" style="background:var(--bg-hover); margin-top:4px;"></textarea></div>
+            <div style="margin-bottom:24px;"><label style="font-size:12px; font-weight:600; color:var(--primary);">🔒 Catatan Internal</label><textarea id="t_internal" rows="3" style="background:var(--bg-hover); margin-top:4px; border-color:#cbd5e1;"></textarea></div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <select id="t_status" style="width:auto;"><option value="Open">Open</option><option value="Progress">Progress</option><option value="Closed">Closed</option></select>
-                <div style="display:flex; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalTicket')">Batal</button><button class="btn" onclick="saveTicket()">Simpan</button></div>
+                <div style="display:flex; gap:12px;"><button class="btn btn-outline" onclick="closeModal('modalTicket')">Batal</button><button class="btn" onclick="saveTicket()">Simpan Perubahan</button></div>
             </div>
         </form>
     </div>
@@ -384,7 +492,7 @@
     </div>
 </div>
 
-<div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:var(--bg-body); padding:12px 24px; border-radius:50px; font-weight:600; transition:all 0.3s; z-index:99999; box-shadow:var(--shadow-md);">Notification</div>
+<div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:white; padding:12px 24px; border-radius:50px; font-weight:600; transition:all 0.3s; z-index:99999; box-shadow:var(--shadow-md); font-size:14px;">Notification</div>
 
 <script>
     // === CONFIGURATION ===
@@ -425,21 +533,26 @@
     const showToast = (msg, type='normal') => {
         const t = $('#toast'); 
         t.textContent = msg; 
-        t.style.background = type === 'error' ? 'var(--danger)' : 'var(--text-primary)';
+        t.style.background = type === 'error' ? 'var(--danger)' : '#1e293b';
         t.style.bottom = "32px";
         setTimeout(() => t.style.bottom = "-100px", 3000);
     };
     const nowISO = () => new Date().toISOString();
     
-    // === LOADING EFFECT HELPER ===
-    const showLoading = () => $('#appLoader').style.display = 'flex';
+    // === LOADING EFFECT HELPER (UPDATED) ===
+    const showLoading = () => {
+        const l = $('#appLoader');
+        l.style.display = 'flex';
+        l.style.visibility = 'visible';
+        l.style.opacity = '1';
+    };
     const hideLoading = () => {
-        // Fade out animation
-        $('#appLoader').style.opacity = '0';
+        const l = $('#appLoader');
+        l.style.opacity = '0';
         setTimeout(() => {
-            $('#appLoader').style.display = 'none';
-            $('#appLoader').style.opacity = '1';
-        }, 300);
+            l.style.visibility = 'hidden';
+            l.style.display = 'none';
+        }, 500);
     };
 
     // === AUTH & INIT (FIXED REFRESH FLASHING) ===
@@ -456,8 +569,7 @@
         }
         
         // Sembunyikan Loading Screen HANYA SETELAH status auth dicek
-        // Delay dikit biar transisi smooth
-        setTimeout(() => hideLoading(), 500);
+        setTimeout(() => hideLoading(), 800); // Sedikit lebih lama agar smooth
     });
 
     $('#loginBtn').onclick = async () => {
@@ -466,7 +578,6 @@
         try { 
             showLoading(); // Show Spinner immediately
             await auth.signInWithEmailAndPassword(ADMIN_EMAIL, p); 
-            // onAuthStateChanged will handle the hideLoading()
         } 
         catch (e) { 
             hideLoading();
@@ -619,16 +730,17 @@
     function renderAnnouncements() {
         const sorted = announcements.sort((a,b) => (a.isPinned === b.isPinned) ? b.timestamp - a.timestamp : a.isPinned ? -1 : 1);
         $('#announcementFeed').innerHTML = sorted.length ? sorted.map(a => `
-            <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openAnnModal('${a.key}')">
-                ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
+            <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:12px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'" onclick="openAnnModal('${a.key}')">
+                <div style="width:4px; height:40px; background:${a.isPinned?'var(--warning)':'var(--primary-light)'}; border-radius:2px;"></div>
                 <div style="flex:1;">
-                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase;">${a.category}</div>
-                    <div style="font-weight:600; font-size:13px;">${a.title}</div>
+                    <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:2px;">${a.category}</div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${a.title}</div>
                     <div style="font-size:11px; color:var(--text-tertiary);">${new Date(a.timestamp).toLocaleDateString()}</div>
                 </div>
-                <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer;"></i>
+                ${a.isPinned ? '<i class="ri-pushpin-fill" style="color:var(--warning)"></i>' : ''}
+                <i class="ri-delete-bin-line" onclick="event.stopPropagation(); deleteAnn('${a.key}')" style="color:var(--danger); cursor:pointer; opacity:0.5;"></i>
             </div>
-        `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Belum ada pengumuman</div>';
+        `).join('') : '<div style="text-align:center; padding:32px; color:var(--text-secondary)"><i class="ri-notification-off-line" style="font-size:24px; display:block; margin-bottom:8px;"></i>Belum ada pengumuman</div>';
     }
 
     window.toggleViewMode = (mode) => {
@@ -670,7 +782,41 @@
             const timeLeft = slaLimit - Date.now();
             const percent = Math.max(0, Math.min(100, (timeLeft / (SLA_HOURS[r.kategori]*3600000)) * 100));
             const color = (timeLeft < 0 && r.status!=='Closed') ? 'var(--danger)' : (percent<50?'var(--warning)':'var(--success)');
-            tbody.innerHTML += `<tr><td><div style="font-weight:700">${r.id}</div><div style="font-size:12px; color:var(--text-secondary)">${r.nama}</div></td><td><div style="font-weight:500">${r.jenis}</div><div style="font-size:11px; color:var(--text-tertiary)">${(r.catatan||'-').substring(0,30)}</div></td><td><span class="badge status-${r.status}">${r.status}</span> <span class="badge cat-${r.kategori}">${r.kategori}</span>${r.status!=='Closed' ? `<div class="sla-progress"><div class="sla-bar" style="width:${percent}%; background:${color}"></div></div>` : ''}</td><td>${r.pic||'-'}</td><td>${new Date(r.updated_iso||r.created_iso).toLocaleDateString()}</td><td style="text-align:right"><button class="icon-btn" onclick="openReportModal('${r.id}')"><i class="ri-edit-line"></i></button><button class="icon-btn" style="color:${isTrashMode?'var(--success)':'var(--danger)'}" onclick="${isTrashMode?`restore('${r.id}')`:`softDelete('${r.id}')`}"><i class="ri-${isTrashMode?'refresh-line':'delete-bin-line'}"></i></button></td></tr>`;
+            
+            // DATE FORMATTING
+            const createdDate = new Date(r.created_iso);
+            const dateStr = createdDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            const timeStr = createdDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            tbody.innerHTML += `
+            <tr onclick="openReportModal('${r.id}')" style="cursor:pointer;">
+                <td>
+                    <div style="font-weight:700; color:var(--primary); font-family:'JetBrains Mono', monospace;">${r.id}</div>
+                    <div style="font-size:13px; font-weight:500; color:var(--text-primary); margin-top:2px;">${r.nama}</div>
+                </td>
+                <td>
+                    <div style="font-weight:600; font-size:14px; margin-bottom:4px;">${r.jenis}</div>
+                    <div style="font-size:12px; color:var(--text-tertiary); max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${(r.catatan||'-')}</div>
+                </td>
+                <td>
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <span class="badge status-${r.status}">${r.status}</span> 
+                        <span class="badge cat-${r.kategori}">${r.kategori}</span>
+                    </div>
+                    ${r.status!=='Closed' ? `<div class="sla-progress"><div class="sla-bar" style="width:${percent}%; background:${color}"></div></div>` : ''}
+                </td>
+                <td>
+                    ${r.pic ? `<div style="display:flex; align-items:center; gap:6px; font-size:13px;"><div style="width:24px; height:24px; background:var(--bg-hover); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">${r.pic.charAt(0)}</div>${r.pic}</div>` : '<span style="color:var(--text-tertiary); font-style:italic; font-size:12px;">Belum ada PIC</span>'}
+                </td>
+                <td>
+                    <div style="font-size:13px; font-weight:600;">${dateStr}</div>
+                    <div style="font-size:11px; color:var(--text-tertiary);">${timeStr}</div>
+                </td>
+                <td style="text-align:right">
+                    <button class="icon-btn" onclick="event.stopPropagation(); openReportModal('${r.id}')"><i class="ri-edit-line"></i></button>
+                    <button class="icon-btn" style="color:${isTrashMode?'var(--success)':'var(--danger)'}" onclick="event.stopPropagation(); ${isTrashMode?`restore('${r.id}')`:`softDelete('${r.id}')`}"><i class="ri-${isTrashMode?'refresh-line':'delete-bin-line'}"></i></button>
+                </td>
+            </tr>`;
         });
         $('#paginationInfo').textContent = `Menampilkan ${total>0?start+1:0}-${Math.min(start+itemsPerPage, total)} dari ${total}`;
         $('#paginationBtns').innerHTML = '';
@@ -706,7 +852,19 @@
             const container = $(`#kb-${status}`);
             const items = filtered.filter(r => r.status === status);
             $(`#count${status}`).textContent = items.length;
-            container.innerHTML = items.map(r => `<div class="kanban-card" onclick="openReportModal('${r.id}')"><div class="k-card-top"><span>${r.id}</span><span>${new Date(r.created_iso).toLocaleDateString()}</span></div><div class="k-card-title">${r.jenis} - ${r.nama}</div><div class="badge cat-${r.kategori}">${r.kategori}</div><div class="k-card-footer"><div style="font-size:12px; color:var(--text-secondary)"><i class="ri-user-smile-line"></i> ${r.pic||'?'}</div></div></div>`).join('');
+            container.innerHTML = items.map(r => `
+                <div class="kanban-card" onclick="openReportModal('${r.id}')">
+                    <div class="k-card-top">
+                        <span style="font-family:'JetBrains Mono'; font-weight:700; color:var(--primary);">${r.id}</span>
+                        <span>${new Date(r.created_iso).toLocaleDateString()}</span>
+                    </div>
+                    <div class="k-card-title">${r.jenis}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">${r.nama}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="badge cat-${r.kategori}">${r.kategori}</div>
+                        <div style="font-size:12px; color:var(--text-tertiary);"><i class="ri-user-smile-line"></i> ${r.pic||'?'}</div>
+                    </div>
+                </div>`).join('');
         });
     }
 
@@ -729,7 +887,7 @@
         $('#userTableBody').innerHTML = filtered.map(u => {
             const ticketCount = reports.filter(r => r.uid === u.uid).length;
             const statusClass = u.status === 'approved' ? 'status-approved' : (u.status==='rejected'?'status-rejected':'status-pending');
-            return `<tr><td>${u.nama}</td><td>${u.email}</td><td>${u.departemen}</td><td><span class="badge ${statusClass}">${u.status||'pending'}</span></td><td style="text-align:center">${ticketCount}</td><td><button class="btn ghost" style="padding:4px 8px; font-size:12px;" onclick="showUserDetail('${u.uid}')">Edit</button></td></tr>`;
+            return `<tr><td>${u.nama}</td><td>${u.email}</td><td>${u.departemen}</td><td><span class="badge ${statusClass}">${u.status||'pending'}</span></td><td style="text-align:center">${ticketCount}</td><td><button class="btn ghost" style="padding:6px 12px; font-size:12px; border:1px solid var(--border-color);" onclick="showUserDetail('${u.uid}')">Edit</button></td></tr>`;
         }).join('');
     }
 
@@ -748,12 +906,17 @@
             const matchesDept = !deptFilter || r.departemen === deptFilter;
             return matchesSearch && matchesStatus && matchesDept;
         }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-        $('#reqTableBody').innerHTML = filtered.map(r => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.nama}</td><td>${r.departemen}</td><td>${r.kategori}</td><td>${r.detail}</td><td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td><td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td><td><button class="btn ghost" style="padding:4px 8px;" onclick="openReqDetail('${r.id}')">Proses</button></td></tr>`).join('');
+        $('#reqTableBody').innerHTML = filtered.map(r => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.nama}</td><td>${r.departemen}</td><td>${r.kategori}</td><td>${r.detail}</td><td><span class="badge ${r.prioritas==='High'?'cat-High':'cat-Normal'}">${r.prioritas}</span></td><td><span class="badge status-${r.status||'Pending'}">${r.status||'Pending'}</span></td><td><button class="btn ghost" style="padding:6px 12px; border:1px solid var(--border-color);" onclick="openReqDetail('${r.id}')">Proses</button></td></tr>`).join('');
     }
 
     // === OPERATIONS (WITH LOADING EFFECT) ===
     window.openReportModal = (id) => {
-        editingId = id; $('#modalTicket').style.display = 'flex'; $('#formTicket').reset();
+        editingId = id; 
+        // Animasi Modal
+        const m = $('#modalTicket'); m.style.display = 'flex'; 
+        setTimeout(() => m.classList.add('active'), 10);
+        $('#formTicket').reset();
+        
         if(id) {
             const r = reports.find(x => x.id === id);
             $('#t_nama').value = r.nama; $('#t_nama').readOnly = true;
@@ -771,11 +934,9 @@
             const oldData = id ? reports.find(r => r.id === id) : {};
             if(!id) { const s = await db.ref('counter').transaction(c => (c||0)+1); id = 'ZP-'+String(s.snapshot.val()).padStart(4,'0'); }
             
-            // === BAGIAN YANG DIPERBAIKI ===
+            // DATA & LOGIC URGENT (JANGAN DIHAPUS)
             const data = { 
-                id, 
-                nama, 
-                pic, 
+                id, nama, pic, 
                 jenis: $('#t_jenis').value, 
                 kategori: $('#t_kategori').value, 
                 status: $('#t_status').value, 
@@ -784,9 +945,8 @@
                 updated_iso: nowISO(), 
                 created_iso: oldData.created_iso || nowISO(), 
                 uid: oldData.uid || auth.currentUser.uid,
-                urgent: $('#t_kategori').value === 'Critical' // SUDAH DITAMBAHKAN
+                urgent: $('#t_kategori').value === 'Critical'
             };
-            // ==============================
 
             await db.ref('reports/'+id).update(data);
             closeModal('modalTicket'); showToast("Tiket Disimpan");
@@ -799,7 +959,8 @@
     window.toggleTrash = () => { isTrashMode = !isTrashMode; renderTickets(); showToast(isTrashMode ? "Mode Sampah" : "Mode Aktif"); };
 
     window.openAnnModal = (key) => {
-        editingAnnId = key; $('#modalAnn').style.display = 'flex';
+        editingAnnId = key; 
+        const m = $('#modalAnn'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
         if(key) {
             const a = announcements.find(x => x.key === key);
             $('#a_title').value = a.title; $('#a_content').value = a.content; $('#a_cat').value = a.category; $('#a_pin').checked = a.isPinned;
@@ -820,7 +981,7 @@
         const u = users.find(x => x.uid === uid);
         if(!u) return;
         editingUserId = uid;
-        $('#modalUserDetail').style.display = 'flex';
+        const m = $('#modalUserDetail'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
         $('#ud_name').textContent = u.nama; $('#ud_id').value = uid;
         $('#ud_fullname').value = u.nama; $('#ud_email').value = u.email; $('#ud_dept').value = u.departemen;
     };
@@ -835,7 +996,7 @@
         closeModal('modalUserDetail'); showToast("Data User Disimpan");
     };
     
-    $('#showCreateUserPopupBtn').onclick = () => $('#modalCreateUser').style.display = 'flex';
+    $('#showCreateUserPopupBtn').onclick = () => { const m = $('#modalCreateUser'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10); };
     window.submitNewUser = async () => {
         const email = $('#cu_email').value, pass = $('#cu_pass').value, name = $('#cu_name').value, dept = $('#cu_dept').value;
         if(!email || !pass || !name) return alert("Lengkapi form");
@@ -853,7 +1014,8 @@
     window.openReqDetail = (id) => {
         const r = requests.find(x => x.id === id);
         if(!r) return;
-        editingId = id; $('#modalReqDetail').style.display = 'flex';
+        editingId = id; 
+        const m = $('#modalReqDetail'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10);
         $('#rd_user').textContent = r.nama; $('#rd_detail').textContent = `${r.kategori} - ${r.detail}`; $('#rd_reason').textContent = `"${r.alasan}"`;
         $('#rd_notes').value = r.admin_notes || '';
         const isHW = (r.detail||'').toLowerCase().match(/laptop|desktop|monitor/);
@@ -884,7 +1046,11 @@
         } finally { hideLoading(); }
     };
 
-    window.closeModal = (id) => $(`#${id}`).style.display = 'none';
+    window.closeModal = (id) => {
+        const m = $(`#${id}`);
+        m.classList.remove('active');
+        setTimeout(() => m.style.display = 'none', 200); // Tunggu animasi selesai
+    };
 
     let chartCat, chartSLA;
     function renderCharts() {
