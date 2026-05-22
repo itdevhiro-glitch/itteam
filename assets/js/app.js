@@ -89,6 +89,61 @@ const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
     let assets = [];
     let vendors = [];
     let announcements = [];
+    // GLOBAL EXCEL TOOLS - available before initApp runs, so inline onclick never fails
+    const excelDatasetsGlobal = {
+        tickets: { sheet: 'Tickets', collection: 'reports', key: 'id', store: () => reports, type: 'rtdb' },
+        users: { sheet: 'Users', collection: 'users', key: 'uid', store: () => users, type: 'rtdb' },
+        requests: { sheet: 'Requests', collection: 'device_requests', key: 'id', store: () => requests, type: 'rtdb' },
+        assets: { sheet: 'Assets', collection: 'assets', key: 'id', store: () => assets, type: 'firestore' },
+        vendors: { sheet: 'Vendors', collection: 'vendors', key: 'id', store: () => vendors, type: 'firestore' },
+        announcements: { sheet: 'Announcements', collection: 'announcements', key: 'key', store: () => announcements, type: 'rtdb' }
+    };
+    const excelFileNameGlobal = (scope='all') => `zeppelin_help_${scope}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const stringifyForExcelGlobal = (val) => {
+        if (val === undefined || val === null) return '';
+        if (typeof val === 'object') return JSON.stringify(val);
+        return val;
+    };
+    const normalizeForExcelGlobal = (rows) => (rows || []).map(row => {
+        const clean = {};
+        Object.keys(row || {}).sort().forEach(k => clean[k] = stringifyForExcelGlobal(row[k]));
+        return clean;
+    });
+    const autoSizeSheetGlobal = (ws, rows) => {
+        const headers = rows.length ? Object.keys(rows[0]) : [];
+        ws['!cols'] = headers.map(h => ({ wch: Math.min(45, Math.max(12, h.length + 4, ...rows.map(r => String(r[h] ?? '').length).slice(0, 200))) }));
+        if (ws['!ref']) ws['!autofilter'] = { ref: ws['!ref'] };
+    };
+    const addSheetGlobal = (wb, cfg) => {
+        const rows = normalizeForExcelGlobal(cfg.store());
+        const safeRows = rows.length ? rows : [{ [cfg.key]: '', note: 'Belum ada data' }];
+        const ws = XLSX.utils.json_to_sheet(safeRows);
+        autoSizeSheetGlobal(ws, safeRows);
+        XLSX.utils.book_append_sheet(wb, ws, cfg.sheet);
+    };
+    window.exportExcelSheet = (scope) => {
+        if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+        const cfg = excelDatasetsGlobal[scope];
+        if (!cfg) return alert('Dataset Excel tidak dikenal: ' + scope);
+        const wb = XLSX.utils.book_new();
+        addSheetGlobal(wb, cfg);
+        XLSX.writeFile(wb, excelFileNameGlobal(scope));
+        if (typeof showToast === 'function') showToast(`Excel ${cfg.sheet} berhasil dibuat`);
+    };
+    window.exportAllExcel = () => {
+        if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+        const wb = XLSX.utils.book_new();
+        Object.values(excelDatasetsGlobal).forEach(cfg => addSheetGlobal(wb, cfg));
+        const info = XLSX.utils.aoa_to_sheet([
+            ['Zeppelin Help Excel Export'],
+            ['Domain', PUBLIC_WEB_DOMAIN],
+            ['Exported At', new Date().toISOString()],
+            ['Cara Upload Balik', 'Edit kolom yang diperlukan, jangan hapus kolom ID/uid/key. Upload file ini lewat tombol Upload Excel. Sistem akan merge/update data existing berdasarkan ID.']
+        ]);
+        XLSX.utils.book_append_sheet(wb, info, 'README');
+        XLSX.writeFile(wb, excelFileNameGlobal('all_data'));
+        if (typeof showToast === 'function') showToast('Excel semua data berhasil dibuat');
+    };
     let isTrashMode = false;
     let currentTicketPage = 1;
     const itemsPerPage = 10;
