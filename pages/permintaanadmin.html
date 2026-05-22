@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen Permintaan — ADMIN DASHBOARD</title>
+<link rel="icon" type="image/png" href="../assets/img/icov2.png" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<link rel="stylesheet" href="../assets/css/permintaanadmin.css">
+</head>
+<body data-theme="light">
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <svg id="icon-laptop" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0h-2m2 0v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2m-2 0h2m-2 0H4m0 0v-9m16 9h-2M6 5H4m16 0v2m-1.9 8H6.1m8 0h.1m-8.2 0h.1M6 16v-2m0 2H4"></path></svg>
+    <svg id="icon-back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <svg id="icon-prio-high" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  </defs>
+</svg>
+
+<div id="loadingScreen">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <h3 id="loadingText">Memverifikasi Sesi Admin...</h3>
+    <p class="small">Mengecek status login Anda.</p>
+    <div id="authError">
+      <p>Akses ditolak. Sesi Anda tidak valid atau bukan admin.</p>
+      <a href="../index.html" class="btn" style="margin-top: 15px;">Kembali ke Halaman Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="app app-content">
+
+  <header class="app-header">
+    <div class="logo">ZP</div>
+    <div class="title"><div class="name">Zeppelin</div><div class="tag">ADMIN DASHBOARD</div></div>
+    <div class="controls">
+      <div id="dateTime" class="small"></div>
+      <div id="userInfo" class="small" style="text-align: right;">
+        Logged in as:<br>
+        <strong id="userEmailDisplay"></strong>
+      </div>
+      <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
+      
+      <a href="../index.html" class="btn" title="Kembali ke Dashboard">
+        <svg><use href="#icon-back" /></svg>
+        Kembali ke Dashboard
+      </a>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    
+    <h2><svg><use href="#icon-laptop" /></svg>Manajemen Permintaan Perangkat</h2>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <div class="small">Total Pending</div>
+            <div id="statPending" class="count" style="color: var(--warning);">0</div>
+        </div>
+        <div class="detail-card">
+            <div class="small">Total Approved</div>
+            <div id="statApproved" class="count" style="color: var(--success);">0</div>
+        </div>
+        <div class="detail-card">
+            <div class="small">Total Rejected</div>
+            <div id="statRejected" class="count" style="color: var(--danger);">0</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom: 10px;">
+        <h3>Filter Permintaan</h3>
+        <div class="filter-bar-complex">
+            <input id="filterSearch" type="text" placeholder="Cari user, email, atau detail perangkat...">
+            
+            <select id="filterDept">
+                <option value="">Semua Departemen</option>
+            </select>
+            
+            <select id="filterStatus">
+                <option value="">Semua Status</option>
+                <option value="Pending" selected>Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+
+            <button id="clearFiltersBtn" class="btn ghost">Clear Filter</button>
+        </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Daftar Permintaan</h3>
+        <span id="requestCountInfo" class="small">Memuat...</span>
+      </div>
+      <div id="requestsContent" style="margin-top: 16px;">
+        </div>
+    </div>
+    
+  </main>
+  
+  <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
+</div>
+
+<div id="requestDetailPopup" class="popup-overlay">
+  <div>
+    <h3>Proses Permintaan: <span id="popupDetailName" style="color: var(--primary);"></span></h3>
+    
+    <div id="popupContent" class="popup-content">
+        <strong>Dari User:</strong>
+        <p><span id="popupUserNama"></span> (<span id="popupUserDept"></span>)</p>
+        
+        <strong>Detail Permintaan:</strong>
+        <p><span id="popupDetailKategori"></span> - <span id="popupDetailPrioritas"></span></p>
+        
+        <strong>Perangkat:</strong>
+        <p id="popupDetailPerangkat"></p>
+        
+        <strong>Alasan User:</strong>
+        <p class="alasan" id="popupDetailAlasan"></p>
+
+        <div id="assetAssignmentSection" style="display: none; border-top: 1px dashed var(--border-color); margin-top: 16px; padding-top: 16px;">
+            <strong style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-box" style="color: var(--primary);"></i> Tetapkan Aset dari Stok</strong>
+            <p class="small" style="font-size: 13px; margin-bottom: 8px;">Pilih aset yang akan diberikan kepada user. (Hanya menampilkan stok Laptop/Desktop/Monitor yang tidak terpakai).</p>
+            <div class="form-group" style="margin: 0;">
+              <select id="assetAssignmentDropdown">
+                  </select>
+            </div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+            <label for="adminNotes">Catatan Admin (Opsional)</label>
+            <textarea id="adminNotes" placeholder="Tulis catatan untuk user, misal: 'Akan diproses 3-5 hari kerja'..."></textarea>
+        </div>
+    </div>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <input type="hidden" id="popupRequestId" />
+      <button id="closeDetailPopup" type="button" class="btn ghost">Batal</button>
+      <button id="actionReject" type="button" class="btn" style="background: var(--danger);">Tolak Permintaan</button>
+      <button id="actionApprove" type="button" class="btn" style="background: var(--success);">Setujui Permintaan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" style="position: fixed; bottom: 18px; right: 18px; z-index: 99999;"></div>
+
+
+<script src="../assets/js/permintaanadmin.js"></script>
+
+</body>
+</html>

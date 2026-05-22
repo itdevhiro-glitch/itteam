@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>Zeppelin Enterprise Command Center</title>
-    <link rel="icon" type="image/png" href="icov2.png" />
+    <link rel="icon" type="image/png" href="assets/img/icov2.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body data-theme="light">
 <div id="appLoader" class="loader-overlay" style="position: fixed; inset: 0; z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s;">
@@ -82,7 +82,7 @@
             </div>
             <div class="header-actions">
                 <button class="icon-btn" id="themeToggle" title="Ganti Tema"><i class="ri-moon-line"></i></button>
-                <a href="chatadm.html" class="icon-btn" title="Pesan Masuk">
+                <a href="pages/chatadm.html" class="icon-btn" title="Pesan Masuk">
                     <i class="ri-message-3-line"></i>
                     <span class="badge-dot" id="chatBadge"></span>
                 </a>
@@ -512,7 +512,7 @@
                 <div><label>Email</label><input id="cu_email" type="email" required></div>
                 <div><label>Department</label><input id="cu_dept" required></div>
             </div>
-            <div style="margin-bottom:24px;"><label>Temporary Password (Min. 6 char)</label><input id="cu_pass" type="password" required minlength="6"></div>
+            <div style="margin-bottom:24px;"><label>Temporary Password (Min. 6 char)</label><input id="cu_pass" type="password" minlength="6" value="123456" placeholder="Default: 123456"></div>
             <div style="display:flex; justify-content:flex-end; gap:12px;">
                 <button class="btn btn-ghost" onclick="closeModal('modalCreateUser')">Cancel</button>
                 <button class="btn" onclick="submitNewUser()">Create Account</button>
@@ -698,7 +698,7 @@
 <div id="toast" style="position:fixed; bottom:-100px; left:50%; transform:translateX(-50%); background:var(--text-primary); color:white; padding:12px 32px; border-radius:50px; font-weight:600; transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index:99999; box-shadow:0 10px 25px rgba(0,0,0,0.2); font-size:14px; display:flex; align-items:center; gap:8px;">
     <i class="ri-checkbox-circle-line"></i> <span>Notification</span>
 </div>
-    <script src="app.js"></script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
 

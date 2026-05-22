@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manajemen User — ADMIN DASHBOARD</title>
+<link rel="icon" type="image/png" href="../assets/img/icov2.png" />
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<link rel="stylesheet" href="../assets/css/usermanagement.css">
+</head>
+<body data-theme="light">
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <svg id="icon-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    <svg id="icon-back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <svg id="icon-add-user" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+  </defs>
+</svg>
+
+<div id="loadingScreen">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <h3 id="loadingText">Memverifikasi Sesi Admin...</h3>
+    <p class="small">Mengecek status login Anda.</p>
+    <div id="authError">
+      <p>Akses ditolak. Sesi Anda tidak valid atau bukan admin.</p>
+      <a href="../index.html" class="btn" style="margin-top: 15px;">Kembali ke Halaman Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="app app-content">
+
+  <header class="app-header">
+    <div class="logo">ZP</div>
+    <div class="title"><div class="name">Zeppelin</div><div class="tag">ADMIN DASHBOARD</div></div>
+    <div class="controls">
+      <div id="dateTime" class="small"></div>
+      <div id="userInfo" class="small" style="text-align: right;">
+        Logged in as:<br>
+        <strong id="userEmailDisplay"></strong>
+      </div>
+      <button id="logoutBtn" class="btn ghost" title="Logout">Logout</button>
+      
+      <a href="../index.html" class="btn" title="Kembali ke Dashboard">
+        <svg><use href="#icon-back" /></svg>
+        Kembali
+      </a>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    
+    <h2><svg><use href="#icon-users" /></svg>Manajemen User</h2>
+
+    <div class="detail-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Total User</div>
+            <div id="userStatTotal" class="count" style="font-size: 20px;">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Pending</div>
+            <div id="userStatPending" class="count" style="font-size: 20px; color: var(--warning);">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Approved</div>
+            <div id="userStatApproved" class="count" style="font-size: 20px; color: var(--success);">0</div>
+        </div>
+        <div class="detail-card" style="padding: 12px;">
+            <div class="small">Rejected</div>
+            <div id="userStatRejected" class="count" style="font-size: 20px; color: var(--danger);">0</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom: 10px;">
+        <h3>Filter & Kontrol</h3>
+        <!-- [PERUBAHAN] Menambahkan tombol 'Buat User Baru' -->
+        <div class="filter-bar-complex has-create-btn">
+            <input id="userSearchInput" type="text" placeholder="Cari nama atau email...">
+            
+            <select id="userFilterDept">
+                <option value="">Semua Departemen</option>
+            </select>
+            
+            <select id="userFilterStatus">
+                <option value="">Semua Status</option>
+                <option value="pending" selected>Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+
+            <button id="showCreateUserPopupBtn" class="btn btn-create">
+                <svg><use href="#icon-add-user" /></svg>
+                Buat User
+            </button>
+            
+            <!-- Tombol clear filter dipindah ke baris baru agar rapi -->
+        </div>
+        <button id="clearFiltersBtn" class="btn ghost" style="width: 100%; margin-top: 10px;">Clear Filter</button>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Daftar User</h3>
+        <span id="userCountInfo" class="small">Memuat...</span>
+      </div>
+      <div id="userManagementContent" style="margin-top: 16px;">
+        <!-- Tabel user akan dirender oleh JS -->
+      </div>
+    </div>
+    
+  </main>
+  
+  <footer class="small">Zeppelin IT Support (Admin) — <span id="footerDate"></span></footer>
+</div>
+
+<!-- [PERUBAHAN] Popup Detail/Update User (Dimodifikasi) -->
+<div id="userDetailPopup" class="popup-overlay">
+  <div>
+    <h3>Detail User: <span id="userDetailName" style="color: var(--primary);"></span></h3>
+    
+    <!-- Form untuk update data -->
+    <form id="updateUserForm" class="popup-content" style="background: var(--card);">
+        <input type="hidden" id="updateUserId" />
+        
+        <h4>Informasi Akun</h4>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label for="updateUserName">Nama Lengkap</label>
+                <input type="text" id="updateUserName" required>
+            </div>
+            <div class="form-group">
+                <label for="updateUserDept">Departemen</label>
+                <input type="text" id="updateUserDept" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="updateUserEmail">Email (Tidak bisa diubah)</label>
+            <input type="email" id="updateUserEmail" disabled>
+        </div>
+
+        <h4>Aksi Cepat (Status)</h4>
+        <div class="popup-actions-grid">
+            <button type="button" id="popupApproveBtn" class="btn btn-approve">Approve User</button>
+            <button type="button" id="popupRejectBtn" class="btn btn-reject">Reject User</button>
+            <button type="button" id="popupPendingBtn" class="btn btn-pending">Set ke Pending</button>
+        </div>
+        
+        <div class="popup-error" id="updateUserError"></div>
+
+        <h4 style="margin-top: 24px;">Ringkasan Tiket</h4>
+        <div id="userDetailTicketSummary">
+            <!-- Ringkasan tiket (dari JS) akan dimuat di sini -->
+        </div>
+    </form>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <button id="closeUserDetail" type="button" class="btn ghost">Tutup</button>
+      <button id="submitUpdateUser" type="submit" form="updateUserForm" class="btn">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- [BARU] Popup Create User -->
+<div id="createUserPopup" class="popup-overlay">
+  <div>
+    <h3>Buat Akun User Baru</h3>
+    
+    <form id="createUserForm" class="popup-content" style="background: var(--card);">
+        <p class="small" style="margin-top: 0;">Akun akan dibuat di Firebase Authentication dan data akan disimpan di Realtime Database.</p>
+        
+        <div class="form-group">
+            <label for="createUserName">Nama Lengkap</label>
+            <input type="text" id="createUserName" required>
+        </div>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label for="createUserEmail">Email</label>
+                <input type="email" id="createUserEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="createUserDept">Departemen</label>
+                <input type="text" id="createUserDept" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="createUserPass">Password</label>
+            <input type="password" id="createUserPass" minlength="6" value="123456" placeholder="Default: 123456">
+            <small class="small">Minimal 6 karakter.</small>
+        </div>
+
+        <div class="popup-error" id="createUserError"></div>
+    </form>
+    
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <button id="closeCreateUserPopup" type="button" class="btn ghost">Batal</button>
+      <button id="submitCreateUser" type="submit" form="createUserForm" class="btn">
+          <span id="createBtnText">Buat Akun</span>
+          <span id="createBtnSpinner" style="display: none;">
+              <div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px; margin: 0; border-top-color: #fff;"></div>
+          </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div id="toastContainer" style="position: fixed; bottom: 18px; right: 18px; z-index: 99999;"></div>
+
+
+<script src="../assets/js/usermanagement.js"></script>
+
+</body>
+</html>

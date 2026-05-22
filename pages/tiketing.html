@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>Zeppelin — Support Command Center</title>
+<link rel="icon" type="image/png" href="../assets/img/icov2.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<link rel="stylesheet" href="../assets/css/tiketing.css">
+</head>
+<body>
+
+<div id="loginScreen">
+    <div style="background:white; padding:48px; border-radius:24px; width:400px; text-align:center; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div class="brand-icon" style="margin:0 auto 24px;">Z</div>
+        <h2 style="margin-bottom:8px;">Technician Portal</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:32px;">Authorized Personnel Only.</p>
+        <input type="text" id="loginId" placeholder="ID / Email" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #e2e8f0; border-radius:8px;">
+        <input type="password" id="loginPass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:24px; border:1px solid #e2e8f0; border-radius:8px;">
+        <button class="btn" onclick="processLogin()" style="width:100%; justify-content:center;">Masuk Sistem</button>
+        <p id="loginError" style="color:red; font-size:12px; margin-top:16px; display:none;"></p>
+    </div>
+</div>
+
+<div id="appLayout" class="app-layout hidden">
+    <nav class="sidebar">
+        <div class="brand-icon">Z</div>
+        <div class="nav-item active" id="nav-db" onclick="switchView('dashboard')" title="Command Center"><i class="ri-dashboard-3-line"></i></div>
+        <div class="nav-item" id="nav-ws" onclick="switchView('workspace')" title="Ticket Workspace"><i class="ri-computer-line"></i></div>
+        <div style="margin-top:auto;">
+            <div class="nav-item" style="color:var(--danger);" onclick="auth.signOut()"><i class="ri-logout-box-line"></i></div>
+        </div>
+    </nav>
+
+    <div class="view-container">
+        <div id="view-dashboard" class="view-section active">
+            <div class="dash-scroll">
+                <div class="dash-header">
+                    <div>
+                        <h1 style="font-size:24px; font-weight:800; margin:0; color:#1e293b;">Command Center</h1>
+                        <p style="color:#64748b; margin:4px 0 0 0;">Monitoring & Analitik Tiket</p>
+                    </div>
+                    <div style="font-size:12px; font-weight:700; color:var(--primary);" id="dashDate">...</div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Tiket</div>
+                        <div class="kpi-val" id="kpiTotal">0</div>
+                    </div>
+                    <div class="kpi-card" style="border-left:4px solid var(--warning);">
+                        <div class="kpi-label">Open / Pending</div>
+                        <div class="kpi-val" id="kpiOpen" style="color:var(--warning)">0</div>
+                    </div>
+                    <div class="kpi-card" style="border-left:4px solid var(--danger);">
+                        <div class="kpi-label">Critical</div>
+                        <div class="kpi-val" id="kpiCrit" style="color:var(--danger)">0</div>
+                    </div>
+                    <div class="kpi-card" style="border-left:4px solid var(--success);">
+                        <div class="kpi-label">Resolved</div>
+                        <div class="kpi-val" id="kpiRate" style="color:var(--success)">0</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-box">
+                        <h4 style="margin:0 0 16px 0;">Kategori Masalah</h4>
+                        <div style="position:relative; height:100%; width:100%;"><canvas id="chartCat"></canvas></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4 style="margin:0 0 16px 0;">Status Breakdown</h4>
+                        <div style="position:relative; height:100%; width:100%;"><canvas id="chartStat"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header-row">
+                        <h3 style="margin:0; font-size:16px;">Global Ticket Registry</h3>
+                        <div style="position:relative; width:250px;">
+                            <i class="ri-search-line" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                            <input type="text" id="dashSearch" placeholder="Filter ID, User, Subject..." oninput="dashSearchTerm = this.value.toLowerCase(); renderDashTable();" style="width:100%; padding:8px 8px 8px 32px; border:1px solid #e2e8f0; border-radius:6px; font-size:13px;">
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table id="dashTable">
+                            <thead><tr><th>ID</th><th>Tanggal</th><th>Subject</th><th>User</th><th>Status</th><th>PIC</th></tr></thead>
+                            <tbody id="dashTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-workspace" class="view-section">
+            <div class="workspace-grid">
+                <aside class="list-sidebar">
+                    <div class="list-header">
+                        <h2 style="margin:0 0 16px 0; font-size:18px; font-weight:700;">Incident Queue</h2>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search..." oninput="renderTickets()">
+                        <div class="filter-tabs">
+                            <div class="filter-tab active" id="tabAll" onclick="setTab('all')">Queue</div>
+                            <div class="filter-tab" id="tabMine" onclick="setTab('mine')">My Tasks</div>
+                            <div class="filter-tab" id="tabCrit" onclick="setTab('critical')" style="color:red;">Urgent</div>
+                        </div>
+                    </div>
+                    <div class="ticket-scroller" id="ticketList"></div>
+                    <div style="padding:16px; border-top:1px solid #e2e8f0; background:white; display:flex; align-items:center; gap:12px;">
+                        <div style="width:32px; height:32px; background:var(--primary); color:white; border-radius:50%; display:grid; place-items:center; font-weight:700;" id="myAvatar">T</div>
+                        <div>
+                            <div style="font-weight:700; font-size:13px;" id="myName">Technician</div>
+                            <div style="font-size:11px; color:var(--success);">● Online</div>
+                        </div>
+                    </div>
+                </aside>
+                
+                <main class="chat-container">
+                    <div id="emptyState" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8;">
+                        <i class="ri-customer-service-2-line" style="font-size:64px; margin-bottom:16px;"></i>
+                        <h3>Siap bekerja?</h3>
+                        <p>Pilih tiket untuk melihat detail.</p>
+                    </div>
+                    <div id="activeTicket" class="hidden" style="display:flex; flex-direction:column; height:100%;">
+                        <div class="chat-header">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span id="h_id" style="font-family:monospace; background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px;">#ID</span>
+                                    <h2 id="h_subj" style="margin:0; font-size:16px;">Subject</h2>
+                                </div>
+                                <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                                    <span id="h_user">User</span> &bull; <span id="h_dept">Dept</span>
+                                </div>
+                            </div>
+                            <button class="btn" id="btnTake" onclick="takeTicket()">Ambil Tiket</button>
+                        </div>
+                        
+                        <div class="timeline-area" id="timelineArea">
+                            </div>
+
+                        <div class="chat-footer">
+                            <div class="input-mode-toggle">
+                                <div class="toggle-opt active" id="optReply" onclick="setMode('reply')">
+                                    <i class="ri-reply-fill"></i> Balas ke User
+                                </div>
+                                <div class="toggle-opt" id="optInternal" onclick="setMode('internal')">
+                                    <i class="ri-eye-off-fill"></i> Catatan Internal & Log
+                                </div>
+                            </div>
+                            <textarea id="replyInput" placeholder="Tulis balasan publik ke user..."></textarea>
+                            <div style="display:flex; justify-content:space-between; margin-top:12px;">
+                                <select id="statusSelect" style="padding:8px; border-radius:8px; border:1px solid #e2e8f0;">
+                                    <option value="Open">Status: Open</option>
+                                    <option value="Progress">Status: Progress</option>
+                                    <option value="Closed">Status: Resolved</option>
+                                </select>
+                                <button class="btn" onclick="submitUpdate()">
+                                    <span>Kirim Update</span> <i class="ri-send-plane-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/js/tiketing.js"></script>
+</body>
+</html>

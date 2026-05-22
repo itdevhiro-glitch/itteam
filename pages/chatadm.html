@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <title>Communication Center - Zeppelin Enterprise</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="../assets/css/chatadm.css">
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-icon">Z</div>
+            <div class="brand-text">Zeppelin Chat</div>
+        </div>
+
+        <div class="search-container">
+            <a href="../index.html" class="back-dashboard">
+                <i class="ri-arrow-left-line"></i> Back to Dashboard
+            </a>
+            <div class="search-input-wrapper">
+                <i class="ri-search-line"></i>
+                <input type="text" id="search-contact" class="search-input" placeholder="Search people or groups...">
+            </div>
+        </div>
+
+        <div class="chat-list" id="chat-list-container">
+            <div class="list-section-title">Groups</div>
+            <div id="group-chat-list">
+                </div>
+
+            <div class="list-section-title">Direct Messages</div>
+            <div id="private-chat-list">
+                <div style="padding: 10px; color: #64748b; font-size: 13px; text-align: center;">
+                    <i class="ri-loader-4-line ri-spin"></i> Loading contacts...
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-mini-profile">
+                <div class="user-mini-avatar">R</div>
+                <div>
+                    <div style="font-size:13px; font-weight:700; color: white;">Admin Root</div>
+                    <div style="font-size:11px; color:#94a3b8;">IT Support</div>
+                </div>
+            </div>
+            <button id="logout-btn" class="btn-icon-only" title="Sign Out">
+                <i class="ri-logout-box-r-line"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-chat">
+        
+        <div id="welcome-screen" class="welcome-state">
+            <div class="welcome-icon"><i class="ri-chat-smile-2-line"></i></div>
+            <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Zeppelin Communication Center</h2>
+            <p style="font-size: 14px; max-width: 400px;">Select a conversation from the sidebar to start collaborating with your team.</p>
+        </div>
+
+        <div id="chat-content" style="display: none; height: 100%; flex-direction: column;">
+            
+            <header class="chat-header">
+                <button class="mobile-menu-btn" id="sidebar-toggle"><i class="ri-menu-2-line"></i></button>
+                <div class="active-chat-info">
+                    <div id="active-chat-avatar" class="header-avatar"></div>
+                    <div class="header-details">
+                        <h3 id="active-chat-name">Select Chat</h3>
+                        <p><span class="status-dot"></span> <span id="active-chat-status">Online</span></p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="messages-container" id="chat-messages">
+                </div>
+
+            <div class="input-area" id="chat-input-area">
+                <div class="input-wrapper">
+                    <textarea id="message-input" rows="1" placeholder="Type a message..." oninput="autoExpand(this)"></textarea>
+                </div>
+                <button id="send-button" class="send-btn" disabled>
+                    <i class="ri-send-plane-fill"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="toast-notification" class="toast">
+        <i class="ri-checkbox-circle-line"></i>
+        <span>Message Sent</span>
+    </div>
+
+    <script type="module" src="../assets/js/chatadm.js"></script>
+</body>
+</html>
