@@ -1,0 +1,140 @@
+{
+  "rules": {
+    "reports": {
+      ".indexOn": [
+        "uid",
+        "status",
+        "pic",
+        "kategori"
+      ],
+      ".read": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || query.orderByChild === 'uid' && query.equalTo === auth.uid)",
+      "$report_id": {
+        ".read": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || data.child('uid').val() === auth.uid)",
+        ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || (!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['id','uid','nama','jenis','status','created_iso'])"
+      }
+    },
+    "counter": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".validate": "newData.isNumber() && newData.val() >= 0"
+    },
+    "marketing_inventory": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$item_id": {
+        ".validate": "newData.child('stok').isNumber()"
+      }
+    },
+    "marketing_transactions": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "itemId"
+      ],
+      "$trans_id": {
+        ".validate": "newData.hasChildren(['itemName', 'qty', 'note'])"
+      }
+    },
+    "finance_pettycash": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('departemen').val() === 'Finance' || root.child('users').child(auth.uid).child('departemen').val() === 'Accounting')"
+    },
+    "finance_customers": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('departemen').val() === 'Finance' || root.child('users').child(auth.uid).child('departemen').val() === 'Accounting')"
+    },
+    "finance_invoices": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('departemen').val() === 'Finance' || root.child('users').child(auth.uid).child('departemen').val() === 'Accounting')",
+      ".indexOn": [
+        "customerId",
+        "dueDate"
+      ]
+    },
+    "finance_reimbursement": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "status",
+        "employee"
+      ]
+    },
+    "chats": {
+      "private_chats": {
+        "$combinedId": {
+          ".read": "auth != null && $combinedId.contains(auth.uid)",
+          ".write": "auth != null && $combinedId.contains(auth.uid)",
+          "$message_id": {
+            ".validate": "newData.hasChildren(['senderId','senderName','text','timestamp'])"
+          }
+        }
+      },
+      "group_chats": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$groupId": {
+          "$message_id": {
+            ".validate": "newData.hasChildren(['senderId','senderName','text','timestamp'])"
+          }
+        }
+      }
+    },
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('role').val() === 'Admin')",
+        ".validate": "(auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2') || newData.hasChildren(['nama','email'])",
+        "lastRead": {
+          ".read": "auth.uid === $uid || auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2'",
+          ".write": "auth.uid === $uid",
+          "$chatId": {
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    },
+    "announcements": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'HRD')",
+      "$announcement_id": {
+        ".validate": "newData.hasChildren(['title', 'author', 'timestamp'])"
+      }
+    },
+    "calendar_notes": {
+      ".read": "auth != null",
+      "$date_str": {
+        ".write": "auth != null",
+        "$note_id": {
+          ".validate": "newData.hasChildren(['user', 'timestamp', 'note'])"
+        }
+      }
+    },
+    "bastdb": {
+      ".read": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || query.orderByChild === 'createdByUid' && query.equalTo === auth.uid)",
+      ".indexOn": [
+        "createdByUid",
+        "status",
+        "noTicket"
+      ],
+      "$bast_id": {
+        ".read": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || data.child('createdByUid').val() === auth.uid)",
+        ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Support' || root.child('users').child(auth.uid).child('departemen').val() === 'IT' || (!data.exists() && newData.child('createdByUid').val() === auth.uid) || (data.exists() && data.child('createdByUid').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['nama','nik','departemen','lokasi','tanggal','noTicket','keperluan','perangkat','createdAt','createdBy','createdByUid','status'])"
+      }
+    },
+    "device_requests": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": "uid"
+    },
+    "password_reset_requests": {
+      ".read": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Admin' || root.child('users').child(auth.uid).child('role').val() === 'Support')",
+      ".write": "auth != null && (auth.uid === 'Ogy9lUbGHbSu8wYIYx2gQsTtFDF2' || root.child('users').child(auth.uid).child('role').val() === 'Admin' || root.child('users').child(auth.uid).child('role').val() === 'Support')",
+      "$uid": {
+        ".validate": "newData.hasChildren(['uid','email','defaultPassword','requestedBy','status','created_at'])"
+      }
+    }
+  }
+}
