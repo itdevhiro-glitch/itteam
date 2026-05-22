@@ -41,7 +41,7 @@
         </div>
         <button id="loginBtn" class="btn" style="width:100%; padding:14px; font-size:15px; background: linear-gradient(to right, var(--primary), #4338ca); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);">Sign In to Dashboard</button>
         <p id="authError" style="color:var(--danger); font-size:13px; margin-top:20px; display:none; background: #fee2e2; padding: 10px; border-radius: 8px;"></p>
-        <div style="margin-top: 24px; font-size: 12px; color: #94a3b8;">&copy; 2025 Zeppelin Support. Final Build.</div>
+        <div style="margin-top: 24px; font-size: 12px; color: #94a3b8;">&copy; 2026 Zeppelin Help • zeppelin.help</div>
     </div>
 </div>
 
@@ -51,7 +51,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="brand">
             <div class="brand-icon">Z</div>
-            <div class="brand-text">Zeppelin<span>.center</span></div>
+            <div class="brand-text">Zeppelin<span>.help</span></div>
         </div>
         <div class="nav-label">Main Menu</div>
         <ul class="nav-menu">
@@ -699,6 +699,11 @@
     <i class="ri-checkbox-circle-line"></i> <span>Notification</span>
 </div>
     <script src="assets/js/app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+      }
+    </script>
 </body>
 </html>
 

@@ -1,5 +1,6 @@
-﻿const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
+const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
     const ADMIN_EMAIL = "root@zeppelin.center";
+    const PUBLIC_WEB_DOMAIN = "zeppelin.help";
     const SLA_HOURS = { Low: 48, Normal: 24, Critical: 4 };
     
     const ticketCategories = {
@@ -185,10 +186,15 @@
     };
     $('#logoutBtn').onclick = () => { showLoading(); auth.signOut(); };
     function initApp(user) {
+        const savedTheme = localStorage.getItem('zeppelin_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        $('#themeToggle i').className = savedTheme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
         $('#themeToggle').onclick = () => {
             const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('zeppelin_theme', newTheme);
             $('#themeToggle i').className = newTheme === 'light' ? 'ri-moon-line' : 'ri-sun-line';
+            showToast(`Theme: ${newTheme}`);
         };
         $('#mobileMenuBtn').onclick = window.toggleSidebar;
         $('#filterCat').onchange = () => renderTickets(1);
@@ -206,24 +212,50 @@
         $('#backupBtn').onclick = async () => {
             showLoading();
             try {
-                const backupData = { reports, users, requests, assets, vendors, announcements, timestamp: Date.now() };
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
-                const a = document.createElement('a'); a.href = dataStr; a.download = "zeppelin_backup_" + new Date().toISOString().slice(0,10) + ".json";
-                document.body.appendChild(a); a.click(); a.remove(); showToast("Backup Berhasil");
-            } catch (err) { showToast("Gagal Backup", 'error'); } finally { hideLoading(); }
+                const backupData = {
+                    version: '2.0-enhanced',
+                    domain: PUBLIC_WEB_DOMAIN,
+                    exportedAt: nowISO(),
+                    reports, users, requests, assets, vendors, announcements
+                };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                const a = document.createElement('a');
+                a.href = dataStr;
+                a.download = "zeppelin_help_backup_" + new Date().toISOString().slice(0,10) + ".json";
+                document.body.appendChild(a); a.click(); a.remove();
+                showToast("Backup lengkap berhasil dibuat");
+            } catch (err) { showToast("Gagal Backup: " + err.message, 'error'); } finally { hideLoading(); }
         };
         $('#restoreBtn').onclick = () => $('#restoreFile').click();
         $('#restoreFile').onchange = (event) => {
             const file = event.target.files[0];
             if(!file) return;
+            if(!confirm('Restore akan menimpa/menggabungkan data reports, users, requests, announcements, assets, dan vendors. Lanjut?')) { $('#restoreFile').value = ''; return; }
             const reader = new FileReader();
             reader.onload = async (e) => {
                 showLoading();
                 try {
                     const data = JSON.parse(e.target.result);
-                    if(data.reports) await db.ref('reports').update(data.reports.reduce((acc,r)=>{acc[r.id]=r; return acc;},{}));
-                    showToast("Restore Berhasil!");
-                } catch (err) { alert("File Corrupt!"); } finally { hideLoading(); $('#restoreFile').value = ''; }
+                    const toMap = (arr, key='id') => Array.isArray(arr) ? arr.reduce((acc,item)=>{ if(item && item[key]) acc[item[key]]=item; return acc; }, {}) : null;
+                    const updates = [];
+                    const reportMap = toMap(data.reports, 'id'); if(reportMap) updates.push(db.ref('reports').update(reportMap));
+                    const userMap = toMap(data.users, 'uid'); if(userMap) updates.push(db.ref('users').update(userMap));
+                    const requestMap = toMap(data.requests, 'id'); if(requestMap) updates.push(db.ref('device_requests').update(requestMap));
+                    const annMap = toMap(data.announcements, 'key'); if(annMap) updates.push(db.ref('announcements').update(annMap));
+                    if(Array.isArray(data.assets)) {
+                        const batch = firestore.batch();
+                        data.assets.forEach(a => { if(a && a.id) batch.set(firestore.collection('assets').doc(a.id), a, { merge: true }); });
+                        updates.push(batch.commit());
+                    }
+                    if(Array.isArray(data.vendors)) {
+                        const batch = firestore.batch();
+                        data.vendors.forEach(v => { if(v && v.id) batch.set(firestore.collection('vendors').doc(v.id), v, { merge: true }); });
+                        updates.push(batch.commit());
+                    }
+                    if(!updates.length) throw new Error('Format backup tidak valid / kosong.');
+                    await Promise.all(updates);
+                    showToast("Restore lengkap berhasil");
+                } catch (err) { alert("Restore gagal: " + err.message); } finally { hideLoading(); $('#restoreFile').value = ''; }
             };
             reader.readAsText(file);
         };
@@ -492,7 +524,7 @@
                 id, nama: n, pic: p, jenis: j, 
                 kategori: $('#t_kategori').value, status: $('#t_status').value, 
                 catatan: $('#t_note').value, note_internal: $('#t_internal').value, 
-                updated_iso: nowISO(), created_iso: old.created_iso || nowISO(), 
+                updated_iso: nowISO(), created_iso: old.created_iso || nowISO(), updated_by: auth.currentUser ? auth.currentUser.uid : 'system', 
                 uid: old.uid || auth.currentUser.uid, urgent: $('#t_kategori').value === 'Critical' 
             }; 
             await db.ref('reports/'+id).update(d); 
@@ -536,7 +568,7 @@
             let id = editingVendorId || firestore.collection('vendors').doc().id;
             const data = {
                 name, cp: $('#v_cp').value, phone: $('#v_phone').value,
-                email: $('#v_email').value, address: $('#v_address').value
+                email: $('#v_email').value, address: $('#v_address').value, updated_at: nowISO(), updated_by: auth.currentUser ? auth.currentUser.uid : 'system'
             };
             await firestore.collection('vendors').doc(id).set(data, { merge: true });
             closeModal('modalVendor'); showToast("Vendor Saved");
@@ -730,7 +762,8 @@
                 vendor_id: $('#ast_vendor_select').value,
                 status: newStatus,
                 last_updated: nowISO(),
-                activity_logs: currentLogs 
+                activity_logs: currentLogs,
+                updated_by: auth.currentUser ? auth.currentUser.uid : 'system' 
             };
             await firestore.collection('assets').doc(id).set(data, { merge: true });
             closeModal('modalAsset'); showToast("Asset Saved");
@@ -864,8 +897,8 @@
                 </tr>`;
         }).join('') : '<tr><td colspan="4" style="padding:20px 10px; text-align:center; color:var(--text-tertiary);">Tidak ada asset IT terpasang pada user ini.</td></tr>';
     }
-    window.saveUserChanges = () => { const uid = $('#ud_id').value; const d = { nama: $('#ud_fullname').value, departemen: $('#ud_dept').value, nik: $('#ud_nik').value, jobTitle: $('#ud_jobtitle').value, phone: $('#ud_phone').value }; showLoading(); db.ref(`users/${uid}`).update(d).then(() => { hideLoading(); showToast("Profile Updated"); }); };
-    window.saveUserSecurity = () => { const uid = $('#ud_id').value; const r = $('#ud_role_select').value; showLoading(); db.ref(`users/${uid}`).update({ role: r }).then(() => { hideLoading(); showToast(`Role: ${r}`); showUserDetail(uid); }); };
+    window.saveUserChanges = () => { const uid = $('#ud_id').value; const d = { nama: $('#ud_fullname').value, departemen: $('#ud_dept').value, nik: $('#ud_nik').value, jobTitle: $('#ud_jobtitle').value, phone: $('#ud_phone').value, updated_at: nowISO() }; showLoading(); db.ref(`users/${uid}`).update(d).then(() => { hideLoading(); showToast("Profile Updated"); }).catch(e => { hideLoading(); showToast(e.message, 'error'); }); };
+    window.saveUserSecurity = () => { const uid = $('#ud_id').value; const r = $('#ud_role_select').value; showLoading(); db.ref(`users/${uid}`).update({ role: r, updated_at: nowISO() }).then(() => { hideLoading(); showToast(`Role: ${r}`); showUserDetail(uid); }).catch(e => { hideLoading(); showToast(e.message, 'error'); }); };
     window.toggleUserBan = () => { const uid = $('#ud_id').value; const u = users.find(x => x.uid === uid); const ns = (u.status === 'approved' || u.status === 'active') ? 'banned' : 'approved'; if(confirm(`Change status to ${ns}?`)) { showLoading(); db.ref(`users/${uid}`).update({ status: ns }).then(() => { hideLoading(); showToast(`Status: ${ns}`); showUserDetail(uid); }); } };
     const DEFAULT_EMPLOYEE_PASSWORD = '123456';
     window.resetUserPassword = async () => {
@@ -896,16 +929,18 @@
     };
     $('#showCreateUserPopupBtn').onclick = () => { const m = $('#modalCreateUser'); m.style.display = 'flex'; setTimeout(() => m.classList.add('active'), 10); };
     window.submitNewUser = async () => { 
-        const e = $('#cu_email').value, p = ($('#cu_pass').value || DEFAULT_EMPLOYEE_PASSWORD), n = $('#cu_name').value, d = $('#cu_dept').value; 
+        const e = $('#cu_email').value.trim(), p = ($('#cu_pass').value || DEFAULT_EMPLOYEE_PASSWORD), n = $('#cu_name').value.trim(), d = $('#cu_dept').value.trim(); 
         if(!e || !p || !n) return alert("Fill all fields"); 
+        if(p.length < 6) return alert('Password minimal 6 karakter.');
         showLoading(); 
+        let sa = null;
         try { 
-            const sa = firebase.initializeApp(firebaseConfig, "Secondary"); 
+            const appName = 'Secondary-' + Date.now();
+            sa = firebase.initializeApp(firebaseConfig, appName); 
             const uc = await sa.auth().createUserWithEmailAndPassword(e, p); 
-            await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: n, email: e, departemen: d, status: 'approved', passwordResetRequired: false, created_at: new Date().toISOString() }); 
-            await sa.delete(); 
+            await db.ref(`users/${uc.user.uid}`).set({ uid: uc.user.uid, nama: n, email: e, departemen: d, status: 'approved', role: 'User', passwordResetRequired: p === DEFAULT_EMPLOYEE_PASSWORD, created_at: nowISO(), updated_at: nowISO() }); 
             closeModal('modalCreateUser'); showToast("User Created"); 
-        } catch(er) { alert(er.message); } finally { hideLoading(); } 
+        } catch(er) { alert(er.message); } finally { if(sa) await sa.delete().catch(()=>{}); hideLoading(); } 
     };
     function renderRequests() { 
         const s = ($('#reqSearch').value || $('#globalSearch').value).toLowerCase(); 

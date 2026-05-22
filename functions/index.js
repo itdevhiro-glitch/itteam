@@ -12,14 +12,27 @@ exports.resetEmployeePasswordToDefault = functions.database
     if (!after || after.status !== 'pending-admin-sdk') return null;
 
     const uid = context.params.uid;
-    await admin.auth().updateUser(uid, { password: DEFAULT_EMPLOYEE_PASSWORD });
-    await admin.database().ref(`/users/${uid}`).update({
-      passwordResetRequired: true,
-      passwordResetDoneAt: new Date().toISOString()
-    });
-    await change.after.ref.update({
-      status: 'done',
-      completed_at: new Date().toISOString()
-    });
-    return null;
+    const now = new Date().toISOString();
+
+    try {
+      await admin.auth().updateUser(uid, { password: DEFAULT_EMPLOYEE_PASSWORD });
+      await admin.database().ref(`/users/${uid}`).update({
+        passwordResetRequired: true,
+        passwordResetDoneAt: now,
+        updated_at: now
+      });
+      await change.after.ref.update({
+        status: 'done',
+        completed_at: now,
+        error: null
+      });
+      return null;
+    } catch (error) {
+      await change.after.ref.update({
+        status: 'failed',
+        failed_at: now,
+        error: error.message || String(error)
+      });
+      throw error;
+    }
   });
