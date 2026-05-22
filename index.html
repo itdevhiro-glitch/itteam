@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -87,9 +88,12 @@
                     <span class="badge-dot" id="chatBadge"></span>
                 </a>
                 <div style="height:24px; width:1px; background:var(--border-subtle); margin: 0 4px;"></div>
-                <button class="icon-btn" id="backupBtn" title="Download Backup"><i class="ri-download-cloud-2-line"></i></button>
+                <button class="icon-btn" id="backupBtn" title="Download Backup JSON"><i class="ri-download-cloud-2-line"></i></button>
                 <input id="restoreFile" type="file" hidden accept=".json">
-                <button class="icon-btn" id="restoreBtn" title="Restore Data"><i class="ri-upload-cloud-2-line"></i></button>
+                <button class="icon-btn" id="restoreBtn" title="Restore Data JSON"><i class="ri-upload-cloud-2-line"></i></button>
+                <button class="icon-btn" id="excelExportAllBtn" title="Download Semua Data Excel"><i class="ri-file-excel-2-line"></i></button>
+                <input id="excelImportFile" type="file" hidden accept=".xlsx,.xls">
+                <button class="icon-btn" id="excelImportAllBtn" title="Upload Excel & Update Data"><i class="ri-file-upload-line"></i></button>
                 <div class="user-profile-btn">A</div>
             </div>
         </header>
@@ -152,6 +156,7 @@
                         <p>Track, prioritize, and resolve support tickets.</p>
                     </div>
                     <div style="display:flex; gap:12px;">
+                        <button class="btn btn-outline" onclick="exportExcelSheet('tickets')"><i class="ri-file-excel-2-line"></i> Excel</button>
                         <button class="btn btn-outline" onclick="toggleTrash()"><i class="ri-delete-bin-line"></i> <span class="desktop-only">Sampah</span></button>
                         <button class="btn" onclick="openReportModal(null)"><i class="ri-add-line"></i> <span class="desktop-only">Ticket</span></button>
                     </div>
@@ -219,7 +224,10 @@
                         <h1>User Directory</h1>
                         <p>Manage employee access and department roles.</p>
                     </div>
-                    <button id="showCreateUserPopupBtn" class="btn"><i class="ri-user-add-line"></i> Add User</button>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn btn-outline" onclick="exportExcelSheet('users')"><i class="ri-file-excel-2-line"></i> Excel</button>
+                        <button id="showCreateUserPopupBtn" class="btn"><i class="ri-user-add-line"></i> Add User</button>
+                    </div>
                 </div>
                 <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="stat-card"><div class="stat-info"><h4>Total Registered</h4><h2 id="userStatTotal">0</h2></div><div class="stat-icon"><i class="ri-group-line"></i></div></div>
@@ -254,6 +262,7 @@
                         <h1>Asset Requests</h1>
                         <p>Approve or reject hardware/software requisitions.</p>
                     </div>
+                    <button class="btn btn-outline" onclick="exportExcelSheet('requests')"><i class="ri-file-excel-2-line"></i> Excel</button>
                 </div>
                 <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="stat-card"><div class="stat-info"><h4>Pending Requests</h4><h2 id="reqStatPending" style="color:var(--warning)">0</h2></div><div class="stat-icon"><i class="ri-time-line"></i></div></div>
@@ -289,6 +298,7 @@
                         <p>Manage corporate devices, licenses, and hardware assignment.</p>
                     </div>
                     <div style="display:flex; gap:12px;">
+                        <button class="btn btn-outline" onclick="exportExcelSheet('assets')"><i class="ri-file-excel-2-line"></i> Excel</button>
                         <button class="btn" onclick="openAssetModal(null)"><i class="ri-add-line"></i> Register Asset</button>
                     </div>
                 </div>
@@ -326,7 +336,10 @@
                         <h1>Vendor Management</h1>
                         <p>List of suppliers, service providers, and contact details.</p>
                     </div>
-                    <button class="btn" onclick="openVendorModal(null)"><i class="ri-add-line"></i> Add Vendor</button>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn btn-outline" onclick="exportExcelSheet('vendors')"><i class="ri-file-excel-2-line"></i> Excel</button>
+                        <button class="btn" onclick="openVendorModal(null)"><i class="ri-add-line"></i> Add Vendor</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <div class="table-responsive">

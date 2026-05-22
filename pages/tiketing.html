@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -51,7 +52,12 @@
                         <h1 style="font-size:24px; font-weight:800; margin:0; color:#1e293b;">Command Center</h1>
                         <p style="color:#64748b; margin:4px 0 0 0;">Monitoring & Analitik Tiket</p>
                     </div>
-                    <div style="font-size:12px; font-weight:700; color:var(--primary);" id="dashDate">...</div>
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+                        <button class="btn" onclick="exportTicketsExcel()" style="padding:8px 12px; font-size:12px;"><i class="ri-file-excel-2-line"></i> Download Excel</button>
+                        <input id="ticketExcelImport" type="file" hidden accept=".xlsx,.xls">
+                        <button class="btn" onclick="document.getElementById('ticketExcelImport').click()" style="padding:8px 12px; font-size:12px; background:#0f172a;"><i class="ri-file-upload-line"></i> Upload Excel</button>
+                        <div style="font-size:12px; font-weight:700; color:var(--primary);" id="dashDate">...</div>
+                    </div>
                 </div>
 
                 <div class="kpi-grid">

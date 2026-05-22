@@ -259,6 +259,129 @@ const ADMIN_UID = "Ogy9lUbGHbSu8wYIYx2gQsTtFDF2";
             };
             reader.readAsText(file);
         };
+
+        const excelDatasets = {
+            tickets: { sheet: 'Tickets', collection: 'reports', key: 'id', store: () => reports, type: 'rtdb' },
+            users: { sheet: 'Users', collection: 'users', key: 'uid', store: () => users, type: 'rtdb' },
+            requests: { sheet: 'Requests', collection: 'device_requests', key: 'id', store: () => requests, type: 'rtdb' },
+            assets: { sheet: 'Assets', collection: 'assets', key: 'id', store: () => assets, type: 'firestore' },
+            vendors: { sheet: 'Vendors', collection: 'vendors', key: 'id', store: () => vendors, type: 'firestore' },
+            announcements: { sheet: 'Announcements', collection: 'announcements', key: 'key', store: () => announcements, type: 'rtdb' }
+        };
+        const excelFileName = (scope='all') => `zeppelin_help_${scope}_${new Date().toISOString().slice(0,10)}.xlsx`;
+        const stringifyForExcel = (val) => {
+            if (val === undefined || val === null) return '';
+            if (typeof val === 'object') return JSON.stringify(val);
+            return val;
+        };
+        const normalizeForExcel = (rows) => rows.map(row => {
+            const clean = {};
+            Object.keys(row || {}).sort().forEach(k => clean[k] = stringifyForExcel(row[k]));
+            return clean;
+        });
+        const autoSizeSheet = (ws, rows) => {
+            const headers = rows.length ? Object.keys(rows[0]) : [];
+            ws['!cols'] = headers.map(h => ({ wch: Math.min(45, Math.max(12, h.length + 4, ...rows.map(r => String(r[h] ?? '').length).slice(0, 200))) }));
+            if (ws['!ref']) ws['!autofilter'] = { ref: ws['!ref'] };
+        };
+        const addSheet = (wb, cfg) => {
+            const rows = normalizeForExcel(cfg.store());
+            const safeRows = rows.length ? rows : [{ [cfg.key]: '', note: 'Belum ada data' }];
+            const ws = XLSX.utils.json_to_sheet(safeRows);
+            autoSizeSheet(ws, safeRows);
+            XLSX.utils.book_append_sheet(wb, ws, cfg.sheet);
+        };
+        window.exportExcelSheet = (scope) => {
+            if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+            const cfg = excelDatasets[scope];
+            if (!cfg) return alert('Dataset tidak dikenal.');
+            const wb = XLSX.utils.book_new();
+            addSheet(wb, cfg);
+            XLSX.writeFile(wb, excelFileName(scope));
+            showToast(`Excel ${cfg.sheet} berhasil dibuat`);
+        };
+        window.exportAllExcel = () => {
+            if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+            const wb = XLSX.utils.book_new();
+            Object.values(excelDatasets).forEach(cfg => addSheet(wb, cfg));
+            const info = XLSX.utils.aoa_to_sheet([
+                ['Zeppelin Help Excel Export'],
+                ['Domain', PUBLIC_WEB_DOMAIN],
+                ['Exported At', nowISO()],
+                ['Cara Upload Balik', 'Edit kolom yang diperlukan, jangan hapus kolom ID/uid/key. Upload file ini lewat tombol Upload Excel. Sistem akan merge/update data existing berdasarkan ID.']
+            ]);
+            XLSX.utils.book_append_sheet(wb, info, 'README');
+            XLSX.writeFile(wb, excelFileName('all_data'));
+            showToast('Excel semua data berhasil dibuat');
+        };
+        const parseMaybeJson = (v) => {
+            if (typeof v !== 'string') return v;
+            const t = v.trim();
+            if (!t) return '';
+            if ((t.startsWith('{') && t.endsWith('}')) || (t.startsWith('[') && t.endsWith(']'))) {
+                try { return JSON.parse(t); } catch (_) { return v; }
+            }
+            if (t === 'true') return true;
+            if (t === 'false') return false;
+            return v;
+        };
+        const cleanImportedRow = (row) => {
+            const out = {};
+            Object.entries(row || {}).forEach(([k,v]) => {
+                if (!k || k === 'note') return;
+                const value = parseMaybeJson(v);
+                if (value !== '') out[k] = value;
+            });
+            return out;
+        };
+        const chunk = (arr, size=400) => arr.reduce((acc, item, idx) => { const i = Math.floor(idx / size); (acc[i] ||= []).push(item); return acc; }, []);
+        const importDatasetRows = async (cfg, rows) => {
+            const cleaned = rows.map(cleanImportedRow).filter(r => r[cfg.key]);
+            if (!cleaned.length) return 0;
+            if (cfg.type === 'rtdb') {
+                for (const part of chunk(cleaned, 400)) {
+                    const updates = {};
+                    part.forEach(row => { updates[row[cfg.key]] = { ...row, imported_at: nowISO() }; });
+                    await db.ref(cfg.collection).update(updates);
+                }
+            } else {
+                for (const part of chunk(cleaned, 400)) {
+                    const batch = firestore.batch();
+                    part.forEach(row => batch.set(firestore.collection(cfg.collection).doc(String(row[cfg.key])), { ...row, imported_at: nowISO() }, { merge: true }));
+                    await batch.commit();
+                }
+            }
+            return cleaned.length;
+        };
+        window.importExcelWorkbook = async (file) => {
+            if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+            if (!file) return;
+            if (!confirm('Upload Excel akan mengupdate/merge data existing berdasarkan ID/uid/key. Data yang tidak ada di Excel tidak akan dihapus. Lanjut?')) return;
+            showLoading();
+            try {
+                const buffer = await file.arrayBuffer();
+                const wb = XLSX.read(buffer, { type: 'array' });
+                const result = [];
+                for (const cfg of Object.values(excelDatasets)) {
+                    const sheetName = wb.SheetNames.find(n => n.toLowerCase() === cfg.sheet.toLowerCase());
+                    if (!sheetName) continue;
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+                    const count = await importDatasetRows(cfg, rows);
+                    if (count) result.push(`${cfg.sheet}: ${count}`);
+                }
+                if (!result.length) throw new Error('Sheet tidak valid. Gunakan template hasil export dari sistem.');
+                showToast(`Import Excel selesai (${result.join(', ')})`);
+            } catch (err) {
+                alert('Import Excel gagal: ' + err.message);
+            } finally {
+                hideLoading();
+                $('#excelImportFile').value = '';
+            }
+        };
+        $('#excelExportAllBtn').onclick = window.exportAllExcel;
+        $('#excelImportAllBtn').onclick = () => $('#excelImportFile').click();
+        $('#excelImportFile').onchange = (e) => window.importExcelWorkbook(e.target.files[0]);
+
         db.ref('reports').on('value', snap => { reports = snap.val() ? Object.keys(snap.val()).map(k => ({...snap.val()[k], id: k})) : []; renderTickets(); renderStats(); renderCharts(); });
         db.ref('announcements').on('value', snap => { announcements = snap.val() ? Object.keys(snap.val()).map(k => ({...snap.val()[k], key: k})) : []; renderAnnouncements(); });
         

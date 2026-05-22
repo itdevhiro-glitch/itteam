@@ -69,6 +69,12 @@ dayjs.extend(window.dayjs_plugin_relativeTime);
             updateDashboardData();
             if(activeId) loadTimeline(reports.find(r => r.id === activeId));
         });
+
+        const importInput = document.getElementById('ticketExcelImport');
+        if (importInput && !importInput.dataset.bound) {
+            importInput.dataset.bound = '1';
+            importInput.addEventListener('change', e => importTicketsExcel(e.target.files[0]));
+        }
         setTimeout(renderCharts, 500);
     }
 
@@ -294,3 +300,65 @@ dayjs.extend(window.dayjs_plugin_relativeTime);
             options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: {position:'right'} } }
         });
     }
+
+
+    const cleanExcelValue = (v) => {
+        if (v === undefined || v === null) return '';
+        if (typeof v !== 'string') return v;
+        const t = v.trim();
+        if (!t) return '';
+        if (t === 'true') return true;
+        if (t === 'false') return false;
+        if ((t.startsWith('{') && t.endsWith('}')) || (t.startsWith('[') && t.endsWith(']'))) {
+            try { return JSON.parse(t); } catch (_) { return v; }
+        }
+        return v;
+    };
+    const normalizeExcelRow = (row) => {
+        const out = {};
+        Object.entries(row || {}).forEach(([k,v]) => {
+            if (!k || k === 'note') return;
+            const val = cleanExcelValue(v);
+            if (val !== '') out[k] = val;
+        });
+        return out;
+    };
+    window.exportTicketsExcel = () => {
+        if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+        const rows = reports.map(row => {
+            const out = {};
+            Object.keys(row || {}).sort().forEach(k => {
+                const v = row[k];
+                out[k] = (v && typeof v === 'object') ? JSON.stringify(v) : (v ?? '');
+            });
+            return out;
+        });
+        const wb = XLSX.utils.book_new();
+        const data = rows.length ? rows : [{ id: '', note: 'Belum ada tiket' }];
+        const ws = XLSX.utils.json_to_sheet(data);
+        ws['!cols'] = Object.keys(data[0]).map(h => ({ wch: Math.min(45, Math.max(12, h.length + 4, ...data.map(r => String(r[h] ?? '').length).slice(0,200))) }));
+        ws['!autofilter'] = ws['!ref'] ? { ref: ws['!ref'] } : undefined;
+        XLSX.utils.book_append_sheet(wb, ws, 'Tickets');
+        XLSX.writeFile(wb, `zeppelin_help_tickets_${new Date().toISOString().slice(0,10)}.xlsx`);
+    };
+    window.importTicketsExcel = async (file) => {
+        if (!file) return;
+        if (!window.XLSX) return alert('Library Excel belum termuat. Cek koneksi internet/CDN SheetJS.');
+        if (!confirm('Upload Excel akan update/merge tiket berdasarkan kolom id. Data yang tidak ada di Excel tidak akan dihapus. Lanjut?')) return;
+        try {
+            const buffer = await file.arrayBuffer();
+            const wb = XLSX.read(buffer, { type: 'array' });
+            const sheet = wb.SheetNames.find(n => n.toLowerCase() === 'tickets') || wb.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval: '' }).map(normalizeExcelRow).filter(r => r.id);
+            if (!rows.length) throw new Error('Tidak ada baris valid. Pastikan kolom id ada.');
+            const updates = {};
+            rows.forEach(row => updates[row.id] = { ...row, imported_at: new Date().toISOString() });
+            await db.ref('reports').update(updates);
+            alert(`Import selesai. ${rows.length} tiket berhasil diupdate/merge.`);
+        } catch (e) {
+            alert('Import gagal: ' + e.message);
+        } finally {
+            const input = document.getElementById('ticketExcelImport');
+            if (input) input.value = '';
+        }
+    };
